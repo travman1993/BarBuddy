@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WatchKit
 
 struct WatchQuickAddView: View {
     @EnvironmentObject private var drinkViewModel: WatchDrinkViewModel
@@ -13,49 +14,56 @@ struct WatchQuickAddView: View {
     @EnvironmentObject private var bacViewModel: WatchBACViewModel
     
     @State private var isAddingDrink = false
-    @State private var selectedType: DrinkType = .beer
+    @State private var showingSuccess = false
+    @State private var addedDrinkType: DrinkType?
     
     var body: some View {
-        NavigationView {
-            ScrollView {
+        ScrollView {
+            VStack(spacing: 12) {
+                Text("Quick Add")
+                    .font(.headline)
+                
+                // Quick add buttons
                 VStack(spacing: 12) {
-                    Text("Quick Add")
-                        .font(.headline)
-                    
-                    // Quick add buttons
-                    VStack(spacing: 12) {
-                        WatchQuickAddButton(type: .beer, onTap: addDrink)
-                        WatchQuickAddButton(type: .wine, onTap: addDrink)
-                        WatchQuickAddButton(type: .liquor, onTap: addDrink)
-                        WatchQuickAddButton(type: .cocktail, onTap: addDrink)
-                    }
-                    
-                    // Current BAC
-                    if bacViewModel.currentBAC.bac > 0 {
-                        VStack(spacing: 4) {
-                            Text("Current BAC: \(bacViewModel.currentBAC.bac.bacString)")
-                                .font(.caption)
-                            
-                            Text(bacViewModel.currentBAC.timeUntilLegalFormatted)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.top, 12)
-                    }
+                    WatchQuickAddButton(type: .beer, onTap: addDrink)
+                    WatchQuickAddButton(type: .wine, onTap: addDrink)
+                    WatchQuickAddButton(type: .liquor, onTap: addDrink)
+                    WatchQuickAddButton(type: .cocktail, onTap: addDrink)
                 }
-                .padding()
-                .disabled(isAddingDrink)
-                .overlay {
-                    if isAddingDrink {
-                        ProgressView("Adding...")
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(8)
+                
+                // Current BAC
+                if bacViewModel.currentBAC.bac > 0 {
+                    VStack(spacing: 4) {
+                        Text("Current BAC: \(bacViewModel.currentBAC.bac.bacString)")
+                            .font(.caption)
+                        
+                        Text(bacViewModel.currentBAC.timeUntilLegalFormatted)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
+                    .padding(.top, 12)
                 }
             }
-            .navigationTitle("Add Drink")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding()
+            .disabled(isAddingDrink)
+            .overlay {
+                if isAddingDrink {
+                    ProgressView("Adding...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .navigationTitle("Add Drink")
+        .alert("Drink Added", isPresented: $showingSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let type = addedDrinkType {
+                Text("\(type.defaultName) has been added.")
+            } else {
+                Text("Drink has been added.")
+            }
         }
     }
     
@@ -63,6 +71,7 @@ struct WatchQuickAddView: View {
         guard !isAddingDrink else { return }
         
         isAddingDrink = true
+        addedDrinkType = type
         
         Task {
             do {
@@ -75,12 +84,19 @@ struct WatchQuickAddView: View {
                 
                 // Show feedback
                 WKInterfaceDevice.current().play(.success)
+                
+                await MainActor.run {
+                    isAddingDrink = false
+                    showingSuccess = true
+                }
             } catch {
                 // Show error
                 WKInterfaceDevice.current().play(.failure)
+                
+                await MainActor.run {
+                    isAddingDrink = false
+                }
             }
-            
-            isAddingDrink = false
         }
     }
 }
@@ -111,12 +127,28 @@ struct WatchQuickAddButton: View {
         }
     }
 }
+struct WatchBACView_Previews: PreviewProvider {
+    static var previews: some View {
+        WatchBACView()
+            .environmentObject(WatchBACViewModel.preview)
+            .environmentObject(WatchUserViewModel.preview)
+    }
+}
 
 struct WatchQuickAddView_Previews: PreviewProvider {
     static var previews: some View {
         WatchQuickAddView()
-            .environmentObject(WatchDrinkViewModel())
-            .environmentObject(WatchUserViewModel())
-            .environmentObject(WatchBACViewModel())
+            .environmentObject(WatchDrinkViewModel.preview)
+            .environmentObject(WatchUserViewModel.preview)
+            .environmentObject(WatchBACViewModel.preview)
+    }
+}
+
+struct WatchMainView_Previews: PreviewProvider {
+    static var previews: some View {
+        WatchMainView()
+            .environmentObject(WatchBACViewModel.preview)
+            .environmentObject(WatchDrinkViewModel.preview)
+            .environmentObject(WatchUserViewModel.preview)
     }
 }

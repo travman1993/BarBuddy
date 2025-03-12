@@ -5,7 +5,9 @@
 //  Created by Travis Rodriguez on 3/11/25.
 //
 
+// BarBuddyWatchApp.swift - Update to fix potential issues
 import SwiftUI
+import WatchKit
 
 @main
 struct BarBuddyWatchApp: App {
@@ -37,67 +39,8 @@ struct BarBuddyWatchApp: App {
             }
         }
         
-        WKNotificationScene(controller: NotificationController.self, category: "BAC_CATEGORY")
-    }
-}
-
-// App delegate for handling background tasks
-class WatchAppDelegate: NSObject, WKApplicationDelegate {
-    func applicationDidFinishLaunching() {
-        // Schedule background refreshes
-        scheduleBackgroundRefreshes()
-    }
-    
-    func handle(_ backgroundTasks: Set<WKRefreshBackgroundTask>) {
-        for task in backgroundTasks {
-            if let refreshTask = task as? WKApplicationRefreshBackgroundTask {
-                // Schedule the next background refresh
-                scheduleBackgroundRefreshes()
-                
-                // Update complications
-                #if os(watchOS)
-                let server = CLKComplicationServer.sharedInstance()
-                for complication in server.activeComplications ?? [] {
-                    server.reloadTimeline(for: complication)
-                }
-                #endif
-            }
-            
-            // Mark task complete
-            task.setTaskCompletedWithSnapshot(false)
-        }
-    }
-    
-    private func scheduleBackgroundRefreshes() {
         #if os(watchOS)
-        let refreshDate = Date().addingTimeInterval(15 * 60) // Refresh every 15 minutes
-        WKExtension.shared().scheduleBackgroundRefresh(
-            withPreferredDate: refreshDate,
-            userInfo: nil
-        ) { error in
-            if let error = error {
-                print("Error scheduling background refresh: \(error)")
-            }
-        }
+        WKNotificationScene(controller: NotificationController.self, category: "BAC_CATEGORY")
         #endif
-    }
-}
-
-// Controller for handling notification interfaces
-class NotificationController: WKUserNotificationHostingController<NotificationView> {
-    override var body: NotificationView {
-        return NotificationView()
-    }
-    
-    override func willActivate() {
-        super.willActivate()
-    }
-    
-    override func didDeactivate() {
-        super.didDeactivate()
-    }
-    
-    override func didReceive(_ notification: UNNotification) {
-        // Extract notification content here if needed
     }
 }

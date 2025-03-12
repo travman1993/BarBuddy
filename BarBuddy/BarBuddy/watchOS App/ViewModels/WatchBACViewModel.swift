@@ -15,8 +15,16 @@ class WatchBACViewModel: ObservableObject {
     @Published var isCalculating = false
     @Published var error: String?
     
+    // Timer for auto-refreshing BAC
+    private var refreshTimer: Timer?
+    
     init() {
         loadSavedBAC()
+        setupRefreshTimer()
+    }
+    
+    deinit {
+        refreshTimer?.invalidate()
     }
     
     private func loadSavedBAC() {
@@ -30,6 +38,15 @@ class WatchBACViewModel: ObservableObject {
                 }
             } catch {
                 print("Error loading saved BAC: \(error)")
+            }
+        }
+    }
+    
+    private func setupRefreshTimer() {
+        // Update BAC calculation every 15 minutes
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 15 * 60, repeats: true) { [weak self] _ in
+            Task {
+                await self?.refreshBAC()
             }
         }
     }
@@ -74,6 +91,27 @@ class WatchBACViewModel: ObservableObject {
                 self.error = "Failed to calculate BAC: \(error.localizedDescription)"
                 isCalculating = false
             }
+        }
+    }
+    
+    // Get contributing drinks to current BAC
+    func getContributingDrinks(userId: String) async -> [Drink] {
+        do {
+            if currentBAC.drinkIds.isEmpty {
+                return []
+            }
+            
+            // Get all drinks from last 24 hours
+            let drinks = try await storageService.getDrinksInTimeRange(
+                userId: userId,
+                start: Date().addingTimeInterval(-24 * 60 * 60),
+                end: Date()
+            )
+            
+            // Filter to only drinks that are contributing to current BAC
+            return drinks.filter { currentBAC.drinkIds.contains($0.id) }
+        } catch {
+            return []
         }
     }
 }
