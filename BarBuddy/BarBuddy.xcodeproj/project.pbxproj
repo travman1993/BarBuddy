@@ -71,10 +71,53 @@
 		26528B042D81080900EE86B6 /* BarBuddyWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddyWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		26493A402D8244710098F43A /* Exceptions for "Shared" folder in "BarBuddyWatch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Extensions/Array+Extensions.swift",
+			);
+			target = 26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		26528B192D8109A700EE86B6 /* BarBuddy */ = {
+		264939922D8244710098F43A /* Config */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BarBuddy;
+			path = Config;
+			sourceTree = "<group>";
+		};
+		264939982D8244710098F43A /* Documentation */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Documentation;
+			sourceTree = "<group>";
+		};
+		264939E52D8244710098F43A /* iOS App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "iOS App";
+			sourceTree = "<group>";
+		};
+		264939E92D8244710098F43A /* Scripts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		26493A072D8244710098F43A /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				26493A402D8244710098F43A /* Exceptions for "Shared" folder in "BarBuddyWatch Watch App" target */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		26493A222D8244710098F43A /* Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		26493A3C2D8244710098F43A /* watchOS App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "watchOS App";
 			sourceTree = "<group>";
 		};
 		26528C812D81479000EE86B6 /* Preview Content */ = {
@@ -134,8 +177,14 @@
 			isa = PBXGroup;
 			children = (
 				26528C812D81479000EE86B6 /* Preview Content */,
-				26528B192D8109A700EE86B6 /* BarBuddy */,
 				26528AB92D8103F000EE86B6 /* Products */,
+				264939922D8244710098F43A /* Config */,
+				264939982D8244710098F43A /* Documentation */,
+				264939E52D8244710098F43A /* iOS App */,
+				264939E92D8244710098F43A /* Scripts */,
+				26493A072D8244710098F43A /* Shared */,
+				26493A222D8244710098F43A /* Tests */,
+				26493A3C2D8244710098F43A /* watchOS App */,
 			);
 			sourceTree = "<group>";
 		};
