@@ -77,6 +77,11 @@
 			path = BarBuddy;
 			sourceTree = "<group>";
 		};
+		26528C812D81479000EE86B6 /* Preview Content */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +133,7 @@
 		26528AAF2D8103F000EE86B6 = {
 			isa = PBXGroup;
 			children = (
+				26528C812D81479000EE86B6 /* Preview Content */,
 				26528B192D8109A700EE86B6 /* BarBuddy */,
 				26528AB92D8103F000EE86B6 /* Products */,
 			);
