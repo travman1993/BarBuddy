@@ -71,43 +71,10 @@
 		26528B042D81080900EE86B6 /* BarBuddyWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddyWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		26493A402D8244710098F43A /* Exceptions for "Shared" folder in "BarBuddyWatch Watch App" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Extensions/Array+Extensions.swift",
-			);
-			target = 26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		264939922D8244710098F43A /* Config */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Config;
-			sourceTree = "<group>";
-		};
-		264939982D8244710098F43A /* Documentation */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Documentation;
-			sourceTree = "<group>";
-		};
-		264939E52D8244710098F43A /* iOS App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "iOS App";
-			sourceTree = "<group>";
-		};
 		264939E92D8244710098F43A /* Scripts */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Scripts;
-			sourceTree = "<group>";
-		};
-		26493A072D8244710098F43A /* Shared */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				26493A402D8244710098F43A /* Exceptions for "Shared" folder in "BarBuddyWatch Watch App" target */,
-			);
-			path = Shared;
 			sourceTree = "<group>";
 		};
 		26493A222D8244710098F43A /* Tests */ = {
@@ -115,14 +82,9 @@
 			path = Tests;
 			sourceTree = "<group>";
 		};
-		26493A3C2D8244710098F43A /* watchOS App */ = {
+		26493A432D8249470098F43A /* BarBuddy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "watchOS App";
-			sourceTree = "<group>";
-		};
-		26528C812D81479000EE86B6 /* Preview Content */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Preview Content";
+			path = BarBuddy;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -176,15 +138,10 @@
 		26528AAF2D8103F000EE86B6 = {
 			isa = PBXGroup;
 			children = (
-				26528C812D81479000EE86B6 /* Preview Content */,
+				26493A432D8249470098F43A /* BarBuddy */,
 				26528AB92D8103F000EE86B6 /* Products */,
-				264939922D8244710098F43A /* Config */,
-				264939982D8244710098F43A /* Documentation */,
-				264939E52D8244710098F43A /* iOS App */,
 				264939E92D8244710098F43A /* Scripts */,
-				26493A072D8244710098F43A /* Shared */,
 				26493A222D8244710098F43A /* Tests */,
-				26493A3C2D8244710098F43A /* watchOS App */,
 			);
 			sourceTree = "<group>";
 		};
@@ -627,10 +584,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/iOS App/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BarBuddy/Info.plist;
+				INFOPLIST_FILE = BarBuddy/Config/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -656,10 +613,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/iOS App/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BarBuddy/Info.plist;
+				INFOPLIST_FILE = BarBuddy/Config/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -753,9 +710,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BarBuddyWatch Watch App/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/watchOS App/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "\"BarBuddy/Config/Info.plist\"";
 				INFOPLIST_KEY_CFBundleDisplayName = BarBuddyWatch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
@@ -782,9 +740,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BarBuddyWatch Watch App/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/watchOS App/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "\"BarBuddy/Config/Info.plist\"";
 				INFOPLIST_KEY_CFBundleDisplayName = BarBuddyWatch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
