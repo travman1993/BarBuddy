@@ -1,3 +1,10 @@
+//
+//  DrinkLogView.swift
+//  BarBuddy
+//
+//  Created by Travis Rodriguez on 3/12/25.
+//
+
 import SwiftUI
 
 struct DrinkLogView: View {
@@ -41,7 +48,7 @@ struct DrinkLogView: View {
                         
                         Spacer()
                         
-                        NavigationLink(destination: HistoryView()) {
+                        NavigationLink(destination: DrinkHistoryView()) {
                             Text("See All")
                                 .font(.subheadline)
                                 .foregroundColor(.blue)
