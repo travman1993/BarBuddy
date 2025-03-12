@@ -1,0 +1,895 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		26528B0E2D81080900EE86B6 /* BarBuddyWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 26528AEB2D81080700EE86B6 /* BarBuddyWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		26528AC92D8103F100EE86B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26528AB02D8103F000EE86B6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26528AB72D8103F000EE86B6;
+			remoteInfo = BarBuddy;
+		};
+		26528AD32D8103F100EE86B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26528AB02D8103F000EE86B6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26528AB72D8103F000EE86B6;
+			remoteInfo = BarBuddy;
+		};
+		26528AFB2D81080900EE86B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26528AB02D8103F000EE86B6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26528AEA2D81080700EE86B6;
+			remoteInfo = "BarBuddyWatch Watch App";
+		};
+		26528B052D81080900EE86B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26528AB02D8103F000EE86B6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26528AEA2D81080700EE86B6;
+			remoteInfo = "BarBuddyWatch Watch App";
+		};
+		26528B0C2D81080900EE86B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26528AB02D8103F000EE86B6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26528AEA2D81080700EE86B6;
+			remoteInfo = "BarBuddyWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		26528B122D81080900EE86B6 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				26528B0E2D81080900EE86B6 /* BarBuddyWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		26528AB82D8103F000EE86B6 /* BarBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		26528AC82D8103F100EE86B6 /* BarBuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		26528AD22D8103F100EE86B6 /* BarBuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		26528AEB2D81080700EE86B6 /* BarBuddyWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BarBuddyWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		26528AFA2D81080900EE86B6 /* BarBuddyWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddyWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		26528B042D81080900EE86B6 /* BarBuddyWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddyWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		26528B192D8109A700EE86B6 /* BarBuddy */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BarBuddy;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		26528AB52D8103F000EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AC52D8103F100EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528ACF2D8103F100EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AE82D81080700EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AF72D81080900EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528B012D81080900EE86B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		26528AAF2D8103F000EE86B6 = {
+			isa = PBXGroup;
+			children = (
+				26528B192D8109A700EE86B6 /* BarBuddy */,
+				26528AB92D8103F000EE86B6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		26528AB92D8103F000EE86B6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				26528AB82D8103F000EE86B6 /* BarBuddy.app */,
+				26528AC82D8103F100EE86B6 /* BarBuddyTests.xctest */,
+				26528AD22D8103F100EE86B6 /* BarBuddyUITests.xctest */,
+				26528AEB2D81080700EE86B6 /* BarBuddyWatch Watch App.app */,
+				26528AFA2D81080900EE86B6 /* BarBuddyWatch Watch AppTests.xctest */,
+				26528B042D81080900EE86B6 /* BarBuddyWatch Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		26528AB72D8103F000EE86B6 /* BarBuddy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528ADC2D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddy" */;
+			buildPhases = (
+				26528AB42D8103F000EE86B6 /* Sources */,
+				26528AB52D8103F000EE86B6 /* Frameworks */,
+				26528AB62D8103F000EE86B6 /* Resources */,
+				26528B122D81080900EE86B6 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				26528B0D2D81080900EE86B6 /* PBXTargetDependency */,
+			);
+			name = BarBuddy;
+			packageProductDependencies = (
+			);
+			productName = BarBuddy;
+			productReference = 26528AB82D8103F000EE86B6 /* BarBuddy.app */;
+			productType = "com.apple.product-type.application";
+		};
+		26528AC72D8103F100EE86B6 /* BarBuddyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528ADF2D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyTests" */;
+			buildPhases = (
+				26528AC42D8103F100EE86B6 /* Sources */,
+				26528AC52D8103F100EE86B6 /* Frameworks */,
+				26528AC62D8103F100EE86B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				26528ACA2D8103F100EE86B6 /* PBXTargetDependency */,
+			);
+			name = BarBuddyTests;
+			packageProductDependencies = (
+			);
+			productName = BarBuddyTests;
+			productReference = 26528AC82D8103F100EE86B6 /* BarBuddyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		26528AD12D8103F100EE86B6 /* BarBuddyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528AE22D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyUITests" */;
+			buildPhases = (
+				26528ACE2D8103F100EE86B6 /* Sources */,
+				26528ACF2D8103F100EE86B6 /* Frameworks */,
+				26528AD02D8103F100EE86B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				26528AD42D8103F100EE86B6 /* PBXTargetDependency */,
+			);
+			name = BarBuddyUITests;
+			packageProductDependencies = (
+			);
+			productName = BarBuddyUITests;
+			productReference = 26528AD22D8103F100EE86B6 /* BarBuddyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528B0F2D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch App" */;
+			buildPhases = (
+				26528AE72D81080700EE86B6 /* Sources */,
+				26528AE82D81080700EE86B6 /* Frameworks */,
+				26528AE92D81080700EE86B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "BarBuddyWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddyWatch Watch App";
+			productReference = 26528AEB2D81080700EE86B6 /* BarBuddyWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		26528AF92D81080900EE86B6 /* BarBuddyWatch Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528B132D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch AppTests" */;
+			buildPhases = (
+				26528AF62D81080900EE86B6 /* Sources */,
+				26528AF72D81080900EE86B6 /* Frameworks */,
+				26528AF82D81080900EE86B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				26528AFC2D81080900EE86B6 /* PBXTargetDependency */,
+			);
+			name = "BarBuddyWatch Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddyWatch Watch AppTests";
+			productReference = 26528AFA2D81080900EE86B6 /* BarBuddyWatch Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		26528B032D81080900EE86B6 /* BarBuddyWatch Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26528B162D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch AppUITests" */;
+			buildPhases = (
+				26528B002D81080900EE86B6 /* Sources */,
+				26528B012D81080900EE86B6 /* Frameworks */,
+				26528B022D81080900EE86B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				26528B062D81080900EE86B6 /* PBXTargetDependency */,
+			);
+			name = "BarBuddyWatch Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddyWatch Watch AppUITests";
+			productReference = 26528B042D81080900EE86B6 /* BarBuddyWatch Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		26528AB02D8103F000EE86B6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					26528AB72D8103F000EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					26528AC72D8103F100EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 26528AB72D8103F000EE86B6;
+					};
+					26528AD12D8103F100EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 26528AB72D8103F000EE86B6;
+					};
+					26528AEA2D81080700EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					26528AF92D81080900EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 26528AEA2D81080700EE86B6;
+					};
+					26528B032D81080900EE86B6 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 26528AEA2D81080700EE86B6;
+					};
+				};
+			};
+			buildConfigurationList = 26528AB32D8103F000EE86B6 /* Build configuration list for PBXProject "BarBuddy" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 26528AAF2D8103F000EE86B6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 26528AB92D8103F000EE86B6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				26528AB72D8103F000EE86B6 /* BarBuddy */,
+				26528AC72D8103F100EE86B6 /* BarBuddyTests */,
+				26528AD12D8103F100EE86B6 /* BarBuddyUITests */,
+				26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */,
+				26528AF92D81080900EE86B6 /* BarBuddyWatch Watch AppTests */,
+				26528B032D81080900EE86B6 /* BarBuddyWatch Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		26528AB62D8103F000EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AC62D8103F100EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AD02D8103F100EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AE92D81080700EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AF82D81080900EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528B022D81080900EE86B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		26528AB42D8103F000EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AC42D8103F100EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528ACE2D8103F100EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AE72D81080700EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528AF62D81080900EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26528B002D81080900EE86B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		26528ACA2D8103F100EE86B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26528AB72D8103F000EE86B6 /* BarBuddy */;
+			targetProxy = 26528AC92D8103F100EE86B6 /* PBXContainerItemProxy */;
+		};
+		26528AD42D8103F100EE86B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26528AB72D8103F000EE86B6 /* BarBuddy */;
+			targetProxy = 26528AD32D8103F100EE86B6 /* PBXContainerItemProxy */;
+		};
+		26528AFC2D81080900EE86B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */;
+			targetProxy = 26528AFB2D81080900EE86B6 /* PBXContainerItemProxy */;
+		};
+		26528B062D81080900EE86B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */;
+			targetProxy = 26528B052D81080900EE86B6 /* PBXContainerItemProxy */;
+		};
+		26528B0D2D81080900EE86B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26528AEA2D81080700EE86B6 /* BarBuddyWatch Watch App */;
+			targetProxy = 26528B0C2D81080900EE86B6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		26528ADA2D8103F100EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		26528ADB2D8103F100EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		26528ADD2D8103F100EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BarBuddy/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		26528ADE2D8103F100EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BarBuddy/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		26528AE02D8103F100EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddy";
+			};
+			name = Debug;
+		};
+		26528AE12D8103F100EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddy";
+			};
+			name = Release;
+		};
+		26528AE32D8103F100EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BarBuddy;
+			};
+			name = Debug;
+		};
+		26528AE42D8103F100EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BarBuddy;
+			};
+			name = Release;
+		};
+		26528B102D81080900EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddyWatch Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BarBuddyWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		26528B112D81080900EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddyWatch Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BarBuddyWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		26528B142D81080900EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddyWatch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddyWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddyWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		26528B152D81080900EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddyWatch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddyWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddyWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		26528B172D81080900EE86B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddyWatch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "BarBuddyWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		26528B182D81080900EE86B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddyWatch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "BarBuddyWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		26528AB32D8103F000EE86B6 /* Build configuration list for PBXProject "BarBuddy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528ADA2D8103F100EE86B6 /* Debug */,
+				26528ADB2D8103F100EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528ADC2D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528ADD2D8103F100EE86B6 /* Debug */,
+				26528ADE2D8103F100EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528ADF2D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528AE02D8103F100EE86B6 /* Debug */,
+				26528AE12D8103F100EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528AE22D8103F100EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528AE32D8103F100EE86B6 /* Debug */,
+				26528AE42D8103F100EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528B0F2D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528B102D81080900EE86B6 /* Debug */,
+				26528B112D81080900EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528B132D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528B142D81080900EE86B6 /* Debug */,
+				26528B152D81080900EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26528B162D81080900EE86B6 /* Build configuration list for PBXNativeTarget "BarBuddyWatch Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26528B172D81080900EE86B6 /* Debug */,
+				26528B182D81080900EE86B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 26528AB02D8103F000EE86B6 /* Project object */;
+}
