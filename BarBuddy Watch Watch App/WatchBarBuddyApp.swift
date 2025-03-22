@@ -7,7 +7,6 @@
 import SwiftUI
 import WatchConnectivity
 
-@main
 struct BarBuddyWatchApp: App {
     @StateObject private var sessionManager = WatchSessionManager.shared
     
