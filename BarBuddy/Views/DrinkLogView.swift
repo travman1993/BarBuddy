@@ -152,10 +152,11 @@ struct CustomDrinkView: View {
                             Text("\(type.icon) \(type.rawValue)").tag(type)
                         }
                     }
-                    .onChange(of: selectedDrinkType) { newValue in
+                    // Fixed onChange for iOS 17.0+ compatibility
+                    .onChange(of: selectedDrinkType) {
                         // Update default values when drink type changes
-                        size = newValue.defaultSize
-                        alcoholPercentage = newValue.defaultAlcoholPercentage
+                        size = selectedDrinkType.defaultSize
+                        alcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
                     }
                 }
                 

@@ -30,7 +30,8 @@ struct SettingsView: View {
                             .frame(width: 70, alignment: .leading)
                         
                         Slider(value: $weight, in: 80...400, step: 1)
-                            .onChange(of: weight) { _, _ in
+                            // Fixed onChange syntax for iOS 17.0+
+                            .onChange(of: weight) {
                                 // Update user profile when weight changes
                                 updateUserProfile()
                             }
@@ -42,7 +43,8 @@ struct SettingsView: View {
                     Text("Female").tag(Gender.female)
                 }
                 .pickerStyle(SegmentedPickerStyle())
-                .onChange(of: gender) { _, _ in
+                // Fixed onChange syntax for iOS 17.0+
+                .onChange(of: gender) {
                     // Update user profile when gender changes
                     updateUserProfile()
                 }

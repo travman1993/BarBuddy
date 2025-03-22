@@ -159,11 +159,17 @@ public enum SafetyStatus: String, Codable, Hashable {
     }
 }
 
-// Friend model for sharing
-public struct Friend: Identifiable, Equatable, Hashable {
+// Contact model for sharing - renamed to avoid conflict with ShareView
+public struct Contact: Identifiable, Equatable, Hashable {
     public let id: String
     public let name: String
     public let phone: String
+    
+    public init(id: String, name: String, phone: String) {
+        self.id = id
+        self.name = name
+        self.phone = phone
+    }
     
     public var initials: String {
         let components = name.components(separatedBy: " ")
@@ -177,7 +183,7 @@ public struct Friend: Identifiable, Equatable, Hashable {
         return "?"
     }
     
-    public static func == (lhs: Friend, rhs: Friend) -> Bool {
+    public static func == (lhs: Contact, rhs: Contact) -> Bool {
         return lhs.id == rhs.id
     }
 }

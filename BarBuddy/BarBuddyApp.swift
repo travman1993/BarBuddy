@@ -16,21 +16,39 @@ struct BarBuddyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if showingDisclaimerOnLaunch {
-                LaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
-            } else if !hasCompletedPurchase {
-                PurchaseView(hasCompletedPurchase: $hasCompletedPurchase)
-            } else {
-                ContentView()
-                    .environmentObject(drinkTracker)
-                    .onAppear {
-                        // Set up app when it appears
-                        setupAppConfiguration()
-                        
-                        // For watchOS communication, sync current BAC
-                        syncBACToWatch()
-                    }
+            Group {
+                if showingDisclaimerOnLaunch {
+                    LaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
+                } else if !hasCompletedPurchase {
+                    PurchaseView(hasCompletedPurchase: $hasCompletedPurchase)
+                } else {
+                    ContentView()
+                        .environmentObject(drinkTracker)
+                        .onAppear {
+                            // Set up app when it appears
+                            setupAppConfiguration()
+                            
+                            // For watchOS communication, sync current BAC
+                            syncBACToWatch()
+                        }
+                }
             }
+            // This modifier avoids the issue with buildExpression
+            .onAppear {
+                // Initial setup code
+                checkIfFirstLaunch()
+            }
+        }
+    }
+    
+    private func checkIfFirstLaunch() {
+        // First launch check
+        if !UserDefaults.standard.bool(forKey: "hasLaunchedBefore") {
+            showingDisclaimerOnLaunch = true
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+        } else {
+            // Not first launch, check disclaimer status
+            showingDisclaimerOnLaunch = !UserDefaults.standard.bool(forKey: "hasSeenDisclaimer")
         }
     }
     
@@ -267,7 +285,14 @@ struct FeatureRow: View {
     }
 }
 
-// Preview for SwiftUI Previews
-#Preview {
-    BarBuddyApp()
+// Instead of trying to preview the App struct directly,
+// create a separate preview for each main view component
+#Preview("Disclaimer View") {
+    LaunchDisclaimerView(isPresented: .constant(true))
 }
+
+#Preview("Purchase View") {
+    PurchaseView(hasCompletedPurchase: .constant(false))
+}
+
+// Main content preview is already in ContentView.swift

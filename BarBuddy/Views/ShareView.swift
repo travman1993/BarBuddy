@@ -8,18 +8,18 @@ import SwiftUI
 
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
-    @State private var selectedFriends: [Friend] = []
+    @State private var selectedContacts: [Contact] = []
     @State private var customMessage: String = "Here's my current BAC."
     @State private var shareExpiration: Double = 2.0 // Hours
     @State private var isSharing: Bool = false
     @State private var activeShares: [BACShare] = [] // This would be stored/synced in a real app
     
-    // Sample friends list (would be fetched from contacts or user's friends list)
-    let friends: [Friend] = [
-        Friend(id: "1", name: "Alex Smith", phone: "555-123-4567"),
-        Friend(id: "2", name: "Jordan Taylor", phone: "555-987-6543"),
-        Friend(id: "3", name: "Casey Johnson", phone: "555-456-7890"),
-        Friend(id: "4", name: "Morgan Lee", phone: "555-789-0123")
+    // Sample contacts list (would be fetched from contacts or user's friends list)
+    let contacts: [Contact] = [
+        Contact(id: "1", name: "Alex Smith", phone: "555-123-4567"),
+        Contact(id: "2", name: "Jordan Taylor", phone: "555-987-6543"),
+        Contact(id: "3", name: "Casey Johnson", phone: "555-456-7890"),
+        Contact(id: "4", name: "Morgan Lee", phone: "555-789-0123")
     ]
     
     // Pre-defined message templates
@@ -32,48 +32,46 @@ struct ShareView: View {
     ]
     
     var body: some View {
-        NavigationView {
-            VStack {
-                if drinkTracker.currentBAC <= 0.0 {
-                    // No BAC to share
-                    EmptyStateView()
-                } else {
-                    // BAC available to share
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            // Current BAC display
-                            CurrentBACView(bac: drinkTracker.currentBAC)
-                            
-                            // Active shares
-                            if !activeShares.isEmpty {
-                                ActiveSharesView(shares: activeShares)
-                            }
-                            
-                            // Share options
-                            ShareOptionsView(
-                                friends: friends,
-                                selectedFriends: $selectedFriends,
-                                customMessage: $customMessage,
-                                messageTemplates: messageTemplates,
-                                shareExpiration: $shareExpiration
-                            )
-                            
-                            // Share button
-                            ShareButton(
-                                isEnabled: !selectedFriends.isEmpty,
-                                action: shareBAC
-                            )
+        VStack {
+            if drinkTracker.currentBAC <= 0.0 {
+                // No BAC to share
+                EmptyStateView()
+            } else {
+                // BAC available to share
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Current BAC display
+                        CurrentBACView(bac: drinkTracker.currentBAC)
+                        
+                        // Active shares
+                        if !activeShares.isEmpty {
+                            ActiveSharesView(shares: activeShares)
                         }
-                        .padding()
+                        
+                        // Share options
+                        ShareOptionsView(
+                            contacts: contacts,
+                            selectedContacts: $selectedContacts,
+                            customMessage: $customMessage,
+                            messageTemplates: messageTemplates,
+                            shareExpiration: $shareExpiration
+                        )
+                        
+                        // Share button
+                        ShareButton(
+                            isEnabled: !selectedContacts.isEmpty,
+                            action: shareBAC
+                        )
                     }
+                    .padding()
                 }
             }
-            .navigationTitle("Share Status")
         }
+        .navigationTitle("Share Status")
     }
     
     private func shareBAC() {
-        guard !selectedFriends.isEmpty else { return }
+        guard !selectedContacts.isEmpty else { return }
         
         // Create a new BAC share
         let newShare = BACShare(
@@ -87,7 +85,7 @@ struct ShareView: View {
         activeShares.append(newShare)
         
         // Reset selection
-        selectedFriends = []
+        selectedContacts = []
         customMessage = "Here's my current BAC."
         
         // Confirmation feedback
@@ -222,8 +220,8 @@ struct ActiveSharesView: View {
 
 // Share options selector
 struct ShareOptionsView: View {
-    let friends: [Friend]
-    @Binding var selectedFriends: [Friend]
+    let contacts: [Contact]
+    @Binding var selectedContacts: [Contact]
     @Binding var customMessage: String
     let messageTemplates: [String]
     @Binding var shareExpiration: Double
@@ -235,12 +233,12 @@ struct ShareOptionsView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(friends) { friend in
-                        FriendSelectButton(
-                            friend: friend,
-                            isSelected: selectedFriends.contains { $0.id == friend.id },
+                    ForEach(contacts) { contact in
+                        ContactSelectButton(
+                            contact: contact,
+                            isSelected: selectedContacts.contains { $0.id == contact.id },
                             action: {
-                                toggleFriendSelection(friend)
+                                toggleContactSelection(contact)
                             }
                         )
                     }
@@ -301,11 +299,11 @@ struct ShareOptionsView: View {
         .cornerRadius(12)
     }
     
-    private func toggleFriendSelection(_ friend: Friend) {
-        if let index = selectedFriends.firstIndex(where: { $0.id == friend.id }) {
-            selectedFriends.remove(at: index)
+    private func toggleContactSelection(_ contact: Contact) {
+        if let index = selectedContacts.firstIndex(where: { $0.id == contact.id }) {
+            selectedContacts.remove(at: index)
         } else {
-            selectedFriends.append(friend)
+            selectedContacts.append(contact)
         }
     }
     
@@ -317,9 +315,9 @@ struct ShareOptionsView: View {
     }
 }
 
-// Friend selection button
-struct FriendSelectButton: View {
-    let friend: Friend
+// Contact selection button
+struct ContactSelectButton: View {
+    let contact: Contact
     let isSelected: Bool
     let action: () -> Void
     
@@ -331,13 +329,13 @@ struct FriendSelectButton: View {
                         .fill(isSelected ? Color.blue : Color.gray.opacity(0.2))
                         .frame(width: 60, height: 60)
                     
-                    Text(friend.initials)
+                    Text(contact.initials)
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(isSelected ? .white : .primary)
                 }
                 
-                Text(friend.name.split(separator: " ").first ?? "")
+                Text(contact.name.split(separator: " ").first ?? "")
                     .font(.caption)
                     .foregroundColor(.primary)
             }
@@ -368,36 +366,9 @@ struct ShareButton: View {
     }
 }
 
-// Friend model
-struct Friend: Identifiable, Equatable {
-    let id: String
-    let name: String
-    let phone: String
-    
-    var initials: String {
-        let components = name.components(separatedBy: " ")
-        if components.count >= 2,
-           let first = components.first?.first,
-           let last = components.last?.first {
-            return String(first) + String(last)
-        } else if let first = components.first?.first {
-            return String(first)
-        }
-        return "?"
-    }
-    
-    static func == (lhs: Friend, rhs: Friend) -> Bool {
-        return lhs.id == rhs.id
-    }
-}
-
-struct ShareView_Previews: PreviewProvider {
-    static var previews: some View {
-        let drinkTracker = DrinkTracker()
-        // Add a test drink to have a non-zero BAC
-        drinkTracker.addDrink(type: .beer, size: 12, alcoholPercentage: 5)
-        
-        return ShareView()
-            .environmentObject(drinkTracker)
+#Preview {
+    NavigationView {
+        ShareView()
+            .environmentObject(DrinkTracker())
     }
 }
