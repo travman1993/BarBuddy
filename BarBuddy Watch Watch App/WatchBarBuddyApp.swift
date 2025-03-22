@@ -5,16 +5,17 @@
 //  Created by Travis Rodriguez on 3/21/25.
 //
 import SwiftUI
+import WatchConnectivity
 
 @main
 struct BarBuddyWatchApp: App {
-    @StateObject private var drinkTracker = DrinkTracker()
+    @StateObject private var sessionManager = WatchSessionManager.shared
     
     var body: some Scene {
         WindowGroup {
             NavigationView {
                 WatchContentView()
-                    .environmentObject(drinkTracker)
+                    .environmentObject(sessionManager)
             }
         }
     }

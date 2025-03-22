@@ -115,12 +115,16 @@ struct BarBuddyApp: App {
     }
     
     private func syncBACToWatch() {
-        // In a real app, this would use WatchConnectivity to sync data with the watch
-        // For now, we'll just use UserDefaults which can be accessed by the watch extension
+        // Send data via WatchConnectivity
+        WatchSessionManager.shared.sendBACDataToWatch(
+            bac: drinkTracker.currentBAC,
+            timeUntilSober: drinkTracker.timeUntilSober
+        )
+        
+        // Also keep UserDefaults for backward compatibility
         UserDefaults.standard.set(drinkTracker.currentBAC, forKey: "currentBAC")
         UserDefaults.standard.set(drinkTracker.timeUntilSober, forKey: "timeUntilSober")
     }
-}
 
 struct LaunchDisclaimerView: View {
     @Binding var isPresented: Bool

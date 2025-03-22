@@ -6,7 +6,32 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		261A85AA2D8F3353000ADA24 /* BarBuddy Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 261A85872D8F3351000ADA24 /* BarBuddy Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		261A85972D8F3353000ADA24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 263D10092D8E3433003D370E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 261A85862D8F3351000ADA24;
+			remoteInfo = "BarBuddy Watch Watch App";
+		};
+		261A85A12D8F3353000ADA24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 263D10092D8E3433003D370E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 261A85862D8F3351000ADA24;
+			remoteInfo = "BarBuddy Watch Watch App";
+		};
+		261A85A82D8F3353000ADA24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 263D10092D8E3433003D370E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 261A85862D8F3351000ADA24;
+			remoteInfo = "BarBuddy Watch Watch App";
+		};
 		263D10222D8E3435003D370E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 263D10092D8E3433003D370E /* Project object */;
@@ -23,15 +48,81 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		261A85AE2D8F3353000ADA24 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				261A85AA2D8F3353000ADA24 /* BarBuddy Watch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		261A85872D8F3351000ADA24 /* BarBuddy Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BarBuddy Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		261A85962D8F3353000ADA24 /* BarBuddy Watch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddy Watch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		261A85A02D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BarBuddy Watch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		263D10112D8E3433003D370E /* BarBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		263D10212D8E3435003D370E /* BarBuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		263D102B2D8E3435003D370E /* BarBuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		261A85B52D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ComplicationController.swift,
+				WatchBarBuddyApp.swift,
+			);
+			target = 263D10102D8E3433003D370E /* BarBuddy */;
+		};
+		261A85B62D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy Watch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ComplicationController.swift,
+				WatchBarBuddyApp.swift,
+			);
+			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
+		};
+		261A85B82D8F348F000ADA24 /* Exceptions for "BarBuddy" folder in "BarBuddy Watch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/DrinkTracker.swift,
+				Models/ModelStructures.swift,
+			);
+			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		261A85882D8F3351000ADA24 /* BarBuddy Watch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				261A85B52D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy" target */,
+				261A85B62D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy Watch Watch App" target */,
+			);
+			path = "BarBuddy Watch Watch App";
+			sourceTree = "<group>";
+		};
+		261A85992D8F3353000ADA24 /* BarBuddy Watch Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "BarBuddy Watch Watch AppTests";
+			sourceTree = "<group>";
+		};
+		261A85A32D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "BarBuddy Watch Watch AppUITests";
+			sourceTree = "<group>";
+		};
 		263D10132D8E3433003D370E /* BarBuddy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				261A85B82D8F348F000ADA24 /* Exceptions for "BarBuddy" folder in "BarBuddy Watch Watch App" target */,
+			);
 			path = BarBuddy;
 			sourceTree = "<group>";
 		};
@@ -48,6 +139,27 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		261A85842D8F3351000ADA24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A85932D8F3353000ADA24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A859D2D8F3353000ADA24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		263D100E2D8E3433003D370E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -78,6 +190,9 @@
 				263D10132D8E3433003D370E /* BarBuddy */,
 				263D10242D8E3435003D370E /* BarBuddyTests */,
 				263D102E2D8E3435003D370E /* BarBuddyUITests */,
+				261A85882D8F3351000ADA24 /* BarBuddy Watch Watch App */,
+				261A85992D8F3353000ADA24 /* BarBuddy Watch Watch AppTests */,
+				261A85A32D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests */,
 				263D10122D8E3433003D370E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +203,9 @@
 				263D10112D8E3433003D370E /* BarBuddy.app */,
 				263D10212D8E3435003D370E /* BarBuddyTests.xctest */,
 				263D102B2D8E3435003D370E /* BarBuddyUITests.xctest */,
+				261A85872D8F3351000ADA24 /* BarBuddy Watch Watch App.app */,
+				261A85962D8F3353000ADA24 /* BarBuddy Watch Watch AppTests.xctest */,
+				261A85A02D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +213,74 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 261A85AB2D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch App" */;
+			buildPhases = (
+				261A85832D8F3351000ADA24 /* Sources */,
+				261A85842D8F3351000ADA24 /* Frameworks */,
+				261A85852D8F3351000ADA24 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				261A85882D8F3351000ADA24 /* BarBuddy Watch Watch App */,
+			);
+			name = "BarBuddy Watch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddy Watch Watch App";
+			productReference = 261A85872D8F3351000ADA24 /* BarBuddy Watch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		261A85952D8F3353000ADA24 /* BarBuddy Watch Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 261A85AF2D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch AppTests" */;
+			buildPhases = (
+				261A85922D8F3353000ADA24 /* Sources */,
+				261A85932D8F3353000ADA24 /* Frameworks */,
+				261A85942D8F3353000ADA24 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				261A85982D8F3353000ADA24 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				261A85992D8F3353000ADA24 /* BarBuddy Watch Watch AppTests */,
+			);
+			name = "BarBuddy Watch Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddy Watch Watch AppTests";
+			productReference = 261A85962D8F3353000ADA24 /* BarBuddy Watch Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		261A859F2D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 261A85B22D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch AppUITests" */;
+			buildPhases = (
+				261A859C2D8F3353000ADA24 /* Sources */,
+				261A859D2D8F3353000ADA24 /* Frameworks */,
+				261A859E2D8F3353000ADA24 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				261A85A22D8F3353000ADA24 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				261A85A32D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests */,
+			);
+			name = "BarBuddy Watch Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "BarBuddy Watch Watch AppUITests";
+			productReference = 261A85A02D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		263D10102D8E3433003D370E /* BarBuddy */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 263D10352D8E3435003D370E /* Build configuration list for PBXNativeTarget "BarBuddy" */;
@@ -102,10 +288,12 @@
 				263D100D2D8E3433003D370E /* Sources */,
 				263D100E2D8E3433003D370E /* Frameworks */,
 				263D100F2D8E3433003D370E /* Resources */,
+				261A85AE2D8F3353000ADA24 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				261A85A92D8F3353000ADA24 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				263D10132D8E3433003D370E /* BarBuddy */,
@@ -173,6 +361,17 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					261A85862D8F3351000ADA24 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					261A85952D8F3353000ADA24 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 261A85862D8F3351000ADA24;
+					};
+					261A859F2D8F3353000ADA24 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 261A85862D8F3351000ADA24;
+					};
 					263D10102D8E3433003D370E = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -203,11 +402,35 @@
 				263D10102D8E3433003D370E /* BarBuddy */,
 				263D10202D8E3435003D370E /* BarBuddyTests */,
 				263D102A2D8E3435003D370E /* BarBuddyUITests */,
+				261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */,
+				261A85952D8F3353000ADA24 /* BarBuddy Watch Watch AppTests */,
+				261A859F2D8F3353000ADA24 /* BarBuddy Watch Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		261A85852D8F3351000ADA24 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A85942D8F3353000ADA24 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A859E2D8F3353000ADA24 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		263D100F2D8E3433003D370E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -232,6 +455,27 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		261A85832D8F3351000ADA24 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A85922D8F3353000ADA24 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		261A859C2D8F3353000ADA24 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		263D100D2D8E3433003D370E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -256,6 +500,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		261A85982D8F3353000ADA24 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
+			targetProxy = 261A85972D8F3353000ADA24 /* PBXContainerItemProxy */;
+		};
+		261A85A22D8F3353000ADA24 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
+			targetProxy = 261A85A12D8F3353000ADA24 /* PBXContainerItemProxy */;
+		};
+		261A85A92D8F3353000ADA24 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
+			targetProxy = 261A85A82D8F3353000ADA24 /* PBXContainerItemProxy */;
+		};
 		263D10232D8E3435003D370E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 263D10102D8E3433003D370E /* BarBuddy */;
@@ -269,6 +528,144 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		261A85AC2D8F3353000ADA24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "BarBuddy Watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		261A85AD2D8F3353000ADA24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BarBuddy Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "BarBuddy Watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = rodriguez.travis.BarBuddy;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rodriguez.travis.BarBuddy.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		261A85B02D8F3353000ADA24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddy.watchapp.BarBuddy-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddy Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddy Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		261A85B12D8F3353000ADA24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddy.watchapp.BarBuddy-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarBuddy Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarBuddy Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		261A85B32D8F3353000ADA24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddy.watchapp.BarBuddy-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "BarBuddy Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		261A85B42D8F3353000ADA24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UQNHPS9NWL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "rodriguez.travis.BarBuddy.watchapp.BarBuddy-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "BarBuddy Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
 		263D10332D8E3435003D370E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -399,11 +796,12 @@
 				DEVELOPMENT_TEAM = UQNHPS9NWL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -428,11 +826,12 @@
 				DEVELOPMENT_TEAM = UQNHPS9NWL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -521,6 +920,33 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		261A85AB2D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				261A85AC2D8F3353000ADA24 /* Debug */,
+				261A85AD2D8F3353000ADA24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		261A85AF2D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				261A85B02D8F3353000ADA24 /* Debug */,
+				261A85B12D8F3353000ADA24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		261A85B22D8F3353000ADA24 /* Build configuration list for PBXNativeTarget "BarBuddy Watch Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				261A85B32D8F3353000ADA24 /* Debug */,
+				261A85B42D8F3353000ADA24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		263D100C2D8E3433003D370E /* Build configuration list for PBXProject "BarBuddy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
