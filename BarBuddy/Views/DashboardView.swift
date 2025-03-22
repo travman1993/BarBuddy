@@ -4,7 +4,6 @@
 //
 //  Created by Travis Rodriguez on 3/21/25.
 //
-
 import SwiftUI
 
 struct DashboardView: View {
@@ -12,57 +11,55 @@ struct DashboardView: View {
     @State private var showingRideshareOptions = false
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // BAC Circle Indicator
-                    BACIndicator(bac: drinkTracker.currentBAC)
-                    
-                    // Safety Status
-                    SafetyStatusView(bac: drinkTracker.currentBAC)
-                    
-                    // Time Until Sober
-                    if drinkTracker.timeUntilSober > 0 {
-                        TimeUntilSoberView(timeInterval: drinkTracker.timeUntilSober)
-                    }
-                    
-                    // Recent Drinks Summary
-                    RecentDrinksSummary(drinks: drinkTracker.drinks)
-                    
-                    // Rideshare Button
-                    if drinkTracker.currentBAC >= 0.08 {
-                        Button(action: {
-                            showingRideshareOptions = true
-                        }) {
-                            HStack {
-                                Image(systemName: "car")
-                                Text("Get a Safe Ride Home")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Emergency Contact Button
-                    EmergencyContactButton()
-                        .padding(.horizontal)
-                    
-                    // Quick BAC Share
-                    if drinkTracker.currentBAC > 0 {
-                        QuickShareButton(bac: drinkTracker.currentBAC)
-                            .padding(.horizontal)
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                // BAC Circle Indicator
+                BACIndicator(bac: drinkTracker.currentBAC)
+                
+                // Safety Status
+                SafetyStatusView(bac: drinkTracker.currentBAC)
+                
+                // Time Until Sober
+                if drinkTracker.timeUntilSober > 0 {
+                    TimeUntilSoberView(timeInterval: drinkTracker.timeUntilSober)
                 }
-                .padding()
+                
+                // Recent Drinks Summary
+                RecentDrinksSummary(drinks: drinkTracker.drinks)
+                
+                // Rideshare Button
+                if drinkTracker.currentBAC >= 0.08 {
+                    Button(action: {
+                        showingRideshareOptions = true
+                    }) {
+                        HStack {
+                            Image(systemName: "car")
+                            Text("Get a Safe Ride Home")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                }
+                
+                // Emergency Contact Button
+                EmergencyContactButton()
+                    .padding(.horizontal)
+                
+                // Quick BAC Share
+                if drinkTracker.currentBAC > 0 {
+                    QuickShareButton(bac: drinkTracker.currentBAC)
+                        .padding(.horizontal)
+                }
             }
-            .navigationTitle("BarBuddy")
-            .sheet(isPresented: $showingRideshareOptions) {
-                RideshareOptionsView()
-            }
+            .padding()
+        }
+        .navigationTitle("BarBuddy")
+        .sheet(isPresented: $showingRideshareOptions) {
+            RideshareOptionsView()
         }
     }
 }
@@ -345,8 +342,8 @@ struct RideshareOptionsView: View {
     }
 }
 
-struct DashboardView_Previews: PreviewProvider {
-    static var previews: some View {
+#Preview {
+    NavigationView {
         DashboardView()
             .environmentObject(DrinkTracker())
     }

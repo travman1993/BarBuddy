@@ -4,135 +4,126 @@
 //
 //  Created by Travis Rodriguez on 3/21/25.
 //
-
 import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
-    @State private var weight: Double
-    @State private var gender: Gender
-    @State private var emergencyContacts: [EmergencyContact]
+    @State private var weight: Double = 160.0
+    @State private var gender: Gender = .male
+    @State private var emergencyContacts: [EmergencyContact] = []
     @State private var showingAddContactSheet = false
     @State private var showingPurchaseView = false
     @State private var showingDisclaimerView = false
     @State private var showingAboutView = false
     
-    // Initialize with values from drinkTracker
-    init() {
-        _weight = State(initialValue: 160.0)
-        _gender = State(initialValue: .male)
-        _emergencyContacts = State(initialValue: [])
-    }
-    
     var body: some View {
-        NavigationView {
-            Form {
-                // Personal Information Section
-                Section(header: Text("Personal Information"), footer: Text("Weight and gender are used to calculate your BAC more accurately.")) {
-                    VStack(alignment: .leading) {
-                        Text("Weight")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+        Form {
+            // Personal Information Section
+            Section(header: Text("Personal Information"), footer: Text("Weight and gender are used to calculate your BAC more accurately.")) {
+                VStack(alignment: .leading) {
+                    Text("Weight")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack {
+                        Text("\(Int(weight)) lbs")
+                            .frame(width: 70, alignment: .leading)
                         
-                        HStack {
-                            Text("\(Int(weight)) lbs")
-                                .frame(width: 70, alignment: .leading)
-                            
-                            Slider(value: $weight, in: 80...400, step: 1) { _ in
+                        Slider(value: $weight, in: 80...400, step: 1)
+                            .onChange(of: weight) { _, _ in
                                 // Update user profile when weight changes
                                 updateUserProfile()
                             }
-                        }
-                    }
-                    
-                    Picker("Gender", selection: $gender) {
-                        Text("Male").tag(Gender.male)
-                        Text("Female").tag(Gender.female)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .onChange(of: gender) { _ in
-                        // Update user profile when gender changes
-                        updateUserProfile()
                     }
                 }
                 
-                // Emergency Contacts Section
-                Section(header: Text("Emergency Contacts")) {
-                    ForEach(emergencyContacts) { contact in
-                        EmergencyContactRow(contact: contact)
-                    }
-                    .onDelete(perform: deleteContact)
-                    
-                    Button(action: {
-                        showingAddContactSheet = true
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Add Emergency Contact")
-                        }
-                    }
+                Picker("Gender", selection: $gender) {
+                    Text("Male").tag(Gender.male)
+                    Text("Female").tag(Gender.female)
                 }
-                
-                // Notification Settings
-                Section(header: Text("Notifications")) {
-                    Toggle("Hydration Reminders", isOn: .constant(true))
-                    Toggle("BAC Level Alerts", isOn: .constant(true))
-                    Toggle("Auto-Text When Safe", isOn: .constant(false))
-                }
-                
-                // Apple Watch Settings
-                Section(header: Text("Apple Watch")) {
-                    Toggle("Enable Quick Logging", isOn: .constant(true))
-                    Toggle("Haptic Feedback", isOn: .constant(true))
-                    Toggle("Complication Display", isOn: .constant(true))
-                }
-                
-                // App Settings
-                Section(header: Text("App Settings")) {
-                    Button("View Legal Disclaimer") {
-                        showingDisclaimerView = true
-                    }
-                    
-                    Button("Clear All Drink Data") {
-                        // Add confirmation alert in real app
-                        drinkTracker.clearDrinks()
-                    }
-                    .foregroundColor(.red)
-                }
-                
-                // About & Support
-                Section(header: Text("About & Support")) {
-                    Button("About BarBuddy") {
-                        showingAboutView = true
-                    }
-                    
-                    Link("Rate on App Store", destination: URL(string: "https://apps.apple.com")!)
-                    
-                    Link("Send Feedback", destination: URL(string: "mailto:support@barbuddy.app")!)
-                    
-                    Text("Version 1.0")
-                        .foregroundColor(.secondary)
-                }
-            }
-            .navigationTitle("Settings")
-            .onAppear {
-                // Load current user profile when view appears
-                loadUserProfile()
-            }
-            .sheet(isPresented: $showingAddContactSheet) {
-                AddContactView { newContact in
-                    // Add new contact and update profile
-                    emergencyContacts.append(newContact)
+                .pickerStyle(SegmentedPickerStyle())
+                .onChange(of: gender) { _, _ in
+                    // Update user profile when gender changes
                     updateUserProfile()
                 }
             }
-            .sheet(isPresented: $showingDisclaimerView) {
-                DisclaimerView()
+            
+            // Emergency Contacts Section
+            Section(header: Text("Emergency Contacts")) {
+                ForEach(emergencyContacts) { contact in
+                    EmergencyContactRow(contact: contact)
+                }
+                .onDelete(perform: deleteContact)
+                
+                Button(action: {
+                    showingAddContactSheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Add Emergency Contact")
+                    }
+                }
             }
-            .sheet(isPresented: $showingAboutView) {
-                AboutView()
+            
+            // Notification Settings
+            Section(header: Text("Notifications")) {
+                Toggle("Hydration Reminders", isOn: .constant(true))
+                Toggle("BAC Level Alerts", isOn: .constant(true))
+                Toggle("Auto-Text When Safe", isOn: .constant(false))
             }
+            
+            // Apple Watch Settings
+            Section(header: Text("Apple Watch")) {
+                Toggle("Enable Quick Logging", isOn: .constant(true))
+                Toggle("Haptic Feedback", isOn: .constant(true))
+                Toggle("Complication Display", isOn: .constant(true))
+            }
+            
+            // App Settings
+            Section(header: Text("App Settings")) {
+                Button("View Legal Disclaimer") {
+                    showingDisclaimerView = true
+                }
+                
+                Button("Clear All Drink Data") {
+                    // Add confirmation alert in real app
+                    drinkTracker.clearDrinks()
+                }
+                .foregroundColor(.red)
+            }
+            
+            // About & Support
+            Section(header: Text("About & Support")) {
+                Button("About BarBuddy") {
+                    showingAboutView = true
+                }
+                
+                Link("Rate on App Store", destination: URL(string: "https://apps.apple.com")!)
+                
+                Link("Send Feedback", destination: URL(string: "mailto:support@barbuddy.app")!)
+                
+                Text("Version 1.0")
+                    .foregroundColor(.secondary)
+            }
+        }
+        .navigationTitle("Settings")
+        .onAppear {
+            // Load current user profile when view appears
+            loadUserProfile()
+        }
+        .sheet(isPresented: $showingAddContactSheet) {
+            AddContactView { newContact in
+                // Add new contact and update profile
+                emergencyContacts.append(newContact)
+                updateUserProfile()
+            }
+        }
+        .sheet(isPresented: $showingDisclaimerView) {
+            DisclaimerView()
+        }
+        .sheet(isPresented: $showingAboutView) {
+            AboutView()
         }
     }
     
@@ -180,7 +171,6 @@ struct EmergencyContactRow: View {
             if contact.sendAutomaticTexts {
                 Image(systemName: "message.fill")
                     .foregroundColor(.green)
-                    .help("Auto-text enabled")
             }
         }
     }
@@ -365,8 +355,8 @@ struct BulletPoint: View {
     }
 }
 
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
+#Preview {
+    NavigationView {
         SettingsView()
             .environmentObject(DrinkTracker())
     }

@@ -9,6 +9,7 @@ import StoreKit
 
 @main
 struct BarBuddyApp: App {
+    // Create a single instance of DrinkTracker that will be shared throughout the app
     @StateObject private var drinkTracker = DrinkTracker()
     @State private var hasCompletedPurchase = false
     @State private var showingDisclaimerOnLaunch = true
@@ -150,7 +151,7 @@ struct LaunchDisclaimerView: View {
                 }
                 
                 Button(action: {
-                    // Exit the app
+                    // Exit the app - in a real app you'd want to handle this differently
                     exit(0)
                 }) {
                     Text("Exit App")
@@ -193,7 +194,7 @@ struct PurchaseView: View {
                 
                 FeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
                 
-                FeatureRow(icon: "waveform.path.badge.plus", title: "Apple Watch Support", description: "Log drinks and check your BAC right from your wrist")
+                FeatureRow(icon: "applewatch", title: "Apple Watch Support", description: "Log drinks and check your BAC right from your wrist")
             }
             .padding()
             
@@ -264,4 +265,9 @@ struct FeatureRow: View {
             }
         }
     }
+}
+
+// Preview for SwiftUI Previews
+#Preview {
+    BarBuddyApp()
 }

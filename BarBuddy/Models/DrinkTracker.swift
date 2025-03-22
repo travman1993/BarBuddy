@@ -4,21 +4,21 @@
 //
 //  Created by Travis Rodriguez on 3/21/25.
 //
-
 import Foundation
 import Combine
+import SwiftUI
 
-class DrinkTracker: ObservableObject {
+public class DrinkTracker: ObservableObject {
     // Published properties to update the UI when changed
-    @Published var drinks: [Drink] = []
-    @Published var userProfile: UserProfile = UserProfile()
-    @Published var currentBAC: Double = 0.0
-    @Published var timeUntilSober: TimeInterval = 0
+    @Published public var drinks: [Drink] = []
+    @Published public var userProfile: UserProfile = UserProfile()
+    @Published public var currentBAC: Double = 0.0
+    @Published public var timeUntilSober: TimeInterval = 0
     
     // Timer to regularly update BAC
     private var bacUpdateTimer: Timer?
     
-    init() {
+    public init() {
         // Load user profile from UserDefaults or use default
         loadUserProfile()
         // Load any saved drinks from last session
@@ -33,7 +33,7 @@ class DrinkTracker: ObservableObject {
     
     // MARK: - Public Methods
     
-    func addDrink(type: DrinkType, size: Double, alcoholPercentage: Double) {
+    public func addDrink(type: DrinkType, size: Double, alcoholPercentage: Double) {
         let newDrink = Drink(
             type: type,
             size: size,
@@ -45,7 +45,7 @@ class DrinkTracker: ObservableObject {
         calculateBAC()
     }
     
-    func removeDrink(_ drink: Drink) {
+    public func removeDrink(_ drink: Drink) {
         if let index = drinks.firstIndex(where: { $0.id == drink.id }) {
             drinks.remove(at: index)
             saveDrinks()
@@ -53,13 +53,13 @@ class DrinkTracker: ObservableObject {
         }
     }
     
-    func clearDrinks() {
+    public func clearDrinks() {
         drinks.removeAll()
         saveDrinks()
         calculateBAC()
     }
     
-    func updateUserProfile(_ profile: UserProfile) {
+    public func updateUserProfile(_ profile: UserProfile) {
         userProfile = profile
         saveUserProfile()
         calculateBAC()

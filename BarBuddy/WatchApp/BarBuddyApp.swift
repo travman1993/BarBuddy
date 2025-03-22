@@ -13,14 +13,15 @@ struct BarBuddyWatchApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationView {
-                ContentView()
+                WatchContentView()
                     .environmentObject(drinkTracker)
             }
         }
     }
 }
 
-struct ContentView: View {
+// Renamed to WatchContentView to avoid name collision
+struct WatchContentView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     
     var body: some View {
@@ -172,8 +173,13 @@ struct QuickAddDrinksView: View {
         lastAddedDrink = type
         showingConfirmation = true
         
-        // Provide haptic feedback
-        WKInterfaceDevice.current().play(.success)
+        // Provide haptic feedback - use UINotificationFeedbackGenerator as WKInterfaceDevice is unavailable
+        #if os(watchOS)
+        // WatchKit haptic feedback would go here if available
+        #else
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        #endif
     }
 }
 
@@ -193,7 +199,8 @@ struct EmergencyOptionsView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BorderedButtonStyle(tint: .blue))
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
             
             Button(action: getLyft) {
                 HStack {
@@ -202,7 +209,8 @@ struct EmergencyOptionsView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BorderedButtonStyle(tint: .pink))
+            .buttonStyle(.borderedProminent)
+            .tint(.pink)
             
             Divider()
             
@@ -213,7 +221,8 @@ struct EmergencyOptionsView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BorderedButtonStyle(tint: .red))
+            .buttonStyle(.borderedProminent)
+            .tint(.red)
             
             if drinkTracker.currentBAC > 0 {
                 Button(action: shareStatus) {
@@ -223,7 +232,8 @@ struct EmergencyOptionsView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(BorderedButtonStyle(tint: .green))
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
             }
         }
         .padding(.horizontal)
@@ -247,28 +257,22 @@ struct EmergencyOptionsView: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        let drinkTracker = DrinkTracker()
-        // Add a test drink to have a non-zero BAC
-        drinkTracker.addDrink(type: .beer, size: 12, alcoholPercentage: 5)
+#Preview {
+    let drinkTracker = DrinkTracker()
+    // Add a test drink to have a non-zero BAC
+    drinkTracker.addDrink(type: .beer, size: 12, alcoholPercentage: 5)
+    
+    return Group {
+        WatchContentView()
+            .environmentObject(drinkTracker)
         
-        return Group {
-            ContentView()
-                .environmentObject(drinkTracker)
-                .previewDevice("Apple Watch Series 7 - 45mm")
-            
-            WatchDashboardView()
-                .environmentObject(drinkTracker)
-                .previewDevice("Apple Watch Series 7 - 45mm")
-            
-            QuickAddDrinksView()
-                .environmentObject(drinkTracker)
-                .previewDevice("Apple Watch Series 7 - 45mm")
-            
-            EmergencyOptionsView()
-                .environmentObject(drinkTracker)
-                .previewDevice("Apple Watch Series 7 - 45mm")
-        }
+        WatchDashboardView()
+            .environmentObject(drinkTracker)
+        
+        QuickAddDrinksView()
+            .environmentObject(drinkTracker)
+        
+        EmergencyOptionsView()
+            .environmentObject(drinkTracker)
     }
 }

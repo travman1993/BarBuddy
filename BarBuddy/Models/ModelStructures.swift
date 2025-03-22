@@ -7,14 +7,14 @@
 import Foundation
 
 // Enum for drink types
-enum DrinkType: String, Codable, CaseIterable {
+public enum DrinkType: String, Codable, CaseIterable {
     case beer = "Beer"
     case wine = "Wine"
     case cocktail = "Cocktail"
     case shot = "Shot"
     case other = "Other"
     
-    var defaultSize: Double {
+    public var defaultSize: Double {
         switch self {
         case .beer: return 12.0 // 12 oz
         case .wine: return 5.0 // 5 oz
@@ -24,7 +24,7 @@ enum DrinkType: String, Codable, CaseIterable {
         }
     }
     
-    var defaultAlcoholPercentage: Double {
+    public var defaultAlcoholPercentage: Double {
         switch self {
         case .beer: return 5.0 // 5%
         case .wine: return 12.0 // 12%
@@ -34,7 +34,7 @@ enum DrinkType: String, Codable, CaseIterable {
         }
     }
     
-    var icon: String {
+    public var icon: String {
         switch self {
         case .beer: return "🍺"
         case .wine: return "🍷"
@@ -46,20 +46,20 @@ enum DrinkType: String, Codable, CaseIterable {
 }
 
 // Enum for biological gender (used for BAC calculation)
-enum Gender: String, Codable, CaseIterable {
+public enum Gender: String, Codable, CaseIterable {
     case male = "Male"
     case female = "Female"
 }
 
 // Struct for a single drink
-struct Drink: Identifiable, Codable {
-    let id: UUID
-    let type: DrinkType
-    let size: Double // in fluid ounces
-    let alcoholPercentage: Double // as a percentage (e.g., 5.0 for 5%)
-    let timestamp: Date
+public struct Drink: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let type: DrinkType
+    public let size: Double // in fluid ounces
+    public let alcoholPercentage: Double // as a percentage (e.g., 5.0 for 5%)
+    public let timestamp: Date
     
-    init(type: DrinkType, size: Double, alcoholPercentage: Double, timestamp: Date) {
+    public init(type: DrinkType, size: Double, alcoholPercentage: Double, timestamp: Date) {
         self.id = UUID()
         self.type = type
         self.size = size
@@ -69,19 +69,19 @@ struct Drink: Identifiable, Codable {
     
     // Calculate standard drinks
     // A standard drink is defined as 0.6 fl oz of pure alcohol
-    var standardDrinks: Double {
+    public var standardDrinks: Double {
         let pureAlcohol = size * (alcoholPercentage / 100)
         return pureAlcohol / 0.6
     }
 }
 
 // Struct for user profile
-struct UserProfile: Codable {
-    var weight: Double // in pounds
-    var gender: Gender
-    var emergencyContacts: [EmergencyContact]
+public struct UserProfile: Codable, Hashable {
+    public var weight: Double // in pounds
+    public var gender: Gender
+    public var emergencyContacts: [EmergencyContact]
     
-    init(weight: Double = 160.0, gender: Gender = .male, emergencyContacts: [EmergencyContact] = []) {
+    public init(weight: Double = 160.0, gender: Gender = .male, emergencyContacts: [EmergencyContact] = []) {
         self.weight = weight
         self.gender = gender
         self.emergencyContacts = emergencyContacts
@@ -89,14 +89,14 @@ struct UserProfile: Codable {
 }
 
 // Struct for emergency contact
-struct EmergencyContact: Identifiable, Codable {
-    let id: UUID
-    var name: String
-    var phoneNumber: String
-    var relationshipType: String
-    var sendAutomaticTexts: Bool
+public struct EmergencyContact: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public var name: String
+    public var phoneNumber: String
+    public var relationshipType: String
+    public var sendAutomaticTexts: Bool
     
-    init(name: String, phoneNumber: String, relationshipType: String, sendAutomaticTexts: Bool = false) {
+    public init(name: String, phoneNumber: String, relationshipType: String, sendAutomaticTexts: Bool = false) {
         self.id = UUID()
         self.name = name
         self.phoneNumber = phoneNumber
@@ -106,14 +106,14 @@ struct EmergencyContact: Identifiable, Codable {
 }
 
 // Struct for BAC sharing
-struct BACShare: Identifiable, Codable {
-    let id: UUID
-    let bac: Double
-    let message: String
-    let timestamp: Date
-    var expiresAt: Date
+public struct BACShare: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let bac: Double
+    public let message: String
+    public let timestamp: Date
+    public var expiresAt: Date
     
-    init(bac: Double, message: String, expiresAfter hours: Double = 2.0) {
+    public init(bac: Double, message: String, expiresAfter hours: Double = 2.0) {
         self.id = UUID()
         self.bac = bac
         self.message = message
@@ -121,11 +121,11 @@ struct BACShare: Identifiable, Codable {
         self.expiresAt = Date().addingTimeInterval(hours * 3600)
     }
     
-    var isActive: Bool {
+    public var isActive: Bool {
         return Date() < expiresAt
     }
     
-    var safetyStatus: SafetyStatus {
+    public var safetyStatus: SafetyStatus {
         if bac < 0.04 {
             return .safe
         } else if bac < 0.08 {
@@ -137,12 +137,12 @@ struct BACShare: Identifiable, Codable {
 }
 
 // Enum for safety status
-enum SafetyStatus: String, Codable {
+public enum SafetyStatus: String, Codable, Hashable {
     case safe = "Safe to Drive"
     case borderline = "Borderline"
     case unsafe = "Call a Ride"
     
-    var color: String {
+    public var color: String {
         switch self {
         case .safe: return "green"
         case .borderline: return "yellow"
@@ -150,11 +150,34 @@ enum SafetyStatus: String, Codable {
         }
     }
     
-    var systemImage: String {
+    public var systemImage: String {
         switch self {
         case .safe: return "checkmark.circle"
         case .borderline: return "exclamationmark.triangle"
         case .unsafe: return "xmark.octagon"
         }
+    }
+}
+
+// Friend model for sharing
+public struct Friend: Identifiable, Equatable, Hashable {
+    public let id: String
+    public let name: String
+    public let phone: String
+    
+    public var initials: String {
+        let components = name.components(separatedBy: " ")
+        if components.count >= 2,
+           let first = components.first?.first,
+           let last = components.last?.first {
+            return String(first) + String(last)
+        } else if let first = components.first?.first {
+            return String(first)
+        }
+        return "?"
+    }
+    
+    public static func == (lhs: Friend, rhs: Friend) -> Bool {
+        return lhs.id == rhs.id
     }
 }

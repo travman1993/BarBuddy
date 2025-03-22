@@ -14,87 +14,75 @@ struct DrinkLogView: View {
     @State private var showingCustomDrinkView = false
     
     var body: some View {
-        NavigationView {
+        VStack {
+            // Quick Add Section
             VStack {
-                // Quick Add Section
-                Section {
-                    Text("Quick Add")
-                        .font(.headline)
-                        .padding(.top)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 15) {
-                            ForEach(DrinkType.allCases, id: \.self) { drinkType in
-                                QuickAddDrinkButton(
-                                    drinkType: drinkType,
-                                    action: {
-                                        addDefaultDrink(type: drinkType)
-                                    }
+                Text("Quick Add")
+                    .font(.headline)
+                    .padding(.top)
                 
-                Section {
-                    Button(action: onSave) {
-                        Text("Add Drink")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .fontWeight(.semibold)
-                    }
-                    .listRowBackground(Color.blue)
-                    .foregroundColor(.white)
-                }
-                                )
-                            }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 15) {
+                        ForEach(DrinkType.allCases, id: \.self) { drinkType in
+                            QuickAddDrinkButton(
+                                drinkType: drinkType,
+                                action: {
+                                    addDefaultDrink(type: drinkType)
+                                }
+                            )
                         }
-                        .padding(.horizontal)
                     }
-                    .padding(.vertical)
+                    .padding(.horizontal)
                 }
+                .padding(.vertical)
+            }
+            
+            Divider()
+            
+            // Custom Drink Button
+            Button(action: {
+                // Pre-populate with values from selected drink type
+                selectedDrinkType = .beer
+                customSize = selectedDrinkType.defaultSize
+                customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
                 
-                Divider()
-                
-                // Custom Drink Button
-                Button(action: {
-                    // Pre-populate with values from selected drink type
-                    selectedDrinkType = .beer
-                    customSize = selectedDrinkType.defaultSize
-                    customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
-                    
-                    showingCustomDrinkView = true
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle")
-                        Text("Add Custom Drink")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                showingCustomDrinkView = true
+            }) {
+                HStack {
+                    Image(systemName: "plus.circle")
+                    Text("Add Custom Drink")
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                
-                Spacer()
-                
-                // Recently Added Drinks
-                RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
-                    drinkTracker.removeDrink(drink)
-                })
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
             }
-            .navigationTitle("Log Drink")
-            .sheet(isPresented: $showingCustomDrinkView) {
-                CustomDrinkView(
-                    selectedDrinkType: $selectedDrinkType,
-                    size: $customSize,
-                    alcoholPercentage: $customAlcoholPercentage,
-                    onSave: {
-                        addCustomDrink(
-                            type: selectedDrinkType,
-                            size: customSize,
-                            alcoholPercentage: customAlcoholPercentage
-                        )
-                        showingCustomDrinkView = false
-                    }
-                )
-            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            
+            Spacer()
+            
+            // Recently Added Drinks
+            RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
+                drinkTracker.removeDrink(drink)
+            })
+        }
+        .navigationTitle("Log Drink")
+        .sheet(isPresented: $showingCustomDrinkView) {
+            CustomDrinkView(
+                selectedDrinkType: $selectedDrinkType,
+                size: $customSize,
+                alcoholPercentage: $customAlcoholPercentage,
+                onSave: {
+                    addCustomDrink(
+                        type: selectedDrinkType,
+                        size: customSize,
+                        alcoholPercentage: customAlcoholPercentage
+                    )
+                    showingCustomDrinkView = false
+                }
+            )
         }
     }
     
@@ -197,3 +185,108 @@ struct CustomDrinkView: View {
                             .fontWeight(.bold)
                     }
                 }
+                
+                Section {
+                    Button(action: onSave) {
+                        Text("Add Drink")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .fontWeight(.semibold)
+                    }
+                    .listRowBackground(Color.blue)
+                    .foregroundColor(.white)
+                }
+            }
+            .navigationTitle("Custom Drink")
+            .navigationBarItems(trailing: Button("Cancel") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+    
+    private func calculateStandardDrinks() -> Double {
+        // A standard drink is defined as 0.6 fl oz of pure alcohol
+        let pureAlcohol = size * (alcoholPercentage / 100)
+        return pureAlcohol / 0.6
+    }
+}
+
+struct RecentlyAddedDrinksView: View {
+    let drinks: [Drink]
+    let onRemove: (Drink) -> Void
+    
+    var recentDrinks: [Drink] {
+        // Get drinks from the last 24 hours
+        return drinks.filter {
+            Calendar.current.dateComponents([.hour], from: $0.timestamp, to: Date()).hour! < 24
+        }
+        .sorted { $0.timestamp > $1.timestamp }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Recent Drinks")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            if recentDrinks.isEmpty {
+                Text("No drinks logged today")
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                List {
+                    ForEach(recentDrinks) { drink in
+                        HStack {
+                            Text(drink.type.icon)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading) {
+                                Text(drink.type.rawValue)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                Text("\(String(format: "%.1f", drink.size)) oz, \(String(format: "%.1f", drink.alcoholPercentage))%")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing) {
+                                Text(timeString(for: drink.timestamp))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("\(String(format: "%.1f", drink.standardDrinks)) std")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onDelete { indexSet in
+                        indexSet.forEach { index in
+                            if index < recentDrinks.count {
+                                onRemove(recentDrinks[index])
+                            }
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+        }
+    }
+    
+    func timeString(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+}
+
+#Preview {
+    NavigationView {
+        DrinkLogView()
+            .environmentObject(DrinkTracker())
+    }
+}
