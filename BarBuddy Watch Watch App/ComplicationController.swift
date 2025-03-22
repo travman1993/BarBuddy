@@ -4,6 +4,12 @@
 //
 //  Created by Travis Rodriguez on 3/21/25.
 //
+//
+//  ComplicationController.swift
+//  BarBuddy Watch Watch App
+//
+//  Created by Travis Rodriguez on 3/21/25.
+//
 import SwiftUI
 import ClockKit
 
@@ -77,8 +83,8 @@ struct BACComplication: View {
 
 // This shows how to use SwiftUI for complications on newer watchOS versions
 // In a real app, this would be in the watchOS extension
+// REMOVED @main attribute to avoid multiple entry points
 #if os(watchOS) && swift(>=5.4)
-@main
 struct ComplicationApp: App {
     @StateObject private var drinkTracker = DrinkTracker()
     
