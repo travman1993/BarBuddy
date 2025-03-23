@@ -52,7 +52,7 @@ struct WatchSettingsView: View {
                 }
             }
         }
-        .listStyle(InsetGroupedListStyle())
+        // Remove InsetGroupedListStyle and use default List style which is compatible with watchOS
         .navigationTitle("Settings")
         .sheet(isPresented: $showingWeightInput) {
             WeightInputView(currentWeight: sessionManager.userWeight)

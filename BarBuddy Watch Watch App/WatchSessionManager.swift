@@ -123,6 +123,13 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         })
     }
     
+    // Add this method to fix the compile error
+    func sendBACDataToWatch(bac: Double, timeUntilSober: TimeInterval) {
+        // This is a stub implementation for the Watch app
+        // The actual implementation is on the iPhone app to send data to the watch
+        print("Watch app doesn't need to send BAC data to itself")
+    }
+    
     // Required WCSessionDelegate method
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         DispatchQueue.main.async {

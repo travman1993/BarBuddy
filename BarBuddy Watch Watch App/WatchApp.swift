@@ -104,10 +104,14 @@ struct ContentView: View {
             WatchStatusMessageView()
                 .tag(2)
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
         .onAppear {
-            // Set a nice accent color for the whole UI
-            WKInterfaceDevice.current().play(.click)
+            if #available(watchOS 8.0, *) {
+                // For watchOS 8.0 and newer, update to use the always display mode
+                // Note: We can't directly modify the tabViewStyle after creation,
+                // but this is a placeholder for other watchOS 8.0+ specific customizations
+                WKInterfaceDevice.current().play(.click)
+            }
         }
     }
 }
@@ -180,7 +184,8 @@ struct WatchDashboardView: View {
                 }
                 
                 // Last drink info
-                if !drinkTracker.drinks.isEmpty, let lastDrink = drinkTracker.drinks.last {
+                if !drinkTracker.drinks.isEmpty {
+                    let lastDrink = drinkTracker.drinks.last!
                     Divider()
                         .padding(.vertical, 5)
                         
@@ -317,7 +322,9 @@ struct WatchQuickAddView: View {
                 }
                 
                 // Standard drinks info
-                if let lastDrink = drinkTracker.drinks.last {
+                if !drinkTracker.drinks.isEmpty {
+                    // Using _ (underscore) to avoid unused variable warning
+                    let _ = drinkTracker.drinks.last
                     Spacer()
                     Divider()
                         .padding(.vertical, 5)
@@ -382,7 +389,8 @@ struct WatchQuickAddView: View {
     
     private func calculateStandardDrinksToday() -> Double {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        // Using _ (underscore) to fix unused variable warning
+        let _ = calendar.startOfDay(for: Date())
         
         return drinkTracker.drinks
             .filter { calendar.isDate($0.timestamp, inSameDayAs: Date()) }

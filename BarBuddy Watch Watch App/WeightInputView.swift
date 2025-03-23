@@ -29,12 +29,21 @@ struct WeightInputView: View {
                     .font(.headline)
                     .padding(.top, 5)
                 
-                Picker("Unit", selection: $selectedUnit) {
+                // Replace SegmentedPickerStyle with inline buttons for unit selection
+                HStack {
                     ForEach(WeightUnit.allCases, id: \.self) { unit in
-                        Text(unit.rawValue).tag(unit)
+                        Button(action: {
+                            selectedUnit = unit
+                        }) {
+                            Text(unit.rawValue)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(selectedUnit == unit ? Color.blue : Color.gray.opacity(0.3))
+                                .foregroundColor(selectedUnit == unit ? .white : .primary)
+                                .cornerRadius(5)
+                        }
                     }
                 }
-                .pickerStyle(SegmentedPickerStyle())
                 .padding(.vertical, 5)
                 
                 HStack {
