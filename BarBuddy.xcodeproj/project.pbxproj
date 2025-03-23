@@ -76,7 +76,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ComplicationController.swift,
-				WatchBarBuddyApp.swift,
 			);
 			target = 263D10102D8E3433003D370E /* BarBuddy */;
 		};
@@ -84,7 +83,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ComplicationController.swift,
-				WatchBarBuddyApp.swift,
 			);
 			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
 		};

@@ -121,6 +121,7 @@ public class DrinkTracker: ObservableObject {
         } else {
             timeUntilSober = 0
         }
+        WatchSessionManager.shared.sendBACDataToWatch(bac: currentBAC, timeUntilSober: timeUntilSober)
     }
     
     // MARK: - Persistence Methods

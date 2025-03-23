@@ -14,6 +14,11 @@ struct BarBuddyApp: App {
     @State private var hasCompletedPurchase = false
     @State private var showingDisclaimerOnLaunch = true
     
+    init() {
+            // Connect DrinkTracker to WatchSessionManager
+            WatchSessionManager.shared.setDrinkTracker(drinkTracker)
+        }
+    
     var body: some Scene {
         WindowGroup {
             Group {
