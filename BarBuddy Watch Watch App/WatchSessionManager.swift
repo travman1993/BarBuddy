@@ -6,6 +6,9 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     static let shared = WatchSessionManager()
     private var session: WCSession = .default
     
+    // Published properties to update the UI when changed
+    @Published var isConnected: Bool = false
+    
     override init() {
         super.init()
         if WCSession.isSupported() {
@@ -14,9 +17,12 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
-    // WCSessionDelegate methods
+    // MARK: - WCSessionDelegate methods
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         print("Watch session activated: \(activationState.rawValue)")
+        DispatchQueue.main.async {
+            self.isConnected = activationState == .activated
+        }
     }
     
     // Methods to match DrinkTracker's expectations
@@ -26,6 +32,24 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
             "drinkType": type.rawValue
         ]
         sendMessageToPhone(message)
+    }
+    
+    // Receive BAC updates from the phone
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any]) {
+        // Process BAC data from phone
+        DispatchQueue.main.async {
+            if let bac = userInfo["currentBAC"] as? Double,
+               let timeUntilSober = userInfo["timeUntilSober"] as? TimeInterval {
+                NotificationCenter.default.post(
+                    name: Notification.Name("BACDataReceived"),
+                    object: nil,
+                    userInfo: [
+                        "bac": bac,
+                        "timeUntilSober": timeUntilSober
+                    ]
+                )
+            }
+        }
     }
     
     func removeDrink(_ drink: Drink) {
@@ -43,11 +67,10 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         sendMessageToPhone(message)
     }
     
-    func updateUserProfile(_ profile: UserProfile) {
+    // Request initial data from the iPhone when the Watch app starts
+    func requestInitialData() {
         let message: [String: Any] = [
-            "action": "updateUserProfile",
-            "weight": profile.weight,
-            "gender": profile.gender.rawValue
+            "request": "initialData"
         ]
         sendMessageToPhone(message)
     }
