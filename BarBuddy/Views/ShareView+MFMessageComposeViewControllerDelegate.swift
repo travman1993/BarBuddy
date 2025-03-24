@@ -7,7 +7,16 @@
 import SwiftUI
 import MessageUI
 
-extension ShareView: NSObjectProtocol, MFMessageComposeViewControllerDelegate {
+// MARK: - Message Composer Delegate
+// Create a separate delegate class instead of extending ShareView
+class ShareViewMessageDelegate: NSObject, MFMessageComposeViewControllerDelegate {
+    var onComplete: () -> Void
+    
+    init(onComplete: @escaping () -> Void = {}) {
+        self.onComplete = onComplete
+        super.init()
+    }
+    
     func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
         // Dismiss the message compose view controller
         controller.dismiss(animated: true, completion: nil)
@@ -22,10 +31,11 @@ extension ShareView: NSObjectProtocol, MFMessageComposeViewControllerDelegate {
         case .sent:
             print("Message sent")
             // Successfully shared
-            if !selectedContacts.isEmpty {
-            }
         @unknown default:
             print("Unknown message result")
         }
+        
+        // Call completion handler
+        onComplete()
     }
 }

@@ -12,6 +12,7 @@ import MessageUI
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager()
+    @StateObject private var messageDelegate = ShareViewMessageDelegate()
     @State private var selectedContacts: [Contact] = []
     @State private var customMessage: String = "Here's my current BAC."
     @State private var shareExpiration: Double = 2.0 // Hours
@@ -64,7 +65,7 @@ struct ShareView: View {
                             .font(.headline)
                             .padding(.horizontal)
                         
-                        // Replace MessageComposerView with a button that will trigger the sheet
+                        // Updated message composer button
                         Button(action: {
                             showingMessageComposer = true
                         }) {
@@ -80,11 +81,17 @@ struct ShareView: View {
                         }
                         .padding(.horizontal)
                         .sheet(isPresented: $showingMessageComposer) {
-                            MessageSheet(
-                                isPresented: $showingMessageComposer,
-                                recipients: selectedContacts.map { String(describing: $0) }, // Adjust based on your Contact model
-                                body: customMessage
-                            )
+                            if MFMessageComposeViewController.canSendText() {
+                                let phoneNumbers = selectedContacts.map { $0.phone }
+                                MessageComposerView(
+                                    recipients: phoneNumbers,
+                                    body: createFullShareMessage(),
+                                    delegate: messageDelegate
+                                )
+                            } else {
+                                Text("SMS services are not available on this device")
+                                    .padding()
+                            }
                         }
                         
                         // Message templates
@@ -189,7 +196,8 @@ struct ShareView: View {
                     .padding(.horizontal)
                     
                     // Emergency contacts
-                    if let emergencyManager = EmergencyContactManager.shared, !emergencyManager.emergencyContacts.isEmpty {
+                    let emergencyManager = EmergencyContactManager.shared
+                    if !emergencyManager.emergencyContacts.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Quick Share with Emergency Contacts")
                                 .font(.headline)
@@ -265,51 +273,6 @@ struct ShareView: View {
             }
         }
     }
-
-    // Define MessageSheet component to handle message composition properly
-    struct MessageSheet: UIViewControllerRepresentable {
-        @Binding var isPresented: Bool
-        var recipients: [String]
-        var body: String
-        
-        // Coordinator to handle the delegate
-        class Coordinator: NSObject, MFMessageComposeViewControllerDelegate {
-            var parent: MessageSheet
-            
-            init(parent: MessageSheet) {
-                self.parent = parent
-            }
-            
-            func messageComposeViewController(
-                _ controller: MFMessageComposeViewController,
-                didFinishWith result: MessageComposeResult
-            ) {
-                controller.dismiss(animated: true)
-                parent.isPresented = false
-                // Handle other results as needed
-            }
-        }
-        
-        func makeCoordinator() -> Coordinator {
-            return Coordinator(parent: self)
-        }
-        
-        func makeUIViewController(context: Context) -> UIViewController {
-            let controller = UIViewController()
-            return controller
-        }
-        
-        func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-            if isPresented && MFMessageComposeViewController.canSendText() {
-                let composeVC = MFMessageComposeViewController()
-                composeVC.recipients = recipients
-                composeVC.body = body
-                composeVC.messageComposeDelegate = context.coordinator
-                
-                uiViewController.present(composeVC, animated: true)
-            }
-        }
-    }
     
     // Format expiration time
     private func expirationTimeString(hours: Double) -> String {
@@ -323,8 +286,8 @@ struct ShareView: View {
     private func shareViaText(with contacts: [Contact]) {
         guard !contacts.isEmpty else { return }
         
-        let phoneNumbers = contacts.map { $0.phone }
-        let fullMessage = createFullShareMessage()
+        showingMessageComposer = true
+        selectedContacts = contacts
         
         // Create a new share record
         let share = BACShare(
@@ -333,9 +296,6 @@ struct ShareView: View {
             expiresAfter: shareExpiration
         )
         shareManager.addShare(share)
-        
-        // Open message composer
-        shareManager.sendTextMessage(to: phoneNumbers, message: fullMessage)
     }
     
     // Share via link (would generate a unique URL in a real app)
@@ -392,7 +352,7 @@ struct ShareView: View {
         // Add location if enabled
         if includeLocation {
             // In a real app, this would include actual GPS coordinates or a map link
-            fullMessage += "\n\nShared from BarBuddy App"
+            fullMessage += "\n\nShared from BarBuddy App (with location)"
         } else {
             fullMessage += "\n\nShared from BarBuddy App"
         }
@@ -414,7 +374,6 @@ struct ShareView: View {
     }
 }
 
-// MARK: - Empty State View
 // MARK: - Empty State View
 struct EmptyStateView: View {
     var body: some View {
@@ -931,136 +890,140 @@ struct ActiveShareRow: View {
         .padding(.vertical, 5)
     }
     
-    private func statusColor(for status: SafetyStatus) -> Color {
-        switch status {
-        case .safe: return .green
-        case .borderline: return .yellow
-        case .unsafe: return .red
-        }
-    }
-    
     private func timeAgo(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-    
-    private func expirationTimeString(for date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-}
-
-// MARK: - Status Badge
-struct StatusBadge: View {
-    let status: SafetyStatus
-    
-    var body: some View {
-        Text(status.rawValue)
-            .font(.caption)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(backgroundColor)
-            .foregroundColor(textColor)
-            .cornerRadius(8)
-    }
-    
-    var backgroundColor: Color {
-        switch status {
-        case .safe: return .green.opacity(0.2)
-        case .borderline: return .yellow.opacity(0.2)
-        case .unsafe: return .red.opacity(0.2)
+            let formatter = RelativeDateTimeFormatter()
+            formatter.unitsStyle = .abbreviated
+            return formatter.localizedString(for: date, relativeTo: Date())
         }
-    }
-    
-    var textColor: Color {
-        switch status {
-        case .safe: return .green
-        case .borderline: return .yellow
-        case .unsafe: return .red
-        }
-    }
-}
-
-// MARK: - Share Manager
-class ShareManager: ObservableObject {
-    @Published var activeShares: [BACShare] = []
-    @Published var contacts: [Contact] = []
-    
-    // Message templates
-    let messageTemplates = [
-        "Here's my current BAC.",
-        "I'm heading home soon.",
-        "Just checking in with my status.",
-        "I might need a ride later.",
-        "I'm staying at the current venue for a while."
-    ]
-    
-    init() {
-        loadShares()
-        loadContacts()
-    }
-    
-    // MARK: - Shares Management
-    
-    func loadShares() {
-        if let data = UserDefaults.standard.data(forKey: "activeShares") {
-            if let decoded = try? JSONDecoder().decode([BACShare].self, from: data) {
-                self.activeShares = decoded.filter { $0.isActive }
-            }
-        }
-    }
-    
-    func saveShares() {
-        if let encoded = try? JSONEncoder().encode(activeShares) {
-            UserDefaults.standard.set(encoded, forKey: "activeShares")
-        }
-    }
-    
-    func addShare(_ share: BACShare) {
-        activeShares.append(share)
-        saveShares()
-    }
-    
-    func removeShare(_ share: BACShare) {
-        activeShares.removeAll { $0.id == share.id }
-        saveShares()
-    }
-    
-    // MARK: - Contacts Management
-    
-    func loadContacts() {
-        // In a real app, this would load from the user's contacts
-        // For now, we'll use sample data
-        contacts = [
-            Contact(id: "1", name: "Alex Smith", phone: "555-123-4567"),
-            Contact(id: "2", name: "Jordan Taylor", phone: "555-987-6543"),
-            Contact(id: "3", name: "Casey Johnson", phone: "555-456-7890"),
-            Contact(id: "4", name: "Morgan Lee", phone: "555-789-0123")
-        ]
-    }
-    
-    // MARK: - Messaging
-    
-    func sendTextMessage(to recipients: [String], message: String) {
-        // In a real app, this would use MFMessageComposeViewController
-        // For now, we'll just print the message
-        print("Sending to: \(recipients.joined(separator: ", "))")
-        print("Message: \(message)")
         
-        // If messaging is available, create and present a message composer
-        if MFMessageComposeViewController.canSendText() {
-            let composer = MFMessageComposeViewController()
-            composer.recipients = recipients
-            composer.body = message
-            
-            // Present the controller
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootViewController = windowScene.windows.first?.rootViewController {
-                composer.messageComposeDelegate = self as? MFMessageComposeViewControllerDelegate
-                rootViewController.present(composer, animated: true)
-            }
+        private func expirationTimeString(for date: Date) -> String {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.unitsStyle = .abbreviated
+            return formatter.localizedString(for: date, relativeTo: Date())
         }
     }
 }
+    // MARK: - Status Badge
+    struct StatusBadge: View {
+        let status: SafetyStatus
+        
+        var body: some View {
+            Text(status.rawValue)
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(backgroundColor)
+                .foregroundColor(textColor)
+                .cornerRadius(8)
+        }
+        
+        var backgroundColor: Color {
+            switch status {
+            case .safe: return .green.opacity(0.2)
+            case .borderline: return .yellow.opacity(0.2)
+            case .unsafe: return .red.opacity(0.2)
+            }
+        }
+        
+        var textColor: Color {
+            switch status {
+            case .safe: return .green
+            case .borderline: return .yellow
+            case .unsafe: return .red
+            }
+        }
+    }
+
+    // MARK: - Share Manager
+    class ShareManager: ObservableObject {
+        @Published var activeShares: [BACShare] = []
+        @Published var contacts: [Contact] = []
+        
+        // Message templates
+        let messageTemplates = [
+            "Here's my current BAC.",
+            "I'm heading home soon.",
+            "Just checking in with my status.",
+            "I might need a ride later.",
+            "I'm staying at the current venue for a while."
+        ]
+        
+        init() {
+            loadShares()
+            loadContacts()
+        }
+        
+        // MARK: - Shares Management
+        
+        func loadShares() {
+            if let data = UserDefaults.standard.data(forKey: "activeShares") {
+                if let decoded = try? JSONDecoder().decode([BACShare].self, from: data) {
+                    self.activeShares = decoded.filter { $0.isActive }
+                }
+            }
+        }
+        
+        func saveShares() {
+            if let encoded = try? JSONEncoder().encode(activeShares) {
+                UserDefaults.standard.set(encoded, forKey: "activeShares")
+            }
+        }
+        
+        func addShare(_ share: BACShare) {
+            activeShares.append(share)
+            saveShares()
+        }
+        
+        func removeShare(_ share: BACShare) {
+            activeShares.removeAll { $0.id == share.id }
+            saveShares()
+        }
+        
+        // MARK: - Contacts Management
+        
+        func loadContacts() {
+            // In a real app, this would load from the user's contacts
+            // For now, we'll use sample data
+            contacts = [
+                Contact(id: "1", name: "Alex Smith", phone: "555-123-4567"),
+                Contact(id: "2", name: "Jordan Taylor", phone: "555-987-6543"),
+                Contact(id: "3", name: "Casey Johnson", phone: "555-456-7890"),
+                Contact(id: "4", name: "Morgan Lee", phone: "555-789-0123")
+            ]
+        }
+        
+        // MARK: - Messaging
+        
+        func sendTextMessage(to recipients: [String], message: String) {
+            // Print the message (for debugging)
+            print("Sending to: \(recipients.joined(separator: ", "))")
+            print("Message: \(message)")
+        }
+    }
+
+    // MARK: - Message Delegate
+    class ShareViewMessageDelegate: NSObject, MFMessageComposeViewControllerDelegate {
+        var onComplete: () -> Void = {}
+        
+        func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+            // Dismiss the message compose view controller
+            controller.dismiss(animated: true, completion: nil)
+            
+            // Handle the result
+            switch result {
+            case .cancelled:
+                print("Message cancelled")
+            case .failed:
+                print("Message failed")
+                // You might want to show an alert here
+            case .sent:
+                print("Message sent")
+                // Successfully shared
+            @unknown default:
+                print("Unknown message result")
+            }
+            
+            // Call completion handler
+            onComplete()
+        }
+    }

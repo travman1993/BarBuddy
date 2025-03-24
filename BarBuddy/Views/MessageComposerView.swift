@@ -4,9 +4,11 @@
 //
 //  Created by Travis Rodriguez on 3/23/25.
 //
+#if os(iOS)
 import SwiftUI
 import MessageUI
 
+// Fixed MessageComposerView
 struct MessageComposerView: UIViewControllerRepresentable {
     var recipients: [String]
     var body: String
@@ -21,6 +23,7 @@ struct MessageComposerView: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: MFMessageComposeViewController, context: Context) {
+        // No updates needed
     }
     
     // Check if the device can send text messages
@@ -37,3 +40,4 @@ struct MessageComposerView_Previews: PreviewProvider {
             .padding()
     }
 }
+#endif

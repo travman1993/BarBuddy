@@ -4,11 +4,11 @@
 //
 //  Created by Travis Rodriguez on 3/22/25.
 //
+#if os(watchOS)
 import SwiftUI
 import WatchConnectivity
-#if os(watchOS)
 import WatchKit
-#endif
+
 
 @main
 struct WatchApp: App {
@@ -32,6 +32,9 @@ struct WatchApp: App {
                 }
             }
             .onAppear {
+                // Connect the session manager to the drink tracker
+                sessionManager.setDrinkTracker(drinkTracker)
+                
                 // Simulate loading time and initial data fetch
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     withAnimation(.easeInOut(duration: 0.6)) {
@@ -45,6 +48,7 @@ struct WatchApp: App {
         }
     }
 }
+
 
 // Loading Screen View
 struct LoadingView: View {
@@ -80,7 +84,12 @@ struct LoadingView: View {
         .background(Color.black)
         .onAppear {
             isAnimating = true
-            WKInterfaceDevice.current().play(.click)
+            #if os(watchOS)
+            // Use optional binding to handle WKInterfaceDevice availability
+            if #available(watchOS 3.0, *) {
+                WKInterfaceDevice.current().play(.click)
+            }
+            #endif
         }
     }
 }
@@ -362,7 +371,11 @@ struct WatchQuickAddView: View {
         }
         
         // Provide haptic feedback
-        WKInterfaceDevice.current().play(.success)
+        #if os(watchOS)
+        if #available(watchOS 3.0, *) {
+            WKInterfaceDevice.current().play(.success)
+        }
+        #endif
         
         // Hide confirmation after delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -755,3 +768,4 @@ struct RideOptionsView: View {
         }
     }
 }
+#endif
