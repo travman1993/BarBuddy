@@ -4,8 +4,8 @@
 //
 //  Created by Travis Rodriguez on 3/21/25.
 //
+#if os(iOS)
 import SwiftUI
-import MapKit
 import Contacts
 import MessageUI
 
@@ -902,7 +902,6 @@ struct ActiveShareRow: View {
             return formatter.localizedString(for: date, relativeTo: Date())
         }
     }
-}
     // MARK: - Status Badge
     struct StatusBadge: View {
         let status: SafetyStatus
@@ -1002,28 +1001,29 @@ struct ActiveShareRow: View {
     }
 
     // MARK: - Message Delegate
-    class ShareViewMessageDelegate: NSObject, MFMessageComposeViewControllerDelegate {
-        var onComplete: () -> Void = {}
-        
-        func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-            // Dismiss the message compose view controller
-            controller.dismiss(animated: true, completion: nil)
-            
-            // Handle the result
-            switch result {
-            case .cancelled:
-                print("Message cancelled")
-            case .failed:
-                print("Message failed")
-                // You might want to show an alert here
-            case .sent:
-                print("Message sent")
-                // Successfully shared
-            @unknown default:
-                print("Unknown message result")
-            }
-            
-            // Call completion handler
-            onComplete()
-        }
+class ShareViewMessageDelegate: NSObject, MFMessageComposeViewControllerDelegate {
+    var onComplete: () -> Void
+    
+    init(onComplete: @escaping () -> Void = {}) {
+        self.onComplete = onComplete
+        super.init()
     }
+    
+    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        controller.dismiss(animated: true, completion: nil)
+        
+        switch result {
+        case .cancelled:
+            print("Message cancelled")
+        case .failed:
+            print("Message failed")
+        case .sent:
+            print("Message sent")
+        @unknown default:
+            print("Unknown message result")
+        }
+        
+        onComplete()
+    }
+}
+#endif
