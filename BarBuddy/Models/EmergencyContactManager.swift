@@ -1,26 +1,13 @@
-//
-//  EmergencyContactManager.swift
-//  BarBuddy
-//
-//  Created by Travis Rodriguez on 3/23/25.
-//
+#if os(iOS)
 import Foundation
 import SwiftUI
-import Contacts
-import ContactsUI
-import MessageUI
 
-class EmergencyContactManager: NSObject, ObservableObject {
+class EmergencyContactManager: ObservableObject {
     static let shared = EmergencyContactManager()
     
     @Published var emergencyContacts: [EmergencyContact] = []
-    @Published var isShowingContactPicker = false
-    @Published var isShowingMessageComposer = false
-    @Published var selectedContact: EmergencyContact?
-    @Published var messageText = ""
     
-    override init() {
-        super.init()
+    private init() {
         loadContacts()
     }
     
@@ -60,14 +47,10 @@ class EmergencyContactManager: NSObject, ObservableObject {
     // MARK: - Emergency Messaging
     
     func sendEmergencyBACUpdate(bac: Double, timeUntilSober: TimeInterval) {
-        // Get only contacts that have automatic texts enabled
         let eligibleContacts = emergencyContacts.filter { $0.sendAutomaticTexts }
         
-        if eligibleContacts.isEmpty {
-            return
-        }
+        guard !eligibleContacts.isEmpty else { return }
         
-        // Format message
         let soberTime = formatTimeInterval(timeUntilSober)
         let message = "BarBuddy Automatic Alert: My current BAC is \(String(format: "%.3f", bac)). I'll be safe to drive in approximately \(soberTime)."
         
@@ -86,16 +69,13 @@ class EmergencyContactManager: NSObject, ObservableObject {
     }
     
     func sendCurrentLocation(to contact: EmergencyContact) {
-        // In a real app, this would get the user's location
-        // and format it as a message with coordinates or a map link
         let message = "BarBuddy Emergency: I need help. Here is my current location: [Location would be included here]"
         sendMessage(to: contact, message: message)
     }
     
     func sendMessage(to contact: EmergencyContact, message: String) {
-        self.selectedContact = contact
-        self.messageText = message
-        self.isShowingMessageComposer = true
+        // Implement message sending logic
+        print("Sending message to \(contact.name): \(message)")
     }
     
     // MARK: - Emergency Call
@@ -119,87 +99,74 @@ class EmergencyContactManager: NSObject, ObservableObject {
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         
-        if hours > 0 {
-            return "\(hours) hours and \(minutes) minutes"
-        } else {
-            return "\(minutes) minutes"
-        }
+        return hours > 0 
+            ? "\(hours) hours and \(minutes) minutes" 
+            : "\(minutes) minutes"
     }
 }
 
-// MARK: - Message Composer Delegate
+// MARK: - Emergency Contacts List View
 
-extension EmergencyContactManager: MFMessageComposeViewControllerDelegate {
-    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        controller.dismiss(animated: true)
-    }
-}
-
-// MARK: - Contact Picker UI
-
-struct ContactPickerView: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    var onSelectContact: (CNContact) -> Void
+struct EmergencyContactsListView: View {
+    @StateObject private var contactManager = EmergencyContactManager.shared
+    @State private var showingAddContact = false
     
-    func makeUIViewController(context: Context) -> CNContactPickerViewController {
-        let picker = CNContactPickerViewController()
-        picker.delegate = context.coordinator
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: CNContactPickerViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, CNContactPickerDelegate {
-        var parent: ContactPickerView
-        
-        init(_ parent: ContactPickerView) {
-            self.parent = parent
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(contactManager.emergencyContacts) { contact in
+                    NavigationLink(destination: EmergencyContactDetailView(contact: contact)) {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text(contact.name)
+                                    .font(.headline)
+                                
+                                if contact.sendAutomaticTexts {
+                                    Image(systemName: "message.fill")
+                                        .foregroundColor(.blue)
+                                        .font(.caption)
+                                }
+                            }
+                            
+                            Text(contact.relationshipType)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .onDelete { indexSet in
+                    indexSet.forEach { index in
+                        let contact = contactManager.emergencyContacts[index]
+                        contactManager.removeContact(contact)
+                    }
+                }
+                
+                Button(action: {
+                    showingAddContact = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Add Emergency Contact")
+                    }
+                }
+            }
+            .navigationTitle("Emergency Contacts")
+            .sheet(isPresented: $showingAddContact) {
+                AddEmergencyContactView()
+            }
         }
-        
-        func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
-            parent.onSelectContact(contact)
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-        
-        func contactPickerDidCancel(_ picker: CNContactPickerViewController) {
-            parent.presentationMode.wrappedValue.dismiss()
-        }
     }
-}
-
-// MARK: - Message Composer UI
-
-struct MessageComposerView: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    var recipients: [String]
-    var body: String
-    var delegate: MFMessageComposeViewControllerDelegate
-    
-    func makeUIViewController(context: Context) -> MFMessageComposeViewController {
-        let composer = MFMessageComposeViewController()
-        composer.recipients = recipients
-        composer.body = body
-        composer.messageComposeDelegate = delegate
-        return composer
-    }
-    
-    func updateUIViewController(_ uiViewController: MFMessageComposeViewController, context: Context) {}
 }
 
 // MARK: - Emergency Contact Detail View
 
 struct EmergencyContactDetailView: View {
-    @ObservedObject var contactManager: EmergencyContactManager
     @State private var contact: EmergencyContact
     @State private var isEditMode = false
     @Environment(\.presentationMode) var presentationMode
     
-    init(contact: EmergencyContact, contactManager: EmergencyContactManager) {
-        self.contactManager = contactManager
+    init(contact: EmergencyContact) {
         _contact = State(initialValue: contact)
     }
     
@@ -246,7 +213,7 @@ struct EmergencyContactDetailView: View {
                 Toggle("Send BAC updates automatically", isOn: $contact.sendAutomaticTexts)
                 
                 if contact.sendAutomaticTexts {
-                    Text("This contact will receive automatic updates when your BAC exceeds 0.08 or after your fifth standard drink.")
+                    Text("This contact will receive automatic updates when your BAC exceeds 0.08.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -255,7 +222,7 @@ struct EmergencyContactDetailView: View {
             if !isEditMode {
                 Section(header: Text("Actions")) {
                     Button(action: {
-                        contactManager.callEmergencyContact(contact)
+                        EmergencyContactManager.shared.callEmergencyContact(contact)
                     }) {
                         HStack {
                             Image(systemName: "phone.fill")
@@ -265,22 +232,12 @@ struct EmergencyContactDetailView: View {
                     }
                     
                     Button(action: {
-                        contactManager.sendSafetyCheckInMessage(to: contact)
+                        EmergencyContactManager.shared.sendSafetyCheckInMessage(to: contact)
                     }) {
                         HStack {
                             Image(systemName: "message.fill")
                                 .foregroundColor(.blue)
                             Text("Send Safety Check-in")
-                        }
-                    }
-                    
-                    Button(action: {
-                        contactManager.sendCurrentLocation(to: contact)
-                    }) {
-                        HStack {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.red)
-                            Text("Send Current Location")
                         }
                     }
                 }
@@ -291,7 +248,7 @@ struct EmergencyContactDetailView: View {
             trailing: Button(isEditMode ? "Save" : "Edit") {
                 if isEditMode {
                     // Save changes
-                    contactManager.updateContact(contact)
+                    EmergencyContactManager.shared.updateContact(contact)
                 }
                 isEditMode.toggle()
             }
@@ -299,93 +256,14 @@ struct EmergencyContactDetailView: View {
     }
 }
 
-// MARK: - Emergency Contacts List View
-
-struct EmergencyContactsListView: View {
-    @ObservedObject var contactManager = EmergencyContactManager.shared
-    @State private var showingAddContact = false
-    
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(contactManager.emergencyContacts) { contact in
-                    NavigationLink(destination: EmergencyContactDetailView(contact: contact, contactManager: contactManager)) {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(contact.name)
-                                    .font(.headline)
-                                
-                                if contact.sendAutomaticTexts {
-                                    Image(systemName: "message.fill")
-                                        .foregroundColor(.blue)
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            Text(contact.relationshipType)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .onDelete { indexSet in
-                    indexSet.forEach { index in
-                        let contact = contactManager.emergencyContacts[index]
-                        contactManager.removeContact(contact)
-                    }
-                }
-                
-                Button(action: {
-                    showingAddContact = true
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Add Emergency Contact")
-                    }
-                }
-            }
-            .navigationTitle("Emergency Contacts")
-            .sheet(isPresented: $showingAddContact) {
-                AddEmergencyContactView(contactManager: contactManager)
-            }
-            .sheet(isPresented: $contactManager.isShowingContactPicker) {
-                ContactPickerView { contact in
-                    let phoneNumber = contact.phoneNumbers.first?.value.stringValue ?? ""
-                    let newContact = EmergencyContact(
-                        name: "\(contact.givenName) \(contact.familyName)",
-                        phoneNumber: phoneNumber,
-                        relationshipType: "Other",
-                        sendAutomaticTexts: false
-                    )
-                    contactManager.addContact(newContact)
-                }
-            }
-            .sheet(isPresented: $contactManager.isShowingMessageComposer) {
-                if MFMessageComposeViewController.canSendText() && contactManager.selectedContact != nil {
-                    MessageComposerView(
-                        recipients: [contactManager.selectedContact!.phoneNumber],
-                        body: contactManager.messageText,
-                        delegate: contactManager
-                    )
-                } else {
-                    Text("Messaging is not available on this device")
-                        .padding()
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Add Emergency Contact View
 
 struct AddEmergencyContactView: View {
-    @ObservedObject var contactManager: EmergencyContactManager
+    @Environment(\.presentationMode) var presentationMode
     @State private var name = ""
     @State private var phoneNumber = ""
     @State private var relationshipType = "Friend"
     @State private var sendAutomaticTexts = false
-    @Environment(\.presentationMode) var presentationMode
     
     var isValidContact: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -420,13 +298,6 @@ struct AddEmergencyContactView: View {
                 }
                 
                 Section {
-                    Button("Select from Contacts") {
-                        contactManager.isShowingContactPicker = true
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                
-                Section {
                     Button("Save Contact") {
                         let newContact = EmergencyContact(
                             name: name,
@@ -434,7 +305,7 @@ struct AddEmergencyContactView: View {
                             relationshipType: relationshipType,
                             sendAutomaticTexts: sendAutomaticTexts
                         )
-                        contactManager.addContact(newContact)
+                        EmergencyContactManager.shared.addContact(newContact)
                         presentationMode.wrappedValue.dismiss()
                     }
                     .disabled(!isValidContact)
@@ -451,7 +322,6 @@ struct AddEmergencyContactView: View {
 // MARK: - Emergency Button View
 
 struct EmergencyButtonView: View {
-    @ObservedObject var contactManager = EmergencyContactManager.shared
     @State private var showingEmergencyOptions = false
     
     var body: some View {
@@ -476,20 +346,17 @@ struct EmergencyButtonView: View {
                 message: Text("What do you need help with?"),
                 buttons: [
                     .default(Text("Call 911")) {
-                        contactManager.callEmergencyServices()
+                        EmergencyContactManager.shared.callEmergencyServices()
                     },
                     .default(Text("Contact Emergency Contact")) {
-                        if let firstContact = contactManager.emergencyContacts.first {
-                            contactManager.callEmergencyContact(firstContact)
+                        if let firstContact = EmergencyContactManager.shared.emergencyContacts.first {
+                            EmergencyContactManager.shared.callEmergencyContact(firstContact)
                         }
                     },
                     .default(Text("Send Location to Contacts")) {
-                        for contact in contactManager.emergencyContacts {
-                            contactManager.sendCurrentLocation(to: contact)
+                        for contact in EmergencyContactManager.shared.emergencyContacts {
+                            EmergencyContactManager.shared.sendCurrentLocation(to: contact)
                         }
-                    },
-                    .default(Text("Get a Ride")) {
-                        // This would open a rideshare view
                     },
                     .cancel()
                 ]
@@ -497,3 +364,4 @@ struct EmergencyButtonView: View {
         }
     }
 }
+#endif

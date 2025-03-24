@@ -1,9 +1,3 @@
-//
-//  WatchApp.swift
-//  BarBuddy
-//
-//  Created by Travis Rodriguez on 3/22/25.
-//
 #if os(watchOS)
 import SwiftUI
 import WatchConnectivity
@@ -22,7 +16,8 @@ struct WatchApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                ContentView()
+                // Replace with a minimal dashboard or main view
+                DashboardView()
                     .environmentObject(sessionManager)
                     .environmentObject(drinkTracker)
                     .opacity(isLoading ? 0 : 1)

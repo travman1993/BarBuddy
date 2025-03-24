@@ -1,9 +1,4 @@
-//
-//  QuickAddView.swift
-//  BarBuddy
-//
-//  Created by Travis Rodriguez on 3/22/25.
-//
+#if os(watchOS)
 import SwiftUI
 
 struct QuickAddView: View {
@@ -48,3 +43,4 @@ struct QuickAddView: View {
         sessionManager.logDrink(type: type)
     }
 }
+#endif

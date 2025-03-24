@@ -1,9 +1,4 @@
-//
-//  DashboardView.swift
-//  BarBuddy
-//
-//  Created by Travis Rodriguez on 3/22/25.
-//
+#if os(watchOS)
 import SwiftUI
 
 struct DashboardView: View {
@@ -49,3 +44,4 @@ struct DashboardView: View {
         }
     }
 }
+#endif
