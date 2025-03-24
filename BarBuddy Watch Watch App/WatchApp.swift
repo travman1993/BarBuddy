@@ -4,19 +4,13 @@ import WatchConnectivity
 
 @main
 struct WatchApp: App {
-    @StateObject private var sessionManager = WatchSessionManager.shared
-    @StateObject private var drinkTracker = DrinkTracker()
+    private let sessionManager = WatchSessionManager.shared
+    private let drinkTracker = DrinkTracker()
     @State private var isLoading = true
-    
-    init() {
-        // Connect DrinkTracker to WatchSessionManager
-        sessionManager.setDrinkTracker(drinkTracker)
-    }
     
     var body: some Scene {
         WindowGroup {
             ZStack {
-                // Replace with a minimal dashboard or main view
                 DashboardView()
                     .environmentObject(sessionManager)
                     .environmentObject(drinkTracker)
@@ -28,13 +22,12 @@ struct WatchApp: App {
                 }
             }
             .onAppear {
-                // Simulate initial loading and data fetch
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     withAnimation {
                         isLoading = false
                     }
                     
-                    // Request initial data from iPhone
+                    // Simplified data request
                     sessionManager.requestInitialData()
                 }
             }
