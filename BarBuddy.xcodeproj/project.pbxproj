@@ -89,8 +89,13 @@
 		261A85B82D8F348F000ADA24 /* Exceptions for "BarBuddy" folder in "BarBuddy Watch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Models/AppSettingsManager.swift,
+				Models/DrinkSuggestionManager.swift,
 				Models/DrinkTracker.swift,
+				Models/DrinkTrackerViewModel.swift,
+				Models/EmergencyContactManager.swift,
 				Models/ModelStructures.swift,
+				Models/NotificationManager.swift,
 			);
 			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
 		};

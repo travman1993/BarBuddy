@@ -9,108 +9,130 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @State private var showingRideshareOptions = false
+    @State private var showingEmergencyContact = false
+    @State private var showingQuickAdd = false
+    @State private var expandedSection: DashboardSection? = nil
+    
+    enum DashboardSection {
+        case bac, drinks, safeTips
+    }
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                // BAC Circle Indicator
-                BACIndicator(bac: drinkTracker.currentBAC)
+            VStack(spacing: 16) {
+                // BAC Indicator Section
+                EnhancedBACStatusCard(
+                    bac: drinkTracker.currentBAC,
+                    timeUntilSober: drinkTracker.timeUntilSober,
+                    isExpanded: expandedSection == .bac,
+                    onToggleExpand: {
+                        withAnimation {
+                            expandedSection = expandedSection == .bac ? nil : .bac
+                        }
+                    }
+                )
                 
-                // Safety Status
-                SafetyStatusView(bac: drinkTracker.currentBAC)
-                
-                // Time Until Sober
-                if drinkTracker.timeUntilSober > 0 {
-                    TimeUntilSoberView(timeInterval: drinkTracker.timeUntilSober)
+                // Quick Actions
+                HStack(spacing: 12) {
+                    QuickActionButton(
+                        title: "Quick Add",
+                        systemImage: "plus.circle.fill",
+                        color: .blue
+                    ) {
+                        showingQuickAdd = true
+                    }
+                    
+                    QuickActionButton(
+                        title: "Get Ride",
+                        systemImage: "car.fill",
+                        color: .green
+                    ) {
+                        showingRideshareOptions = true
+                    }
+                    
+                    QuickActionButton(
+                        title: "Emergency",
+                        systemImage: "exclamationmark.triangle.fill",
+                        color: .red
+                    ) {
+                        showingEmergencyContact = true
+                    }
                 }
+                .padding(.horizontal)
                 
                 // Recent Drinks Summary
-                RecentDrinksSummary(drinks: drinkTracker.drinks)
-                
-                // Rideshare Button
-                if drinkTracker.currentBAC >= 0.08 {
-                    Button(action: {
-                        showingRideshareOptions = true
-                    }) {
-                        HStack {
-                            Image(systemName: "car")
-                            Text("Get a Safe Ride Home")
+                RecentDrinksSummary(
+                    drinks: drinkTracker.drinks,
+                    isExpanded: expandedSection == .drinks,
+                    onToggleExpand: {
+                        withAnimation {
+                            expandedSection = expandedSection == .drinks ? nil : .drinks
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
                     }
-                    .padding(.horizontal)
-                }
-                
-                // Emergency Contact Button
-                EmergencyContactButton()
-                    .padding(.horizontal)
+                )
                 
                 // Quick BAC Share
                 if drinkTracker.currentBAC > 0 {
                     QuickShareButton(bac: drinkTracker.currentBAC)
                         .padding(.horizontal)
                 }
+                
+                // Safety Tips Section
+                SafetyTipsSection(
+                    bac: drinkTracker.currentBAC,
+                    isExpanded: expandedSection == .safeTips,
+                    onToggleExpand: {
+                        withAnimation {
+                            expandedSection = expandedSection == .safeTips ? nil : .safeTips
+                        }
+                    }
+                )
+                
+                // Drink Suggestions (if BAC is present)
+                if drinkTracker.currentBAC > 0 {
+                    DrinkSuggestionView()
+                }
             }
-            .padding()
+            .padding(.vertical)
         }
-        .navigationTitle("BarBuddy")
+        .navigationTitle("Dashboard")
+        .sheet(isPresented: $showingQuickAdd) {
+            QuickAddDrinkSheet()
+        }
         .sheet(isPresented: $showingRideshareOptions) {
             RideshareOptionsView()
         }
+        .actionSheet(isPresented: $showingEmergencyContact) {
+            ActionSheet(
+                title: Text("Emergency Options"),
+                message: Text("What do you need help with?"),
+                buttons: [
+                    .default(Text("Call Emergency Contact")) {
+                        if let contact = EmergencyContactManager.shared.emergencyContacts.first {
+                            EmergencyContactManager.shared.callEmergencyContact(contact)
+                        }
+                    },
+                    .default(Text("Get a Ride")) {
+                        showingRideshareOptions = true
+                    },
+                    .destructive(Text("Call 911")) {
+                        if let url = URL(string: "tel://911") {
+                            UIApplication.shared.open(url)
+                        }
+                    },
+                    .cancel()
+                ]
+            )
+        }
     }
 }
 
-// BAC Circular Indicator
-struct BACIndicator: View {
+// MARK: - BAC Status Card
+struct EnhancedBACStatusCard: View {
     let bac: Double
-    
-    var color: Color {
-        switch bac {
-        case 0..<0.04: return .green
-        case 0.04..<0.08: return .yellow
-        default: return .red
-        }
-    }
-    
-    var body: some View {
-        VStack {
-            ZStack {
-                Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 15)
-                    .frame(width: 200, height: 200)
-                
-                Circle()
-                    .trim(from: 0, to: min(CGFloat(bac) * 5, 1.0))
-                    .stroke(color, style: StrokeStyle(lineWidth: 15, lineCap: .round))
-                    .frame(width: 200, height: 200)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut, value: bac)
-                
-                VStack {
-                    Text(String(format: "%.3f", bac))
-                        .font(.system(size: 48, weight: .bold))
-                    
-                    Text("BAC")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            Text("Blood Alcohol Content")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-    }
-}
-
-// Safety Status View
-struct SafetyStatusView: View {
-    let bac: Double
+    let timeUntilSober: TimeInterval
+    let isExpanded: Bool
+    let onToggleExpand: () -> Void
     
     var safetyStatus: SafetyStatus {
         if bac < 0.04 {
@@ -130,58 +152,220 @@ struct SafetyStatusView: View {
         }
     }
     
-    var body: some View {
-        HStack {
-            Image(systemName: safetyStatus.systemImage)
-                .foregroundColor(statusColor)
-            
-            Text(safetyStatus.rawValue)
-                .font(.headline)
-                .foregroundColor(statusColor)
-        }
-        .padding()
-        .background(statusColor.opacity(0.1))
-        .cornerRadius(10)
-    }
-}
-
-// Time Until Sober View
-struct TimeUntilSoberView: View {
-    let timeInterval: TimeInterval
-    
-    var formattedTime: String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
+    var formattedTimeUntilSober: String {
+        let hours = Int(timeUntilSober) / 3600
+        let minutes = (Int(timeUntilSober) % 3600) / 60
         
         if hours > 0 {
             return "\(hours)h \(minutes)m"
-        } else {
+        } else if minutes > 0 {
             return "\(minutes) minutes"
+        } else {
+            return "0 minutes"
         }
     }
     
     var body: some View {
-        VStack(spacing: 5) {
-            Text("Time Until Legal to Drive")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
+        VStack(spacing: 0) {
+            // Main BAC display
             HStack {
-                Image(systemName: "clock")
-                Text(formattedTime)
-                    .font(.title2)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CURRENT BAC")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(String(format: "%.3f", bac))
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(statusColor)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    if timeUntilSober > 0 {
+                        Text("SOBER IN")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(formattedTimeUntilSober)
+                            .font(.title3)
+                            .foregroundColor(statusColor)
+                    }
+                }
+                
+                Button(action: onToggleExpand) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.secondary)
+                        .padding(8)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            
+            // Status banner
+            HStack {
+                Image(systemName: safetyStatus.systemImage)
+                    .foregroundColor(.white)
+                
+                Text(safetyStatus.rawValue)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(statusColor)
+            
+            if isExpanded {
+                // Extended BAC information
+                VStack(spacing: 16) {
+                    // BAC Circle
+                    ZStack {
+                        Circle()
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 15)
+                            .frame(width: 180, height: 180)
+                        
+                        Circle()
+                            .trim(from: 0, to: min(CGFloat(bac) * 5, 1.0))
+                            .stroke(
+                                statusColor,
+                                style: StrokeStyle(lineWidth: 15, lineCap: .round)
+                            )
+                            .frame(width: 180, height: 180)
+                            .rotationEffect(.degrees(-90))
+                        
+                        VStack {
+                            Text(String(format: "%.3f", bac))
+                                .font(.system(size: 42, weight: .bold))
+                                .foregroundColor(statusColor)
+                            
+                            Text("BAC")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical)
+                    
+                    // Key BAC information
+                    VStack(spacing: 10) {
+                        KeyInfoRow(
+                            title: "Legal driving limit",
+                            value: "0.08%",
+                            icon: "car.fill",
+                            warning: bac >= 0.08
+                        )
+                        
+                        KeyInfoRow(
+                            title: "Effects at this level",
+                            value: getBACEffects(),
+                            icon: "brain",
+                            warning: bac >= 0.05
+                        )
+                        
+                        if timeUntilSober > 0 {
+                            KeyInfoRow(
+                                title: "Sober time estimate",
+                                value: getSoberTime(),
+                                icon: "clock.fill",
+                                warning: false
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom)
+                }
+                .background(Color(.systemBackground))
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
+    }
+    
+    private func getBACEffects() -> String {
+        if bac >= 0.20 {
+            return "Severe impairment, blackout risk"
+        } else if bac >= 0.15 {
+            return "Balance and coordination impaired"
+        } else if bac >= 0.08 {
+            return "Legally impaired, slurred speech"
+        } else if bac >= 0.05 {
+            return "Reduced inhibitions, judgment"
+        } else if bac >= 0.02 {
+            return "Mild mood effects, relaxation"
+        } else {
+            return "Minimal effects"
+        }
+    }
+    
+    private func getSoberTime() -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        
+        let soberTime = Date().addingTimeInterval(timeUntilSober)
+        return formatter.string(from: soberTime)
     }
 }
 
-// Recent Drinks Summary
+struct KeyInfoRow: View {
+    let title: String
+    let value: String
+    let icon: String
+    let warning: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(warning ? .red : .blue)
+                .frame(width: 30)
+            
+            Text(title)
+                .font(.subheadline)
+            
+            Spacer()
+            
+            Text(value)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(warning ? .red : .primary)
+        }
+    }
+}
+
+// MARK: - Quick Action Button
+struct QuickActionButton: View {
+    let title: String
+    let systemImage: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+                
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(10)
+        }
+    }
+}
+
+// MARK: - Recent Drinks Summary
 struct RecentDrinksSummary: View {
     let drinks: [Drink]
+    let isExpanded: Bool
+    let onToggleExpand: () -> Void
     
     var recentDrinks: [Drink] {
         // Get drinks from the last 24 hours
@@ -191,79 +375,178 @@ struct RecentDrinksSummary: View {
         .sorted { $0.timestamp > $1.timestamp }
     }
     
+    var totalStandardDrinks: Double {
+        return recentDrinks.reduce(0) { $0 + $1.standardDrinks }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Recent Drinks")
-                .font(.headline)
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Recent Drinks")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Text("\(recentDrinks.count) drinks today")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Button(action: onToggleExpand) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.secondary)
+                        .padding(8)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
             
             if recentDrinks.isEmpty {
-                Text("No drinks in the last 24 hours")
+                Text("No drinks recorded in the last 24 hours")
                     .foregroundColor(.secondary)
-                    .padding(.vertical, 5)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
             } else {
-                ForEach(recentDrinks.prefix(3)) { drink in
-                    HStack {
-                        Text(drink.type.icon)
-                            .font(.title2)
+                // Summary row
+                HStack(spacing: 0) {
+                    Statistic(
+                        title: "Total Drinks",
+                        value: "\(recentDrinks.count)",
+                        icon: "drop.fill"
+                    )
+                    
+                    Divider()
+                        .padding(.vertical, 10)
+                    
+                    Statistic(
+                        title: "Standard Drinks",
+                        value: String(format: "%.1f", totalStandardDrinks),
+                        icon: "wineglass"
+                    )
+                    
+                    if !isExpanded {
+                        Divider()
+                            .padding(.vertical, 10)
                         
-                        VStack(alignment: .leading) {
-                            Text(drink.type.rawValue)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                        Statistic(
+                            title: "Last Drink",
+                            value: recentDrinks.first != nil ? timeAgo(recentDrinks.first!.timestamp) : "-",
+                            icon: "clock"
+                        )
+                    }
+                }
+                .padding(.vertical, 10)
+                .background(Color(.systemBackground))
+                
+                if isExpanded {
+                    // List of drinks
+                    VStack(spacing: 0) {
+                        ForEach(recentDrinks.prefix(5)) { drink in
+                            DrinkHistoryRow(drink: drink)
                             
-                            Text("\(String(format: "%.1f", drink.size)) oz, \(String(format: "%.1f", drink.alcoholPercentage))%")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            if drink.id != recentDrinks.prefix(5).last?.id {
+                                Divider()
+                                    .padding(.leading, 60)
+                            }
                         }
                         
-                        Spacer()
-                        
-                        Text(relativeTimeString(for: drink.timestamp))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        if recentDrinks.count > 5 {
+                            Button(action: {
+                                // Navigate to full history view
+                            }) {
+                                Text("View All \(recentDrinks.count) Drinks")
+                                    .font(.subheadline)
+                                    .foregroundColor(.blue)
+                                    .padding()
+                            }
+                        }
                     }
-                    .padding(.vertical, 5)
-                }
-                
-                if recentDrinks.count > 3 {
-                    Text("+ \(recentDrinks.count - 3) more")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    .background(Color(.systemBackground))
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
     }
     
-    func relativeTimeString(for date: Date) -> String {
+    func timeAgo(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
 
-// Emergency Contact Button
-struct EmergencyContactButton: View {
+struct Statistic: View {
+    let title: String
+    let value: String
+    let icon: String
+    
     var body: some View {
-        Button(action: {
-            // Action to contact emergency contact
-        }) {
-            HStack {
-                Image(systemName: "phone.fill")
-                Text("Contact Emergency Contact")
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.purple)
-            .foregroundColor(.white)
-            .cornerRadius(10)
+        VStack(spacing: 5) {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+            
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
-// Quick Share Button
+struct EnhancedDrinkHistoryRow: View {
+    let drink: Drink
+    
+    var body: some View {
+        HStack {
+            Text(drink.type.icon)
+                .font(.title2)
+                .frame(width: 40)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(drink.type.rawValue)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text("\(String(format: "%.1f", drink.size)) oz, \(String(format: "%.1f", drink.alcoholPercentage))%")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(timeString(for: drink.timestamp))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("\(String(format: "%.1f", drink.standardDrinks)) std")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal)
+    }
+    
+    func timeString(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+}
+
+// MARK: - Quick Share Button
 struct QuickShareButton: View {
     let bac: Double
     @State private var showingShareOptions = false
@@ -274,77 +557,330 @@ struct QuickShareButton: View {
         }) {
             HStack {
                 Image(systemName: "square.and.arrow.up")
+                    .foregroundColor(.white)
                 Text("Share My Status")
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity)
             .padding()
             .background(Color.green)
-            .foregroundColor(.white)
             .cornerRadius(10)
         }
         .sheet(isPresented: $showingShareOptions) {
-            // Share options view would go here
-            Text("Share Options View")
+            ShareView()
         }
     }
 }
 
-// Rideshare Options View
-struct RideshareOptionsView: View {
+// MARK: - Safety Tips Section
+struct SafetyTipsSection: View {
+    let bac: Double
+    let isExpanded: Bool
+    let onToggleExpand: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Safety Tips")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: onToggleExpand) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.secondary)
+                        .padding(8)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            
+            // Quick tip
+            HStack {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundColor(.yellow)
+                    .padding(.trailing, 5)
+                
+                Text(quickTip)
+                    .font(.subheadline)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.yellow.opacity(0.1))
+            
+            if isExpanded {
+                // Extended tips
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(safetyTips, id: \.self) { tip in
+                        TipRow(text: tip)
+                    }
+                }
+                .padding()
+                .background(Color(.systemBackground))
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
+    }
+    
+    var quickTip: String {
+        if bac >= 0.08 {
+            return "Your BAC is above the legal limit. DO NOT drive and consider switching to water."
+        } else if bac >= 0.04 {
+            return "Remember to alternate alcoholic drinks with water to stay hydrated."
+        } else if bac > 0 {
+            return "Drinking on an empty stomach speeds up alcohol absorption. Consider eating something."
+        } else {
+            return "Pace yourself by having no more than one standard drink per hour."
+        }
+    }
+    
+    var safetyTips: [String] {
+        [
+            "Drink water before, during, and after consuming alcohol to stay hydrated.",
+            "Always arrange for a safe ride home before you start drinking.",
+            "Eat a meal before drinking to slow alcohol absorption.",
+            "Know your limits and stick to them.",
+            "Check in with trusted friends or family members periodically.",
+            "Remember that coffee doesn't sober you up - only time can reduce BAC."
+        ]
+    }
+}
+
+struct TipRow: View {
+    let text: String
+    
+    var body: some View {
+        HStack(alignment: .top) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+                .padding(.top, 2)
+            
+            Text(text)
+                .font(.subheadline)
+        }
+    }
+}
+
+// MARK: - Quick Add Drink Sheet
+struct QuickAddDrinkSheet: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var drinkTracker: DrinkTracker
+    @State private var selectedDrinkType: DrinkType = .beer
+    @State private var size: Double = 12.0
+    @State private var alcoholPercentage: Double = 5.0
     
     var body: some View {
         NavigationView {
-            List {
-                Button(action: openUber) {
-                    Label("Uber", systemImage: "car.fill")
+            Form {
+                Section(header: Text("Drink Type")) {
+                    Picker("Type", selection: $selectedDrinkType) {
+                        ForEach(DrinkType.allCases, id: \.self) { type in
+                            HStack {
+                                Text(type.icon)
+                                Text(type.rawValue)
+                            }
+                            .tag(type)
+                        }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+                    .onChange(of: selectedDrinkType) { oldValue, newValue in
+                        size = selectedDrinkType.defaultSize
+                        alcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
+                    }
                 }
                 
-                Button(action: openLyft) {
-                    Label("Lyft", systemImage: "car.fill")
+                Section(header: Text("Size")) {
+                    HStack {
+                        Text("\(String(format: "%.1f", size)) oz")
+                            .frame(width: 60, alignment: .leading)
+                        
+                        Slider(value: $size, in: 1...24, step: 0.5)
+                    }
                 }
                 
-                Button(action: callTaxi) {
-                    Label("Call Taxi", systemImage: "phone.fill")
+                Section(header: Text("Alcohol Percentage")) {
+                    HStack {
+                        Text("\(String(format: "%.1f", alcoholPercentage))%")
+                            .frame(width: 60, alignment: .leading)
+                        
+                        Slider(value: $alcoholPercentage, in: 0.5...70, step: 0.5)
+                    }
+                }
+                
+                Section(header: Text("Equivalent To")) {
+                    HStack {
+                        Text("Standard Drinks:")
+                        Spacer()
+                        Text(String(format: "%.1f", calculateStandardDrinks()))
+                            .fontWeight(.bold)
+                    }
+                }
+                
+                Section {
+                    Button(action: addDrink) {
+                        Text("Add Drink")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .fontWeight(.semibold)
+                    }
+                    .listRowBackground(Color.blue)
+                    .foregroundColor(.white)
                 }
             }
-            .navigationTitle("Get a Safe Ride")
+            .navigationTitle("Add Drink")
             .navigationBarItems(trailing: Button("Cancel") {
                 presentationMode.wrappedValue.dismiss()
             })
         }
     }
     
-    func openUber() {
-        if let url = URL(string: "uber://") {
-            if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url)
-            } else if let webUrl = URL(string: "https://m.uber.com") {
-                UIApplication.shared.open(webUrl)
+    private func calculateStandardDrinks() -> Double {
+        // A standard drink is defined as 0.6 fl oz of pure alcohol
+        let pureAlcohol = size * (alcoholPercentage / 100)
+        return pureAlcohol / 0.6
+    }
+    
+    private func addDrink() {
+        drinkTracker.addDrink(
+            type: selectedDrinkType,
+            size: size,
+            alcoholPercentage: alcoholPercentage
+        )
+        
+        // Give haptic feedback for successful addition
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+        presentationMode.wrappedValue.dismiss()
+    }
+}
+
+// MARK: - Rideshare Options View
+struct RideshareOptionsView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isProcessing = false
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 12) {
+                Text("Get a Safe Ride Home")
+                    .font(.headline)
+                    .padding(.top, 5)
+                
+                if isProcessing {
+                    ProgressView()
+                        .padding()
+                } else {
+                    // Uber Button
+                    Button(action: {
+                        requestRide(service: "uber")
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "car.fill")
+                                .font(.system(size: 18))
+                            Text("Uber")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Lyft Button
+                    Button(action: {
+                        requestRide(service: "lyft")
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "car.fill")
+                                .font(.system(size: 18))
+                            Text("Lyft")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.pink)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Taxi Button
+                    Button(action: {
+                        callTaxi()
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 18))
+                            Text("Call Taxi")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.yellow)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Cancel Button
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Cancel")
+                            .padding(.vertical, 10)
+                            .foregroundColor(.blue)
+                    }
+                }
             }
+            .padding()
+            .navigationTitle("Get a Ride")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
-    func openLyft() {
-        if let url = URL(string: "lyft://") {
+    private func requestRide(service: String) {
+        isProcessing = true
+        
+        // Open the app if installed, or website if not
+        let appUrlScheme = service == "uber" ? "uber://" : "lyft://"
+        if let url = URL(string: appUrlScheme) {
             if UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
-            } else if let webUrl = URL(string: "https://www.lyft.com") {
+                presentationMode.wrappedValue.dismiss()
+                return
+            } else if let webUrl = URL(string: service == "uber" ? "https://m.uber.com" : "https://www.lyft.com") {
                 UIApplication.shared.open(webUrl)
+                presentationMode.wrappedValue.dismiss()
+                return
             }
         }
+        
+        // If we couldn't open the app or website, finish processing
+        isProcessing = false
     }
     
-    func callTaxi() {
-        // This would ideally show local taxi options
-        // For now, just dismiss
+    private func callTaxi() {
+        // This would ideally show local taxi options or call a local taxi service
+        if let url = URL(string: "tel://555-TAXI") {
+            UIApplication.shared.open(url)
+        }
         presentationMode.wrappedValue.dismiss()
     }
 }
 
 #Preview {
-    NavigationView {
-        DashboardView()
-            .environmentObject(DrinkTracker())
-    }
+    DashboardView()
+        .environmentObject(DrinkTracker())
 }
