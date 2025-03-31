@@ -12,18 +12,17 @@ import MessageUI
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager()
-    @StateObject private var messageDelegate = ShareViewMessageDelegate(onComplete: {})
+    @State private var messageDelegate = ShareViewMessageDelegate()
     @State private var selectedContacts: [Contact] = []
     @State private var customMessage: String = "Here's my current BAC."
-    @State private var shareExpiration: Double = 2.0 // Hours
+    @State private var shareExpiration: Double = 2.0
     @State private var includeLocation = false
     @State private var showingShareOptions = false
     @State private var showingQRCode = false
     @State private var selectedShareOption: ShareOption = .text
     @State private var showingSavedShares = false
-    @State private var showingMessageComposer: Bool = false
+    @State private var showingMessageComposer = false
     
-    // Share options enum
     enum ShareOption {
         case text, email, qrCode, url
     }
@@ -859,6 +858,15 @@ struct ActiveSharesView: View {
 struct ActiveShareRow: View {
     let share: BACShare
     
+    // Private method to get color based on safety status
+    private func statusColor(for status: SafetyStatus) -> Color {
+        switch status {
+        case .safe: return .green
+        case .borderline: return .yellow
+        case .unsafe: return .red
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -891,17 +899,17 @@ struct ActiveShareRow: View {
     }
     
     private func timeAgo(_ date: Date) -> String {
-            let formatter = RelativeDateTimeFormatter()
-            formatter.unitsStyle = .abbreviated
-            return formatter.localizedString(for: date, relativeTo: Date())
-        }
-        
-        private func expirationTimeString(for date: Date) -> String {
-            let formatter = RelativeDateTimeFormatter()
-            formatter.unitsStyle = .abbreviated
-            return formatter.localizedString(for: date, relativeTo: Date())
-        }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
+    
+    private func expirationTimeString(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
     // MARK: - Status Badge
     struct StatusBadge: View {
         let status: SafetyStatus

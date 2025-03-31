@@ -20,34 +20,29 @@ struct BarBuddyApp: App {
     }
     
     var body: some Scene {
-        WindowGroup {
-            Group {
-                if showingDisclaimerOnLaunch {
-                    LaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
-                        .adaptiveLayout()
-                } else if !hasCompletedPurchase {
-                    PurchaseView(hasCompletedPurchase: $hasCompletedPurchase)
-                        .adaptiveLayout()
-                } else {
-                    ContentView()
-                        .environmentObject(drinkTracker)
-                        .adaptiveLayout()
-                        .onAppear {
-                            // Set up app when it appears
-                            setupAppConfiguration()
-                            
-                            // For watchOS communication, sync current BAC
-                            syncBACToWatch()
-                        }
+            WindowGroup {
+                Group {
+                    if showingDisclaimerOnLaunch {
+                        LaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
+                            .adaptiveLayout()
+                    } else if !hasCompletedPurchase {
+                        PurchaseView(hasCompletedPurchase: $hasCompletedPurchase)
+                            .adaptiveLayout()
+                    } else {
+                        ContentView()
+                            .environmentObject(drinkTracker)
+                            .adaptiveLayout()
+                            .onAppear {
+                                setupAppConfiguration()
+                                syncBACToWatch()
+                            }
+                    }
+                }
+                .onAppear {
+                    checkIfFirstLaunch()
                 }
             }
-            // This modifier avoids the issue with buildExpression
-            .onAppear {
-                // Initial setup code
-                checkIfFirstLaunch()
-            }
         }
-    }
     
     private func checkIfFirstLaunch() {
         // First launch check

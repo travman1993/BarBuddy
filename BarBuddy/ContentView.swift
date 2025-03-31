@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var drinkTracker: DrinkTracker
     @State private var selectedTab = 0
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
@@ -10,13 +9,11 @@ struct ContentView: View {
             if horizontalSizeClass == .regular {
                 // iPad layout with sidebar
                 if #available(iOS 16.0, *) {
-                    // Use NavigationSplitView for iOS 16+
                     NavigationSplitView {
                         sidebarContent
                             .navigationTitle("BarBuddy")
                     } detail: {
                         selectedTabView()
-                            .environmentObject(drinkTracker)
                     }
                 } else {
                     // Fallback for iOS 15 and earlier
@@ -27,7 +24,6 @@ struct ContentView: View {
                                 .navigationTitle("BarBuddy")
                             
                             selectedTabView()
-                                .environmentObject(drinkTracker)
                         }
                     }
                 }
@@ -81,34 +77,28 @@ struct ContentView: View {
                 }
             }
         }
-        .onAppear {
-            // Show disclaimer on first launch
-            if !UserDefaults.standard.bool(forKey: "hasSeenDisclaimer") {
-                UserDefaults.standard.set(true, forKey: "hasSeenDisclaimer")
-            }
-        }
     }
     
     @ViewBuilder
     private var sidebarContent: some View {
-        List(selection: $selectedTab) {
-            NavigationLink(destination: DashboardView().navigationTitle("Dashboard"), tag: 0, selection: $selectedTab) {
+        List {
+            NavigationLink(destination: DashboardView().navigationTitle("Dashboard")) {
                 Label("Dashboard", systemImage: "gauge")
             }
             
-            NavigationLink(destination: DrinkLogView().navigationTitle("Log Drink"), tag: 1, selection: $selectedTab) {
+            NavigationLink(destination: DrinkLogView().navigationTitle("Log Drink")) {
                 Label("Log Drink", systemImage: "plus.circle")
             }
             
-            NavigationLink(destination: HistoryView().navigationTitle("History"), tag: 2, selection: $selectedTab) {
+            NavigationLink(destination: HistoryView().navigationTitle("History")) {
                 Label("History", systemImage: "clock")
             }
             
-            NavigationLink(destination: ShareView().navigationTitle("Share"), tag: 3, selection: $selectedTab) {
+            NavigationLink(destination: ShareView().navigationTitle("Share")) {
                 Label("Share", systemImage: "person.2")
             }
             
-            NavigationLink(destination: SettingsView().navigationTitle("Settings"), tag: 4, selection: $selectedTab) {
+            NavigationLink(destination: SettingsView().navigationTitle("Settings")) {
                 Label("Settings", systemImage: "gear")
             }
         }
@@ -141,5 +131,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(DrinkTracker())
 }

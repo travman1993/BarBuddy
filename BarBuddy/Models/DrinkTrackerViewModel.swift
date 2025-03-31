@@ -162,7 +162,7 @@ class DrinkTrackerViewModel: ObservableObject {
     
     private func calculateDailyStats() {
         let calendar = Calendar.current
-        let startOfToday = calendar.startOfDay(for: Date())
+        _ = calendar.startOfDay(for: Date())
         
         // Calculate total standard drinks today
         let todaysDrinks = drinks.filter {

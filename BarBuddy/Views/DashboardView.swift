@@ -905,25 +905,6 @@ struct RideshareOptionsView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Taxi Button
-                    Button(action: {
-                        callTaxi()
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "phone.fill")
-                                .font(.system(size: 18))
-                            Text("Call Taxi")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.yellow)
-                        .foregroundColor(.black)
-                        .cornerRadius(10)
-                    }
-                    .padding(.horizontal)
-                    
                     // Cancel Button
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
@@ -959,14 +940,6 @@ struct RideshareOptionsView: View {
         
         // If we couldn't open the app or website, finish processing
         isProcessing = false
-    }
-    
-    private func callTaxi() {
-        // This would ideally show local taxi options or call a local taxi service
-        if let url = URL(string: "tel://555-TAXI") {
-            UIApplication.shared.open(url)
-        }
-        presentationMode.wrappedValue.dismiss()
     }
 }
 

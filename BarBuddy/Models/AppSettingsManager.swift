@@ -8,7 +8,6 @@ import Foundation
 import SwiftUI
 import Combine
 
-// Extension moved outside the class
 private extension UserDefaults {
     func contains(key: String) -> Bool {
         return self.object(forKey: key) != nil
@@ -53,10 +52,9 @@ class AppSettingsManager: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
+    private init() {
         loadSettings()
         setupBindings()
-        // Apply dark mode on initialization
         applyAppearanceSettings()
     }
     
@@ -378,7 +376,7 @@ class AppSettingsManager: ObservableObject {
                 // Import drinks if available
                 if let drinksArray = userData["drinks"] as? [[String: Any]] {
                     if let drinksData = try? JSONSerialization.data(withJSONObject: drinksArray, options: []),
-                       let drinks = try? JSONDecoder().decode([Drink].self, from: drinksData) {
+                       let _ = try? JSONDecoder().decode([Drink].self, from: drinksData) {
                         // Save the imported drinks
                         UserDefaults.standard.set(drinksData, forKey: "savedDrinks")
                     }

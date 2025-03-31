@@ -299,7 +299,7 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         // Handle notification action
         let identifier = response.actionIdentifier
-        let notification = response.notification
+        _ = response.notification
         
         switch identifier {
         case "GET_UBER":
