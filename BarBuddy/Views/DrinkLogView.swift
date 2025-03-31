@@ -7,6 +7,7 @@
 import SwiftUI
 import Charts
 import Combine
+import UserNotifications
 
 struct DrinkLogView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
@@ -17,115 +18,224 @@ struct DrinkLogView: View {
     @State private var showingQuickAddConfirmation = false
     @State private var lastAddedDrink: DrinkType?
     @State private var showHistoryChart = true
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     // Timer for dismissing confirmation
     @State private var confirmationTimer: Timer?
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                // Current BAC status card
-                BACStatusCard(bac: drinkTracker.currentBAC)
-                
-                // Quick Add Section with improved visuals
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Quick Add")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            withAnimation {
-                                showHistoryChart.toggle()
+            if horizontalSizeClass == .regular {
+                // iPad layout
+                VStack(spacing: 20) {
+                    HStack(alignment: .top, spacing: 20) {
+                        // Left column - BAC status and quick add
+                        VStack(spacing: 20) {
+                            // Current BAC status card
+                            BACStatusCard(bac: drinkTracker.currentBAC)
+                            
+                            // Quick Add buttons
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack {
+                                    Text("Quick Add")
+                                        .font(.headline)
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        withAnimation {
+                                            showHistoryChart.toggle()
+                                        }
+                                    }) {
+                                        Label(showHistoryChart ? "Hide Chart" : "Show Chart",
+                                              systemImage: showHistoryChart ? "chart.bar.xaxis" : "chart.bar")
+                                            .font(.caption)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                
+                                // Toast-style confirmation message
+                                if showingQuickAddConfirmation, let drink = lastAddedDrink {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                        Text("\(drink.rawValue) added")
+                                            .font(.subheadline)
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.green.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                }
+                                
+                                // Drink history chart
+                                if showHistoryChart {
+                                    DrinkHistoryChart(drinks: drinkTracker.drinks)
+                                        .frame(height: 180)
+                                        .padding(.vertical, 8)
+                                }
+                                
+                                // Quick add drink buttons - grid with 2 columns
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 15) {
+                                    ForEach(DrinkType.allCases, id: \.self) { drinkType in
+                                        EnhancedQuickAddButton(
+                                            drinkType: drinkType,
+                                            action: {
+                                                addDefaultDrink(type: drinkType)
+                                            }
+                                        )
+                                    }
+                                }
+                                
+                                // Custom Drink Button
+                                Button(action: {
+                                    // Pre-populate with values from selected drink type
+                                    selectedDrinkType = .beer
+                                    customSize = selectedDrinkType.defaultSize
+                                    customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
+                                    
+                                    showingCustomDrinkView = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "slider.horizontal.3")
+                                            .font(.system(size: 16))
+                                        Text("Custom Drink")
+                                            .font(.headline)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                }
                             }
-                        }) {
-                            Label(showHistoryChart ? "Hide Chart" : "Show Chart",
-                                  systemImage: showHistoryChart ? "chart.bar.xaxis" : "chart.bar")
-                                .font(.caption)
-                                .foregroundColor(.blue)
+                            .padding()
+                            .background(Color(.systemGroupedBackground))
+                            .cornerRadius(12)
                         }
+                        .frame(maxWidth: .infinity)
+                        
+                        // Right column - Recently added drinks
+                        RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
+                            drinkTracker.removeDrink(drink)
+                        })
+                        .background(Color(.systemGroupedBackground))
+                        .cornerRadius(12)
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding()
+            } else {
+                // iPhone layout (original layout)
+                VStack(spacing: 20) {
+                    // Current BAC status card
+                    BACStatusCard(bac: drinkTracker.currentBAC)
+                    
+                    // Quick Add Section with improved visuals
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Quick Add")
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                withAnimation {
+                                    showHistoryChart.toggle()
+                                }
+                            }) {
+                                Label(showHistoryChart ? "Hide Chart" : "Show Chart",
+                                      systemImage: showHistoryChart ? "chart.bar.xaxis" : "chart.bar")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        // Toast-style confirmation message
+                        if showingQuickAddConfirmation, let drink = lastAddedDrink {
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("\(drink.rawValue) added")
+                                    .font(.subheadline)
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
+                        
+                        // Drink history chart
+                        if showHistoryChart {
+                            DrinkHistoryChart(drinks: drinkTracker.drinks)
+                                .frame(height: 180)
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                        }
+                        
+                        // Quick add drink buttons
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 15) {
+                            ForEach(DrinkType.allCases, id: \.self) { drinkType in
+                                EnhancedQuickAddButton(
+                                    drinkType: drinkType,
+                                    action: {
+                                        addDefaultDrink(type: drinkType)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.vertical)
+                    .background(Color(.systemGroupedBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    
+                    // Custom Drink Button
+                    Button(action: {
+                        // Pre-populate with values from selected drink type
+                        selectedDrinkType = .beer
+                        customSize = selectedDrinkType.defaultSize
+                        customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
+                        
+                        showingCustomDrinkView = true
+                    }) {
+                        HStack {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 16))
+                            Text("Custom Drink")
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                     }
                     .padding(.horizontal)
                     
-                    // Toast-style confirmation message
-                    if showingQuickAddConfirmation, let drink = lastAddedDrink {
-                        HStack(spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("\(drink.rawValue) added")
-                                .font(.subheadline)
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                    
-                    // Drink history chart
-                    if showHistoryChart {
-                        DrinkHistoryChart(drinks: drinkTracker.drinks)
-                            .frame(height: 180)
-                            .padding(.horizontal)
-                            .padding(.vertical, 8)
-                    }
-                    
-                    // Quick add drink buttons
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 15) {
-                        ForEach(DrinkType.allCases, id: \.self) { drinkType in
-                            EnhancedQuickAddButton(
-                                drinkType: drinkType,
-                                action: {
-                                    addDefaultDrink(type: drinkType)
-                                }
-                            )
-                        }
-                    }
+                    // Recently Added Drinks
+                    RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
+                        drinkTracker.removeDrink(drink)
+                    })
+                    .background(Color(.systemGroupedBackground))
+                    .cornerRadius(12)
                     .padding(.horizontal)
                 }
                 .padding(.vertical)
-                .background(Color(.systemGroupedBackground))
-                .cornerRadius(12)
-                .padding(.horizontal)
-                
-                // Custom Drink Button
-                Button(action: {
-                    // Pre-populate with values from selected drink type
-                    selectedDrinkType = .beer
-                    customSize = selectedDrinkType.defaultSize
-                    customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
-                    
-                    showingCustomDrinkView = true
-                }) {
-                    HStack {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 16))
-                        Text("Custom Drink")
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                
-                // Recently Added Drinks
-                RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
-                    drinkTracker.removeDrink(drink)
-                })
-                .background(Color(.systemGroupedBackground))
-                .cornerRadius(12)
-                .padding(.horizontal)
             }
-            .padding(.vertical)
         }
         .navigationTitle("Log Drink")
         .sheet(isPresented: $showingCustomDrinkView) {
@@ -148,6 +258,10 @@ struct DrinkLogView: View {
             confirmationTimer?.invalidate()
         }
     }
+}
+
+// The rest of the view components in DrinkLogView.swift remain largely unchanged
+// They already use system colors that adapt well to dark mode
     
     private func addDefaultDrink(type: DrinkType) {
         drinkTracker.addDrink(
@@ -196,7 +310,7 @@ struct DrinkLogView: View {
             timeUntilSober: drinkTracker.timeUntilSober
         )
     }
-}
+
 
 // Current BAC Status Card
 struct BACStatusCard: View {

@@ -12,7 +12,7 @@ import MessageUI
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager()
-    @StateObject private var messageDelegate = ShareViewMessageDelegate()
+    @StateObject private var messageDelegate = ShareViewMessageDelegate(onComplete: {})
     @State private var selectedContacts: [Contact] = []
     @State private var customMessage: String = "Here's my current BAC."
     @State private var shareExpiration: Double = 2.0 // Hours
@@ -1000,30 +1000,4 @@ struct ActiveShareRow: View {
         }
     }
 
-    // MARK: - Message Delegate
-class ShareViewMessageDelegate: NSObject, MFMessageComposeViewControllerDelegate {
-    var onComplete: () -> Void
-    
-    init(onComplete: @escaping () -> Void = {}) {
-        self.onComplete = onComplete
-        super.init()
-    }
-    
-    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        controller.dismiss(animated: true, completion: nil)
-        
-        switch result {
-        case .cancelled:
-            print("Message cancelled")
-        case .failed:
-            print("Message failed")
-        case .sent:
-            print("Message sent")
-        @unknown default:
-            print("Unknown message result")
-        }
-        
-        onComplete()
-    }
-}
 #endif

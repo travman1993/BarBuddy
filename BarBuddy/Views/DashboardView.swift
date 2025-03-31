@@ -1,4 +1,3 @@
-//
 //  DashboardView.swift
 //  BarBuddy
 //
@@ -12,6 +11,7 @@ struct DashboardView: View {
     @State private var showingEmergencyContact = false
     @State private var showingQuickAdd = false
     @State private var expandedSection: DashboardSection? = nil
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     enum DashboardSection {
         case bac, drinks, safeTips
@@ -19,81 +19,168 @@ struct DashboardView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                // BAC Indicator Section
-                EnhancedBACStatusCard(
-                    bac: drinkTracker.currentBAC,
-                    timeUntilSober: drinkTracker.timeUntilSober,
-                    isExpanded: expandedSection == .bac,
-                    onToggleExpand: {
-                        withAnimation {
-                            expandedSection = expandedSection == .bac ? nil : .bac
+            if horizontalSizeClass == .regular {
+                // iPad layout
+                VStack(spacing: 20) {
+                    // Top section with BAC indicator and quick actions
+                    HStack(alignment: .top, spacing: 20) {
+                        // Left column
+                        VStack(spacing: 16) {
+                            // BAC Indicator Section
+                            EnhancedBACStatusCard(
+                                bac: drinkTracker.currentBAC,
+                                timeUntilSober: drinkTracker.timeUntilSober,
+                                isExpanded: true,
+                                onToggleExpand: {}
+                            )
+                            
+                            // Quick Actions in a grid
+                            LazyVGrid(columns: [
+                                GridItem(.flexible()),
+                                GridItem(.flexible()),
+                                GridItem(.flexible())
+                            ], spacing: 12) {
+                                QuickActionButton(
+                                    title: "Quick Add",
+                                    systemImage: "plus.circle.fill",
+                                    color: .blue
+                                ) {
+                                    showingQuickAdd = true
+                                }
+                                
+                                QuickActionButton(
+                                    title: "Get Ride",
+                                    systemImage: "car.fill",
+                                    color: .green
+                                ) {
+                                    showingRideshareOptions = true
+                                }
+                                
+                                QuickActionButton(
+                                    title: "Emergency",
+                                    systemImage: "exclamationmark.triangle.fill",
+                                    color: .red
+                                ) {
+                                    showingEmergencyContact = true
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        // Right column
+                        VStack(spacing: 16) {
+                            // Recent Drinks Summary (always expanded on iPad)
+                            RecentDrinksSummary(
+                                drinks: drinkTracker.drinks,
+                                isExpanded: true,
+                                onToggleExpand: {}
+                            )
+                            
+                            // Quick BAC Share
+                            if drinkTracker.currentBAC > 0 {
+                                QuickShareButton(bac: drinkTracker.currentBAC)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Bottom section with safety tips and drink suggestions
+                    VStack(spacing: 16) {
+                        // Safety Tips Section (always expanded on iPad)
+                        SafetyTipsSection(
+                            bac: drinkTracker.currentBAC,
+                            isExpanded: true,
+                            onToggleExpand: {}
+                        )
+                        
+                        // Drink Suggestions (if BAC is present)
+                        if drinkTracker.currentBAC > 0 {
+                            DrinkSuggestionView()
                         }
                     }
-                )
-                
-                // Quick Actions
-                HStack(spacing: 12) {
-                    QuickActionButton(
-                        title: "Quick Add",
-                        systemImage: "plus.circle.fill",
-                        color: .blue
-                    ) {
-                        showingQuickAdd = true
+                    .padding(.horizontal)
+                }
+                .padding(.vertical)
+            } else {
+                // iPhone layout (original layout)
+                VStack(spacing: 16) {
+                    // BAC Indicator Section
+                    EnhancedBACStatusCard(
+                        bac: drinkTracker.currentBAC,
+                        timeUntilSober: drinkTracker.timeUntilSober,
+                        isExpanded: expandedSection == .bac,
+                        onToggleExpand: {
+                            withAnimation {
+                                expandedSection = expandedSection == .bac ? nil : .bac
+                            }
+                        }
+                    )
+                    
+                    // Quick Actions
+                    HStack(spacing: 12) {
+                        QuickActionButton(
+                            title: "Quick Add",
+                            systemImage: "plus.circle.fill",
+                            color: .blue
+                        ) {
+                            showingQuickAdd = true
+                        }
+                        
+                        QuickActionButton(
+                            title: "Get Ride",
+                            systemImage: "car.fill",
+                            color: .green
+                        ) {
+                            showingRideshareOptions = true
+                        }
+                        
+                        QuickActionButton(
+                            title: "Emergency",
+                            systemImage: "exclamationmark.triangle.fill",
+                            color: .red
+                        ) {
+                            showingEmergencyContact = true
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Recent Drinks Summary
+                    RecentDrinksSummary(
+                        drinks: drinkTracker.drinks,
+                        isExpanded: expandedSection == .drinks,
+                        onToggleExpand: {
+                            withAnimation {
+                                expandedSection = expandedSection == .drinks ? nil : .drinks
+                            }
+                        }
+                    )
+                    
+                    // Quick BAC Share
+                    if drinkTracker.currentBAC > 0 {
+                        QuickShareButton(bac: drinkTracker.currentBAC)
+                            .padding(.horizontal)
                     }
                     
-                    QuickActionButton(
-                        title: "Get Ride",
-                        systemImage: "car.fill",
-                        color: .green
-                    ) {
-                        showingRideshareOptions = true
-                    }
+                    // Safety Tips Section
+                    SafetyTipsSection(
+                        bac: drinkTracker.currentBAC,
+                        isExpanded: expandedSection == .safeTips,
+                        onToggleExpand: {
+                            withAnimation {
+                                expandedSection = expandedSection == .safeTips ? nil : .safeTips
+                            }
+                        }
+                    )
                     
-                    QuickActionButton(
-                        title: "Emergency",
-                        systemImage: "exclamationmark.triangle.fill",
-                        color: .red
-                    ) {
-                        showingEmergencyContact = true
+                    // Drink Suggestions (if BAC is present)
+                    if drinkTracker.currentBAC > 0 {
+                        DrinkSuggestionView()
                     }
                 }
-                .padding(.horizontal)
-                
-                // Recent Drinks Summary
-                RecentDrinksSummary(
-                    drinks: drinkTracker.drinks,
-                    isExpanded: expandedSection == .drinks,
-                    onToggleExpand: {
-                        withAnimation {
-                            expandedSection = expandedSection == .drinks ? nil : .drinks
-                        }
-                    }
-                )
-                
-                // Quick BAC Share
-                if drinkTracker.currentBAC > 0 {
-                    QuickShareButton(bac: drinkTracker.currentBAC)
-                        .padding(.horizontal)
-                }
-                
-                // Safety Tips Section
-                SafetyTipsSection(
-                    bac: drinkTracker.currentBAC,
-                    isExpanded: expandedSection == .safeTips,
-                    onToggleExpand: {
-                        withAnimation {
-                            expandedSection = expandedSection == .safeTips ? nil : .safeTips
-                        }
-                    }
-                )
-                
-                // Drink Suggestions (if BAC is present)
-                if drinkTracker.currentBAC > 0 {
-                    DrinkSuggestionView()
-                }
+                .padding(.vertical)
             }
-            .padding(.vertical)
         }
         .navigationTitle("Dashboard")
         .sheet(isPresented: $showingQuickAdd) {
@@ -126,6 +213,9 @@ struct DashboardView: View {
         }
     }
 }
+
+// All the other view components in DashboardView.swift remain largely the same
+// They already use system colors like Color(.systemBackground) which adapt to dark mode
 
 // MARK: - BAC Status Card
 struct EnhancedBACStatusCard: View {

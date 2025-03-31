@@ -15,20 +15,23 @@ struct BarBuddyApp: App {
     @State private var showingDisclaimerOnLaunch = true
     
     init() {
-            // Connect DrinkTracker to WatchSessionManager
-            WatchSessionManager.shared.setDrinkTracker(drinkTracker)
-        }
+        // Connect DrinkTracker to WatchSessionManager
+        WatchSessionManager.shared.setDrinkTracker(drinkTracker)
+    }
     
     var body: some Scene {
         WindowGroup {
             Group {
                 if showingDisclaimerOnLaunch {
                     LaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
+                        .adaptiveLayout()
                 } else if !hasCompletedPurchase {
                     PurchaseView(hasCompletedPurchase: $hasCompletedPurchase)
+                        .adaptiveLayout()
                 } else {
                     ContentView()
                         .environmentObject(drinkTracker)
+                        .adaptiveLayout()
                         .onAppear {
                             // Set up app when it appears
                             setupAppConfiguration()
@@ -68,6 +71,9 @@ struct BarBuddyApp: App {
         
         // Request permissions for notifications
         requestNotificationPermissions()
+        
+        // Apply user's theme setting
+        AppSettingsManager.shared.applyAppearanceSettings()
     }
     
     private func checkPurchaseStatus() {
@@ -133,6 +139,7 @@ struct BarBuddyApp: App {
     
     struct LaunchDisclaimerView: View {
         @Binding var isPresented: Bool
+        @Environment(\.horizontalSizeClass) var horizontalSizeClass
         
         var body: some View {
             VStack(spacing: 20) {
@@ -187,6 +194,7 @@ struct BarBuddyApp: App {
                     }
                 }
                 .padding()
+                .frame(width: horizontalSizeClass == .regular ? 400 : nil)
             }
             .padding()
         }
@@ -195,114 +203,141 @@ struct BarBuddyApp: App {
     struct PurchaseView: View {
         @Binding var hasCompletedPurchase: Bool
         @State private var isProcessing = false
+        @Environment(\.horizontalSizeClass) var horizontalSizeClass
         
         var body: some View {
-            VStack(spacing: 25) {
-                Spacer()
-                
-                Image(systemName: "wineglass")
-                    .font(.system(size: 80))
-                    .foregroundColor(.blue)
-                
-                Text("BarBuddy")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("Your Personal Drinking Companion")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                VStack(alignment: .leading, spacing: 20) {
-                    FeatureRow(icon: "gauge", title: "Real-time BAC Tracking", description: "Monitor your estimated blood alcohol content")
-                    
-                    FeatureRow(icon: "person.2", title: "Share Status with Friends", description: "Let your friends know your status and stay safe")
-                    
-                    FeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
-                    
-                    FeatureRow(icon: "applewatch", title: "Apple Watch Support", description: "Log drinks and check your BAC right from your wrist")
-                }
-                .padding()
-                
-                Spacer()
-                
-                // Purchase button
-                Button(action: {
-                    purchaseApp()
-                }) {
-                    if isProcessing {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text("Purchase for $9.99")
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 25) {
+                        Spacer(minLength: 20)
+                        
+                        Image(systemName: "wineglass")
+                            .font(.system(size: 80))
+                            .foregroundColor(.blue)
+                        
+                        Text("BarBuddy")
+                            .font(.largeTitle)
                             .fontWeight(.bold)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.horizontal)
-                .disabled(isProcessing)
-                
-                // Note about purchase
-                Text("One-time purchase, no subscriptions.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-            }
-            .padding()
-        }
-        
-        private func purchaseApp() {
-            isProcessing = true
-            
-            // Simulate network request
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                // In a real app, this would use StoreKit to process the purchase
-                UserDefaults.standard.set(true, forKey: "hasPurchasedApp")
-                hasCompletedPurchase = true
-                isProcessing = false
-            }
-        }
-    }
-    
-    struct FeatureRow: View {
-        let icon: String
-        let title: String
-        let description: String
-        
-        var body: some View {
-            HStack(alignment: .top, spacing: 15) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.blue)
-                    .frame(width: 30)
-                
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(title)
-                        .font(.headline)
-                    
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
-    
-    // Instead of trying to preview the App struct directly,
-    // create a separate preview for each main view component
-    #Preview("Disclaimer View") {
-        LaunchDisclaimerView(isPresented: .constant(true))
-    }
-    
-    #Preview("Purchase View") {
-        PurchaseView(hasCompletedPurchase: .constant(false))
-    }
-    
-    // Main content preview is already in ContentView.swift
-}
+                        
+                        Text("Your Personal Drinking Companion")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        // Features section
+                        VStack(alignment: .leading, spacing: 20) {
+                            if horizontalSizeClass == .regular {
+                                // iPad layout: features in 2 columns
+                                HStack(alignment: .top, spacing: 30) {
+                                    VStack(alignment: .leading, spacing: 20) {
+                                        FeatureRow(icon: "gauge", title: "Real-time BAC Tracking", description: "Monitor your estimated blood alcohol content")
+                                        
+                                        FeatureRow(icon: "person.2", title: "Share Status with Friends", description: "Let your friends know your status and stay safe")
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 20) {
+                                        FeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
+                                        
+                                        FeatureRow(icon: "exclamationmark.triangle", title: "Emergency Contacts", description: "Set up contacts for when you need assistance")
+                                    }
+                                }
+                            } else {
+                                // iPhone layout: features in single column
+                                FeatureRow(icon: "gauge", title: "Real-time BAC Tracking", description: "Monitor your estimated blood alcohol content")
+                                
+                                FeatureRow(icon: "person.2", title: "Share Status with Friends", description: "Let your friends know your status and stay safe")
+                                                                
+                                                                FeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
+                                                                
+                                                                FeatureRow(icon: "exclamationmark.triangle", title: "Emergency Contacts", description: "Set up contacts for when you need assistance")
+                                                            }
+                                                        }
+                                                        .padding(.horizontal)
+                                                        .padding(.vertical, 10)
+                                                        .background(Color(.secondarySystemBackground))
+                                                        .cornerRadius(16)
+                                                        .padding(.horizontal)
+                                                        
+                                                        Spacer()
+                                                        
+                                                        // Purchase button
+                                                        Button(action: {
+                                                            purchaseApp()
+                                                        }) {
+                                                            if isProcessing {
+                                                                ProgressView()
+                                                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                            } else {
+                                                                Text("Purchase for $9.99")
+                                                                    .fontWeight(.bold)
+                                                            }
+                                                        }
+                                                        .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
+                                                        .padding()
+                                                        .background(Color.blue)
+                                                        .foregroundColor(.white)
+                                                        .cornerRadius(10)
+                                                        .padding(.horizontal)
+                                                        .disabled(isProcessing)
+                                                        
+                                                        // Note about purchase
+                                                        Text("One-time purchase, no subscriptions.")
+                                                            .font(.caption)
+                                                            .foregroundColor(.secondary)
+                                                        
+                                                        Spacer()
+                                                    }
+                                                    .frame(minHeight: geometry.size.height)
+                                                    .padding()
+                                                }
+                                            }
+                                        }
+                                        
+                                        private func purchaseApp() {
+                                            isProcessing = true
+                                            
+                                            // Simulate network request
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                                // In a real app, this would use StoreKit to process the purchase
+                                                UserDefaults.standard.set(true, forKey: "hasPurchasedApp")
+                                                hasCompletedPurchase = true
+                                                isProcessing = false
+                                            }
+                                        }
+                                    }
+                                    
+                                    struct FeatureRow: View {
+                                        let icon: String
+                                        let title: String
+                                        let description: String
+                                        
+                                        var body: some View {
+                                            HStack(alignment: .top, spacing: 15) {
+                                                Image(systemName: icon)
+                                                    .font(.system(size: 24))
+                                                    .foregroundColor(.blue)
+                                                    .frame(width: 30)
+                                                
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text(title)
+                                                        .font(.headline)
+                                                    
+                                                    Text(description)
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Instead of trying to preview the App struct directly,
+                                    // create a separate preview for each main view component
+                                    #Preview("Disclaimer View") {
+                                        LaunchDisclaimerView(isPresented: .constant(true))
+                                    }
+                                    
+                                    #Preview("Purchase View") {
+                                        PurchaseView(hasCompletedPurchase: .constant(false))
+                                    }
+                                    
+                                    // Main content preview is already in ContentView.swift
+                                }

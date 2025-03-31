@@ -56,6 +56,8 @@ class AppSettingsManager: ObservableObject {
     init() {
         loadSettings()
         setupBindings()
+        // Apply dark mode on initialization
+        applyAppearanceSettings()
     }
     
     private func setupBindings() {
@@ -92,7 +94,13 @@ class AppSettingsManager: ObservableObject {
         $allowDataSharing.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         
         $useMetricUnits.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
-        $enableDarkMode.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
+        
+        // When dark mode setting changes, apply it immediately
+        $enableDarkMode.sink { [weak self] _ in
+            self?.saveSettings()
+            self?.applyAppearanceSettings()
+        }.store(in: &cancellables)
+        
         $alwaysShowBAC.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
         
         $syncWithAppleWatch.sink { [weak self] _ in self?.saveSettings() }.store(in: &cancellables)
@@ -194,6 +202,22 @@ class AppSettingsManager: ObservableObject {
         UserDefaults.standard.set(watchComplication, forKey: "watchComplication")
     }
     
+    func applyAppearanceSettings() {
+        // Apply dark mode setting
+        DispatchQueue.main.async {
+            if #available(iOS 15.0, *) {
+                let scenes = UIApplication.shared.connectedScenes
+                scenes.forEach { scene in
+                    if let windowScene = scene as? UIWindowScene {
+                        windowScene.windows.forEach { window in
+                            window.overrideUserInterfaceStyle = self.enableDarkMode ? .dark : .light
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     // MARK: - User Profile Management
     
     func updateUserProfile(weight: Double, gender: Gender) {
@@ -228,16 +252,6 @@ class AppSettingsManager: ObservableObject {
             return "\(kilograms) kg"
         } else {
             return "\(Int(weight)) lbs"
-        }
-    }
-    
-    // MARK: - App Appearance
-    
-    func applyAppearanceSettings() {
-        // Apply dark mode setting if the app supports it
-        if #available(iOS 15.0, *) {
-            // This would set the app's color scheme, but needs to be handled at the SwiftUI View level
-            // as UserInterfaceStyle can't be set globally programmatically
         }
     }
     
@@ -279,6 +293,9 @@ class AppSettingsManager: ObservableObject {
         
         // Save all default settings
         saveSettings()
+        
+        // Apply dark mode setting
+        applyAppearanceSettings()
     }
     
     // MARK: - Data Management
@@ -418,6 +435,9 @@ class AppSettingsManager: ObservableObject {
                     
                     // Save all imported settings
                     saveSettings()
+                    
+                    // Apply appearance settings
+                    applyAppearanceSettings()
                 }
                 
                 return true
@@ -428,311 +448,5 @@ class AppSettingsManager: ObservableObject {
         }
         
         return false
-    }
-}
-
-// MARK: - Enhanced Settings View
-struct EnhancedSettingsView: View {
-    @StateObject private var settingsManager = AppSettingsManager.shared
-    @EnvironmentObject var drinkTracker: DrinkTracker
-    @State private var showingResetConfirmation = false
-    @State private var showingClearDataConfirmation = false
-    @State private var showingExportOptions = false
-    @State private var showingEmergencyContacts = false
-    @State private var showingAboutView = false
-    @State private var exportData: Data?
-    
-    var body: some View {
-        Form {
-            // Profile Section
-            Section {
-                HStack {
-                    Text("Weight")
-                    Spacer()
-                    Text(settingsManager.getFormattedWeight())
-                        .foregroundColor(.secondary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // Show weight picker view
-                }
-                
-                Picker("Gender", selection: $settingsManager.gender) {
-                    Text("Male").tag(Gender.male)
-                    Text("Female").tag(Gender.female)
-                }
-                
-                HStack {
-                    Text("Height")
-                    Spacer()
-                    Text(settingsManager.getUserHeight())
-                        .foregroundColor(.secondary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // Show height picker view
-                }
-            } header: {
-                Text("User Profile")
-            }
-            
-            // Tracking Settings
-            Section {
-                Toggle("Track drink history", isOn: $settingsManager.trackDrinkHistory)
-                
-                Toggle("Track drinking locations", isOn: $settingsManager.trackLocations)
-                
-                Toggle("Track alcohol spending", isOn: $settingsManager.saveAlcoholSpending)
-                
-                HStack {
-                    Text("Keep history for")
-                    Spacer()
-                    Text("\(settingsManager.saveDrinksFor) days")
-                        .foregroundColor(.secondary)
-                }
-            } header: {
-                Text("Tracking Settings")
-            }
-            
-            // Notification Settings
-            Section {
-                Toggle("BAC alerts", isOn: $settingsManager.enableBACAlerts)
-                
-                Toggle("Hydration reminders", isOn: $settingsManager.enableHydrationReminders)
-                
-                Toggle("Drinking duration alerts", isOn: $settingsManager.enableDrinkingDurationAlerts)
-                
-                Toggle("Morning check-ins", isOn: $settingsManager.enableMorningCheckIns)
-            } header: {
-                Text("Notifications")
-            }
-            
-            // Privacy & Security
-            Section {
-                Toggle("Passcode protection", isOn: $settingsManager.enablePasscodeProtection)
-                
-                if settingsManager.enablePasscodeProtection {
-                    Toggle("Use Face/Touch ID", isOn: $settingsManager.useBiometricAuthentication)
-                }
-                
-                Toggle("Allow anonymous data sharing", isOn: $settingsManager.allowDataSharing)
-                    .onChange(of: settingsManager.allowDataSharing) { oldValue, newValue in
-                        if newValue {
-                            // Show privacy explanation
-                        }
-                    }
-            } header: {
-                Text("Privacy & Security")
-            }
-            
-            // Display Settings
-            Section {
-                Toggle("Use metric units", isOn: $settingsManager.useMetricUnits)
-                
-                Toggle("Dark mode", isOn: $settingsManager.enableDarkMode)
-                    .onChange(of: settingsManager.enableDarkMode) { oldValue, newValue in
-                        settingsManager.applyAppearanceSettings()
-                    }
-                
-                Toggle("Always show BAC on dashboard", isOn: $settingsManager.alwaysShowBAC)
-            } header: {
-                Text("Display Settings")
-            }
-            
-            // Apple Watch
-            Section {
-                Toggle("Sync with Apple Watch", isOn: $settingsManager.syncWithAppleWatch)
-                
-                if settingsManager.syncWithAppleWatch {
-                    Toggle("Enable quick add on watch", isOn: $settingsManager.watchQuickAdd)
-                    
-                    Toggle("Enable watch complication", isOn: $settingsManager.watchComplication)
-                }
-            } header: {
-                Text("Apple Watch")
-            }
-            
-            // Emergency Contacts
-            Section {
-                Button(action: {
-                    showingEmergencyContacts = true
-                }) {
-                    HStack {
-                        Image(systemName: "person.crop.circle.badge.exclamationmark")
-                            .foregroundColor(.red)
-                        Text("Emergency Contacts")
-                    }
-                }
-            }
-            
-            // Data Management
-            Section {
-                Button(action: {
-                    showingExportOptions = true
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Export Data")
-                    }
-                }
-                
-                Button(action: {
-                    showingClearDataConfirmation = true
-                }) {
-                    HStack {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        Text("Clear All Data")
-                            .foregroundColor(.red)
-                    }
-                }
-            } header: {
-                Text("Data Management")
-            }
-            
-            // About & Support
-            Section {
-                Button(action: {
-                    showingAboutView = true
-                }) {
-                    Text("About BarBuddy")
-                }
-                
-                Link("Privacy Policy", destination: URL(string: "https://www.example.com/privacy")!)
-                
-                Link("Terms of Service", destination: URL(string: "https://www.example.com/terms")!)
-                
-                Link("Contact Support", destination: URL(string: "mailto:support@barbuddy.example.com")!)
-                
-                Button(action: {
-                    showingResetConfirmation = true
-                }) {
-                    Text("Reset to Default Settings")
-                        .foregroundColor(.red)
-                }
-            }
-            
-            // Version Info
-            Section {
-                HStack {
-                    Text("Version")
-                    Spacer()
-                    Text("1.0.0")
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .navigationTitle("Settings")
-        .alert(isPresented: $showingResetConfirmation) {
-            Alert(
-                title: Text("Reset Settings?"),
-                message: Text("This will reset all settings to their default values. Your drink data will not be affected."),
-                primaryButton: .destructive(Text("Reset")) {
-                    settingsManager.resetToDefaults()
-                },
-                secondaryButton: .cancel()
-            )
-        }
-        .actionSheet(isPresented: $showingClearDataConfirmation) {
-            ActionSheet(
-                title: Text("Clear All Data"),
-                message: Text("This will permanently delete all your drink history and personal data. This action cannot be undone."),
-                buttons: [
-                    .destructive(Text("Delete Everything")) {
-                        settingsManager.clearAllData()
-                    },
-                    .cancel()
-                ]
-            )
-        }
-        .sheet(isPresented: $showingEmergencyContacts) {
-            EmergencyContactsListView()
-        }
-        .sheet(isPresented: $showingAboutView) {
-            AppAboutView()
-        }
-        .sheet(isPresented: $showingExportOptions) {
-            if let data = settingsManager.exportUserData() {
-                DataExportView(data: data)
-            } else {
-                Text("Error preparing data for export")
-                    .padding()
-            }
-        }
-    }
-}
-
-// MARK: - Data Export View
-struct DataExportView: View {
-    let data: Data
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Image(systemName: "arrow.up.doc.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                
-                Text("Export Your Data")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Text("Your BarBuddy data is ready to export. You can save it as a JSON file and import it later or on another device.")
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                Button(action: shareData) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Share Data File")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                }
-                
-                Spacer()
-                
-                Text("This file contains your drink history, personal settings, and emergency contacts. Keep it secure.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            .padding()
-            .navigationTitle("Export Data")
-            .navigationBarItems(trailing: Button("Done") {
-                presentationMode.wrappedValue.dismiss()
-            })
-        }
-    }
-    
-    private func shareData() {
-        let filename = "barbuddy_data.json"
-        
-        // Create a temporary file
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        
-        do {
-            try data.write(to: url)
-            
-            // Share the file
-            let activityVC = UIActivityViewController(
-                activityItems: [url],
-                applicationActivities: nil
-            )
-            
-            // Present the activity view controller
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootViewController = windowScene.windows.first?.rootViewController {
-                rootViewController.present(activityVC, animated: true)
-            }
-        } catch {
-            print("Error writing data to file: \(error)")
-        }
     }
 }
