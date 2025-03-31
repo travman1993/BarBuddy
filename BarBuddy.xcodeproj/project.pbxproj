@@ -72,20 +72,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		261A85B52D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ComplicationController.swift,
-			);
-			target = 263D10102D8E3433003D370E /* BarBuddy */;
-		};
-		261A85B62D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy Watch Watch App" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ComplicationController.swift,
-			);
-			target = 261A85862D8F3351000ADA24 /* BarBuddy Watch Watch App */;
-		};
 		261A85B82D8F348F000ADA24 /* Exceptions for "BarBuddy" folder in "BarBuddy Watch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -104,10 +90,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		261A85882D8F3351000ADA24 /* BarBuddy Watch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				261A85B52D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy" target */,
-				261A85B62D8F33C3000ADA24 /* Exceptions for "BarBuddy Watch Watch App" folder in "BarBuddy Watch Watch App" target */,
-			);
 			path = "BarBuddy Watch Watch App";
 			sourceTree = "<group>";
 		};
