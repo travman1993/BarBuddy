@@ -1,8 +1,7 @@
-import SwiftUI
-
 struct ContentView: View {
     @State private var selectedTab = 0
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @EnvironmentObject var drinkTracker: DrinkTracker
     
     var body: some View {
         Group {
@@ -10,20 +9,25 @@ struct ContentView: View {
                 // iPad layout with sidebar
                 if #available(iOS 16.0, *) {
                     NavigationSplitView {
-                        sidebarContent
+                        enhancedSidebarContent
                             .navigationTitle("BarBuddy")
+                            .background(Color.appBackground)
                     } detail: {
                         selectedTabView()
+                            .background(Color.appBackground)
                     }
+                    .navigationSplitViewStyle(.balanced)
                 } else {
                     // Fallback for iOS 15 and earlier
                     NavigationView {
                         HStack(spacing: 0) {
-                            sidebarContent
+                            enhancedSidebarContent
                                 .frame(width: 250)
                                 .navigationTitle("BarBuddy")
+                                .background(Color.appBackground)
                             
                             selectedTabView()
+                                .background(Color.appBackground)
                         }
                     }
                 }
@@ -33,6 +37,7 @@ struct ContentView: View {
                     NavigationView {
                         DashboardView()
                             .navigationTitle("Dashboard")
+                            .background(Color.appBackground)
                     }
                     .tabItem {
                         Label("Dashboard", systemImage: "gauge")
@@ -42,6 +47,7 @@ struct ContentView: View {
                     NavigationView {
                         DrinkLogView()
                             .navigationTitle("Log Drink")
+                            .background(Color.appBackground)
                     }
                     .tabItem {
                         Label("Log Drink", systemImage: "plus.circle")
@@ -51,6 +57,7 @@ struct ContentView: View {
                     NavigationView {
                         HistoryView()
                             .navigationTitle("History")
+                            .background(Color.appBackground)
                     }
                     .tabItem {
                         Label("History", systemImage: "clock")
@@ -60,6 +67,7 @@ struct ContentView: View {
                     NavigationView {
                         ShareView()
                             .navigationTitle("Share")
+                            .background(Color.appBackground)
                     }
                     .tabItem {
                         Label("Share", systemImage: "person.2")
@@ -69,39 +77,49 @@ struct ContentView: View {
                     NavigationView {
                         SettingsView()
                             .navigationTitle("Settings")
+                            .background(Color.appBackground)
                     }
                     .tabItem {
                         Label("Settings", systemImage: "gear")
                     }
                     .tag(4)
                 }
+                .accentColor(Color.accent)
             }
         }
     }
     
     @ViewBuilder
-    private var sidebarContent: some View {
+    private var enhancedSidebarContent: some View {
         List {
             NavigationLink(destination: DashboardView().navigationTitle("Dashboard")) {
                 Label("Dashboard", systemImage: "gauge")
+                    .foregroundColor(.appTextPrimary)
             }
             
             NavigationLink(destination: DrinkLogView().navigationTitle("Log Drink")) {
                 Label("Log Drink", systemImage: "plus.circle")
+                    .foregroundColor(.appTextPrimary)
             }
             
             NavigationLink(destination: HistoryView().navigationTitle("History")) {
                 Label("History", systemImage: "clock")
+                    .foregroundColor(.appTextPrimary)
             }
             
             NavigationLink(destination: ShareView().navigationTitle("Share")) {
                 Label("Share", systemImage: "person.2")
+                    .foregroundColor(.appTextPrimary)
             }
             
             NavigationLink(destination: SettingsView().navigationTitle("Settings")) {
                 Label("Settings", systemImage: "gear")
+                    .foregroundColor(.appTextPrimary)
             }
         }
+        .listStyle(SidebarListStyle())
+        .accentColor(Color.accent)
+        .background(Color.appBackground)
     }
     
     @ViewBuilder
@@ -124,11 +142,10 @@ struct ContentView: View {
                 .navigationTitle("Settings")
         default:
             DashboardView()
-                .navigationTitle("Dashboard")
-        }
-    }
-}
-
+                .navigationTitle("Dashboar
+                                 }
 #Preview {
     ContentView()
 }
+                }
+                }

@@ -39,6 +39,7 @@ struct EnhancedFeatureRow: View {
 }
 
 // MARK: - Enhanced BAC Status Card
+// Create this in your EnhancedComponents.swift file
 struct EnhancedBACStatusCard: View {
     let bac: Double
     let timeUntilSober: TimeInterval
@@ -58,19 +59,6 @@ struct EnhancedBACStatusCard: View {
         case .safe: return .safe
         case .borderline: return .warning
         case .unsafe: return .danger
-        }
-    }
-    
-    var formattedTimeUntilSober: String {
-        let hours = Int(timeUntilSober) / 3600
-        let minutes = (Int(timeUntilSober) % 3600) / 60
-        
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else if minutes > 0 {
-            return "\(minutes) minutes"
-        } else {
-            return "0 minutes"
         }
     }
     
@@ -96,7 +84,7 @@ struct EnhancedBACStatusCard: View {
                             .font(.caption)
                             .foregroundColor(.appTextSecondary)
                         
-                        Text(formattedTimeUntilSober)
+                        Text(formatTimeUntilSober(timeUntilSober))
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(statusColor)
@@ -108,7 +96,7 @@ struct EnhancedBACStatusCard: View {
             
             // Status banner
             HStack {
-                Image(systemName: safetyStatus.systemImage)
+                Image(systemName: safetyStatusIcon)
                     .foregroundColor(.white)
                 
                 Text(safetyStatus.rawValue)
@@ -122,6 +110,25 @@ struct EnhancedBACStatusCard: View {
         }
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+    }
+    
+    private var safetyStatusIcon: String {
+        switch safetyStatus {
+        case .safe: return "checkmark.circle"
+        case .borderline: return "exclamationmark.triangle"
+        case .unsafe: return "xmark.octagon"
+        }
+    }
+    
+    private func formatTimeUntilSober(_ time: TimeInterval) -> String {
+        let hours = Int(time) / 3600
+        let minutes = (Int(time) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes) minutes"
+        }
     }
 }
 

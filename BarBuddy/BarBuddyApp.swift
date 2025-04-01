@@ -140,17 +140,16 @@ struct BarBuddyApp: App {
     }
     
     // Add new method to apply custom theme colors
-    private func applyAppTheme() {
-        // Set up the appearance
+    func applyAppTheme() {
+        // Set up the navigation bar
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.appBackground)
+        appearance.backgroundColor = UIColor(Color.appCardBackground)
         appearance.titleTextAttributes = [.foregroundColor: UIColor(Color.appTextPrimary)]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(Color.appTextPrimary)]
         
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
         
         // Tab bar appearance
         let tabBarAppearance = UITabBarAppearance()
@@ -161,11 +160,7 @@ struct BarBuddyApp: App {
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
         }
-        
-        // List appearance
-        UITableView.appearance().backgroundColor = UIColor(Color.appBackground)
     }
-}
 
 // MARK: - Enhanced Disclaimer View
 struct EnhancedLaunchDisclaimerView: View {
@@ -400,7 +395,7 @@ struct EnhancedUserSetupView: View {
                             .fontWeight(.bold)
                             .foregroundColor(Color.accent)
                             .padding(.leading, 15)
-                            
+                        
                         if horizontalSizeClass == .regular {
                             // iPad layout: features in 2 columns
                             HStack(alignment: .top, spacing: 30) {
@@ -481,3 +476,4 @@ struct EnhancedUserSetupView: View {
         AppSettingsManager.shared.gender = gender
         AppSettingsManager.shared.saveSettings()
     }
+}

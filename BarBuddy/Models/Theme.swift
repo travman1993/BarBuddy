@@ -171,6 +171,36 @@ extension View {
     }
 }
 
+// Add to your Theme.swift
+extension View {
+    func cardStyle() -> some View {
+        self.padding()
+            .background(Color.appCardBackground)
+            .cornerRadius(15)
+            .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+    }
+    
+    func accentButtonStyle() -> some View {
+        self.padding()
+            .background(LinearGradient(gradient: Gradient(colors: [Color.accent, Color.accentDark]), startPoint: .leading, endPoint: .trailing))
+            .foregroundColor(.white)
+            .cornerRadius(30)
+    }
+}
+
+// Text style extensions
+extension Text {
+    func headlineStyle() -> Text {
+        self.font(.headline)
+            .foregroundColor(.appTextPrimary)
+    }
+    
+    func captionStyle() -> Text {
+        self.font(.caption)
+            .foregroundColor(.appTextSecondary)
+    }
+}
+
 // Helper for creating gradient backgrounds for different drink types
 func drinkTypeGradient(for type: DrinkType) -> LinearGradient {
     switch type {
