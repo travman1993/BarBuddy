@@ -5,59 +5,60 @@
 //  Created by Travis Rodriguez on 3/23/25.
 //
 import Foundation
-import Combine
 import SwiftUI
+import Combine
 
 class DrinkTrackerViewModel: ObservableObject {
-    // Core drink tracker instance
+    // MARK: - Core Drink Tracker
     private var drinkTracker: DrinkTracker
     
-    // Published properties that mirror the DrinkTracker properties
+    // MARK: - Published Properties
     @Published var drinks: [Drink] = []
     @Published var userProfile: UserProfile = UserProfile()
     @Published var currentBAC: Double = 0.0
     @Published var timeUntilSober: TimeInterval = 0
     
-    // Additional state properties
+    // MARK: - Interaction State
     @Published var isAddingDrink: Bool = false
     @Published var showingSuggestions: Bool = false
     @Published var isDrinkingSession: Bool = false
     @Published var sessionStartTime: Date? = nil
+    
+    // MARK: - Drink Analytics
     @Published var totalDrinkCost: Double = 0.0
     @Published var estimatedCalories: Int = 0
-    
-    // Hydration tracking
-    @Published var waterConsumption: Double = 0.0 // in fluid ounces
+    @Published var waterConsumption: Double = 0.0
     @Published var lastHydrationTime: Date? = nil
     
-    // Drinking stats
+    // MARK: - Drinking Statistics
     @Published var totalStandardDrinksToday: Double = 0.0
     @Published var peakBACToday: Double = 0.0
     @Published var drinkingStreak: Int = 0
     @Published var soberDays: Int = 0
     
-    // Dependencies
+    // MARK: - Dependencies
+    private let settingsManager = AppSettingsManager.shared
     private let notificationManager = NotificationManager.shared
     private let watchSessionManager = WatchSessionManager.shared
-    private let settingsManager = AppSettingsManager.shared
     private let suggestionManager = DrinkSuggestionManager.shared
     private let emergencyContactManager = EmergencyContactManager.shared
     
-    // Cancellables for Combine subscriptions
+    // MARK: - Cancellables
     private var cancellables = Set<AnyCancellable>()
     
+    // MARK: - Initialization
     init(drinkTracker: DrinkTracker = DrinkTracker()) {
         self.drinkTracker = drinkTracker
         
-        // Set up bindings and initial state
         setupBindings()
         refreshFromDrinkTracker()
         calculateDailyStats()
         checkForDrinkingSession()
     }
     
+    // MARK: - Setup Methods
     private func setupBindings() {
-        // Observe the DrinkTracker properties
+        // Observe drink tracker changes
         drinkTracker.objectWillChange
             .sink { [weak self] _ in
                 self?.refreshFromDrinkTracker()
@@ -65,7 +66,7 @@ class DrinkTrackerViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Observe settings changes that might affect calculations
+        // Observe settings changes
         NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .sink { [weak self] _ in
@@ -74,6 +75,7 @@ class DrinkTrackerViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    // MARK: - Data Refresh
     private func refreshFromDrinkTracker() {
         drinks = drinkTracker.drinks
         userProfile = drinkTracker.userProfile
@@ -87,36 +89,28 @@ class DrinkTrackerViewModel: ObservableObject {
         updateWatchIfNeeded()
     }
     
-    // MARK: - Public Methods
-    
+    // MARK: - Drink Logging Methods
     func addDrink(type: DrinkType, size: Double, alcoholPercentage: Double, cost: Double? = nil) {
+        // Log the drink
         drinkTracker.addDrink(
             type: type,
             size: size,
             alcoholPercentage: alcoholPercentage
         )
         
-        // Update the total cost if tracking spending
+        // Update cost if tracking spending
         if let cost = cost, settingsManager.saveAlcoholSpending {
             totalDrinkCost += cost
             saveDrinkCost(cost)
         }
         
-        // Update drinking session status
-        if !isDrinkingSession {
-            isDrinkingSession = true
-            sessionStartTime = Date()
-            
-            // Schedule drinking duration alerts if enabled
-            if settingsManager.enableDrinkingDurationAlerts {
-                notificationManager.scheduleDrinkingDurationAlert(startTime: sessionStartTime!)
-            }
-        }
+        // Manage drinking session
+        manageDrinkingSession()
         
-        // Check if we should show suggestions
+        // Show drink suggestions
         showingSuggestions = true
         
-        // Schedule appropriate notifications
+        // Schedule notifications
         scheduleNotificationsIfNeeded()
         
         // Sync with Apple Watch
@@ -125,44 +119,25 @@ class DrinkTrackerViewModel: ObservableObject {
     
     func removeDrink(_ drink: Drink) {
         drinkTracker.removeDrink(drink)
-        
-        // Update watch and recalculate stats (handled by refreshFromDrinkTracker via binding)
     }
     
-    func addWater(ounces: Double) {
-        waterConsumption += ounces
-        lastHydrationTime = Date()
-        
-        // Save hydration data
-        saveHydrationData()
+    // MARK: - Session Management
+    private func manageDrinkingSession() {
+        if !isDrinkingSession {
+            isDrinkingSession = true
+            sessionStartTime = Date()
+            
+            // Schedule drinking duration alerts
+            if settingsManager.enableDrinkingDurationAlerts {
+                notificationManager.scheduleDrinkingDurationAlert(startTime: sessionStartTime!)
+            }
+        }
     }
     
-    func updateUserProfile(_ profile: UserProfile) {
-        drinkTracker.updateUserProfile(profile)
-        
-        // Update the user profile in the settings manager as well
-        settingsManager.weight = profile.weight
-        settingsManager.gender = profile.gender
-        settingsManager.saveSettings()
-    }
-    
-    func resetDrinkingSession() {
-        isDrinkingSession = false
-        sessionStartTime = nil
-        
-        // Cancel any drinking duration notifications
-        notificationManager.cancelNotificationsWithPrefix("duration-")
-    }
-    
-    func checkSobriety() -> Bool {
-        return currentBAC < 0.01
-    }
-    
-    // MARK: - Helper Methods
-    
+    // MARK: - Calculation Methods
     private func calculateDailyStats() {
         let calendar = Calendar.current
-        _ = calendar.startOfDay(for: Date())
+        let today = calendar.startOfDay(for: Date())
         
         // Calculate total standard drinks today
         let todaysDrinks = drinks.filter {
@@ -171,14 +146,12 @@ class DrinkTrackerViewModel: ObservableObject {
         
         totalStandardDrinksToday = todaysDrinks.reduce(0) { $0 + $1.standardDrinks }
         
-        // Calculate peak BAC (simplified estimate)
+        // Calculate peak BAC
         if !todaysDrinks.isEmpty {
-            // This is a very simplified approach - a real app would use a more sophisticated algorithm
             let totalAlcoholToday = todaysDrinks.reduce(0) {
                 $0 + ($1.size * ($1.alcoholPercentage / 100) * 0.789)
             }
             
-            // Simple estimation for peak BAC
             let weight = userProfile.weight * 453.592 // Convert lbs to grams
             let bodyWaterConstant = userProfile.gender == .male ? 0.68 : 0.55
             
@@ -186,127 +159,49 @@ class DrinkTrackerViewModel: ObservableObject {
             peakBACToday = max(peakBACToday, estimatedPeakBAC, currentBAC)
         }
         
-        // Update drinking streak and sober days
+        // Update drinking streaks
         updateStreaks()
     }
     
     private func calculateCostAndCalories() {
-        // Calculate drink calories (rough estimate)
+        // Calculate drink calories
         estimatedCalories = drinks.filter {
             Calendar.current.isDateInToday($0.timestamp)
         }.reduce(0) { total, drink in
-            // Rough calorie estimation: 7 calories per gram of alcohol, plus carbs
+            // Alcohol calories (7 calories per gram of alcohol)
             let alcoholGrams = drink.size * (drink.alcoholPercentage / 100) * 0.789
             let alcoholCalories = Int(alcoholGrams * 7)
             
-            // Add estimated carb calories based on drink type
+            // Carb calories based on drink type
             var carbCalories = 0
             switch drink.type {
-            case .beer:
-                carbCalories = Int(drink.size * 13) // ~13 calories per oz from carbs in beer
-            case .wine:
-                carbCalories = Int(drink.size * 4)  // ~4 calories per oz from carbs in wine
-            case .cocktail:
-                carbCalories = Int(drink.size * 12) // Varies widely based on mixers
-            case .shot:
-                carbCalories = Int(drink.size * 2)  // Minimal carbs in spirits
-            case .other:
-                carbCalories = Int(drink.size * 8)  // Generic estimate
+            case .beer: carbCalories = Int(drink.size * 13)
+            case .wine: carbCalories = Int(drink.size * 4)
+            case .cocktail: carbCalories = Int(drink.size * 12)
+            case .shot: carbCalories = Int(drink.size * 2)
+            case .other: carbCalories = Int(drink.size * 8)
             }
             
             return total + alcoholCalories + carbCalories
         }
         
-        // Load saved cost data
+        // Load saved drink costs
         loadDrinkCosts()
     }
     
-    private func updateStreaks() {
-        // Get drinking days in the last 30 days
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // Check if had drinks today
-        let hadDrinksToday = !drinks.filter { calendar.isDateInToday($0.timestamp) }.isEmpty
-        
-        // Check for consecutive drinking days
-        if hadDrinksToday {
-            // Count backwards to find the streak
-            var streakCount = 1
-            var currentDay = today
-            
-            while true {
-                // Move to previous day
-                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
-                
-                // Check if had drinks on that day
-                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
-                
-                if hadDrinksOnDay {
-                    streakCount += 1
-                    currentDay = previousDay
-                } else {
-                    break
-                }
-            }
-            
-            drinkingStreak = streakCount
-            soberDays = 0
-        } else {
-            // Count sober days
-            var soberCount = 1 // Today
-            var currentDay = today
-            
-            while true {
-                // Move to previous day
-                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
-                
-                // Check if had drinks on that day
-                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
-                
-                if !hadDrinksOnDay {
-                    soberCount += 1
-                    currentDay = previousDay
-                } else {
-                    break
-                }
-            }
-            
-            soberDays = soberCount
-            drinkingStreak = 0
-        }
-    }
-    
-    private func checkForDrinkingSession() {
-        let recentDrinks = drinks.filter {
-            $0.timestamp.timeIntervalSinceNow > -6 * 3600 // Last 6 hours
-        }
-        
-        if !recentDrinks.isEmpty && !isDrinkingSession {
-            isDrinkingSession = true
-            sessionStartTime = recentDrinks.min { $0.timestamp < $1.timestamp }?.timestamp
-            
-            // Schedule drinking duration alerts if enabled
-            if let startTime = sessionStartTime, settingsManager.enableDrinkingDurationAlerts {
-                notificationManager.scheduleDrinkingDurationAlert(startTime: startTime)
-            }
-        } else if recentDrinks.isEmpty && isDrinkingSession {
-            resetDrinkingSession()
-        }
-    }
-    
+    // MARK: - Notification and Sync Methods
     private func scheduleNotificationsIfNeeded() {
-        // BAC alert notifications
+        // BAC alerts
         if settingsManager.enableBACAlerts {
             notificationManager.scheduleBACNotification(bac: currentBAC)
         }
         
-        // Hydration reminder
+        // Hydration reminders
         if settingsManager.enableHydrationReminders {
             notificationManager.scheduleHydrationReminder()
         }
         
-        // Schedule a morning check-in if this is the last drink of the night (heuristic)
+        // Morning check-in for late-night drinking
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: Date())
         if settingsManager.enableMorningCheckIns && (hour >= 21 || hour <= 2) {
@@ -323,65 +218,58 @@ class DrinkTrackerViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Data Persistence
-    
-    private func saveHydrationData() {
-        UserDefaults.standard.set(waterConsumption, forKey: "waterConsumption")
-        if let time = lastHydrationTime {
-            UserDefaults.standard.set(time.timeIntervalSince1970, forKey: "lastHydrationTime")
-        }
-    }
-    
-    private func loadHydrationData() {
-        waterConsumption = UserDefaults.standard.double(forKey: "waterConsumption")
-        
-        if let timeInterval = UserDefaults.standard.object(forKey: "lastHydrationTime") as? TimeInterval {
-            lastHydrationTime = Date(timeIntervalSince1970: timeInterval)
-        }
-        
-        // Reset if it's a new day
+    // MARK: - Streak and Tracking Methods
+    private func updateStreaks() {
         let calendar = Calendar.current
-        if let lastTime = lastHydrationTime, !calendar.isDateInToday(lastTime) {
-            waterConsumption = 0
-            lastHydrationTime = nil
-            saveHydrationData()
-        }
-    }
-    
-    private func saveDrinkCost(_ cost: Double) {
-        // Get existing costs for today
-        var costs = UserDefaults.standard.array(forKey: "drinkCostsToday") as? [Double] ?? []
-        costs.append(cost)
-        UserDefaults.standard.set(costs, forKey: "drinkCostsToday")
+        let today = calendar.startOfDay(for: Date())
         
-        // Also save the date to check if we need to reset tomorrow
-        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastCostSaveDate")
-    }
-    
-    private func loadDrinkCosts() {
-        // Check if we need to reset (new day)
-        if let lastSaveTimeInterval = UserDefaults.standard.object(forKey: "lastCostSaveDate") as? TimeInterval {
-            let lastSaveDate = Date(timeIntervalSince1970: lastSaveTimeInterval)
-            let calendar = Calendar.current
+        // Check if had drinks today
+        let hadDrinksToday = !drinks.filter { calendar.isDateInToday($0.timestamp) }.isEmpty
+        
+        if hadDrinksToday {
+            // Count consecutive drinking days
+            var streakCount = 1
+            var currentDay = today
             
-            if !calendar.isDateInToday(lastSaveDate) {
-                // It's a new day, reset costs
-                UserDefaults.standard.removeObject(forKey: "drinkCostsToday")
-                totalDrinkCost = 0
-                return
+            while true {
+                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
+                
+                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
+                
+                if hadDrinksOnDay {
+                    streakCount += 1
+                    currentDay = previousDay
+                } else {
+                    break
+                }
             }
-        }
-        
-        // Load costs for today
-        if let costs = UserDefaults.standard.array(forKey: "drinkCostsToday") as? [Double] {
-            totalDrinkCost = costs.reduce(0, +)
+            
+            drinkingStreak = streakCount
+            soberDays = 0
         } else {
-            totalDrinkCost = 0
+            // Count consecutive sober days
+            var soberCount = 1
+            var currentDay = today
+            
+            while true {
+                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
+                
+                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
+                
+                if !hadDrinksOnDay {
+                    soberCount += 1
+                    currentDay = previousDay
+                } else {
+                    break
+                }
+            }
+            
+            soberDays = soberCount
+            drinkingStreak = 0
         }
     }
     
     // MARK: - Utility Methods
-    
     func getFormattedTimeUntilSober() -> String {
         let hours = Int(timeUntilSober) / 3600
         let minutes = (Int(timeUntilSober) % 3600) / 60
@@ -402,6 +290,7 @@ class DrinkTrackerViewModel: ObservableObject {
             return .unsafe
         }
     }
+
     
     func getDrinkSuggestions() -> [DrinkSuggestionManager.DrinkSuggestion] {
         return suggestionManager.getSuggestions(

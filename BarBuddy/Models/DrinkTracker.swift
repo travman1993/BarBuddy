@@ -6,24 +6,22 @@
 //
 import Foundation
 import Combine
-import SwiftUI
 
 public class DrinkTracker: ObservableObject {
-    // Published properties to update the UI when changed
-    @Published public var drinks: [Drink] = []
-    @Published public var userProfile: UserProfile = UserProfile()
-    @Published public var currentBAC: Double = 0.0
-    @Published public var timeUntilSober: TimeInterval = 0
+    // MARK: - Published Properties
+    @Published public private(set) var drinks: [Drink] = []
+    @Published public private(set) var userProfile: UserProfile = UserProfile()
+    @Published public private(set) var currentBAC: Double = 0.0
+    @Published public private(set) var timeUntilSober: TimeInterval = 0
     
-    // Timer to regularly update BAC
+    // MARK: - Private Properties
     private var bacUpdateTimer: Timer?
+    private let alcoholEliminationRate: Double = 0.015 // Standard elimination rate
     
+    // MARK: - Initialization
     public init() {
-        // Load user profile from UserDefaults or use default
         loadUserProfile()
-        // Load any saved drinks from last session
         loadSavedDrinks()
-        // Start BAC calculation timer
         startBACUpdateTimer()
     }
     
@@ -31,8 +29,7 @@ public class DrinkTracker: ObservableObject {
         bacUpdateTimer?.invalidate()
     }
     
-    // MARK: - Public Methods
-    
+    // MARK: - Drink Management
     public func addDrink(type: DrinkType, size: Double, alcoholPercentage: Double) {
         let newDrink = Drink(
             type: type,
@@ -59,14 +56,14 @@ public class DrinkTracker: ObservableObject {
         calculateBAC()
     }
     
+    // MARK: - User Profile Management
     public func updateUserProfile(_ profile: UserProfile) {
         userProfile = profile
         saveUserProfile()
         calculateBAC()
     }
     
-    // MARK: - Private Methods
-    
+    // MARK: - BAC Calculation
     private func startBACUpdateTimer() {
         // Update BAC every minute
         bacUpdateTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
@@ -80,52 +77,55 @@ public class DrinkTracker: ObservableObject {
             Calendar.current.dateComponents([.hour], from: $0.timestamp, to: Date()).hour! < 24
         }
         
-        // If no drinks in last 24 hours, BAC is 0
-        if recentDrinks.isEmpty {
+        // If no recent drinks, BAC is 0
+        guard !recentDrinks.isEmpty else {
             currentBAC = 0.0
             timeUntilSober = 0
             return
         }
         
-        // Calculate total alcohol consumed (in grams)
-        let totalAlcoholGrams = recentDrinks.reduce(0) { sum, drink in
-            // Size in oz * alcohol % * 0.789 (density of ethanol) * 29.5735 (ml per oz)
-            let alcoholGrams = drink.size * (drink.alcoholPercentage / 100) * 0.789 * 29.5735
-            return sum + alcoholGrams
-        }
-        
-        // Calculate BAC using Widmark formula
+        // Comprehensive BAC calculation
+        let totalAlcoholGrams = calculateTotalAlcohol(from: recentDrinks)
         let bodyWaterConstant = userProfile.gender == .male ? 0.68 : 0.55
         let weightInGrams = userProfile.weight * 453.592 // Convert lbs to grams
         
-        // Initial BAC without time adjustment
-        var bac = totalAlcoholGrams / (weightInGrams * bodyWaterConstant) * 100
+        // Initial BAC calculation using Widmark formula
+        var estimatedBAC = totalAlcoholGrams / (weightInGrams * bodyWaterConstant) * 100
         
-        // Adjust BAC for time elapsed (alcohol metabolism)
+        // Time-based BAC reduction
         for drink in recentDrinks {
             let hoursSinceDrink = Date().timeIntervalSince(drink.timestamp) / 3600
-            // Subtract alcohol elimination rate (0.015% per hour)
-            bac -= 0.015 * hoursSinceDrink
+            // Subtract alcohol elimination rate
+            estimatedBAC -= alcoholEliminationRate * hoursSinceDrink
         }
         
-        // BAC can't be negative
-        bac = max(0, bac)
+        // Ensure BAC doesn't go negative
+        currentBAC = max(0, estimatedBAC)
         
-        // Update published values
-        currentBAC = bac
-        
-        // Calculate time until sober (BAC < 0.01)
-        if bac > 0.01 {
-            // Time (hours) = BAC / 0.015
-            timeUntilSober = (bac - 0.01) / 0.015 * 3600 // Convert to seconds
+        // Calculate time until sober
+        calculateTimeUntilSober()
+    }
+    
+    private func calculateTotalAlcohol(from drinks: [Drink]) -> Double {
+        return drinks.reduce(0) { sum, drink in
+            // Calculate alcohol in grams
+            // Size (oz) * Alcohol % * Density of ethanol * Volume conversion
+            let alcoholGrams = drink.size * (drink.alcoholPercentage / 100) * 0.789 * 29.5735
+            return sum + alcoholGrams
+        }
+    }
+    
+    private func calculateTimeUntilSober() {
+        // Calculate time to reach 0.01 BAC
+        if currentBAC > 0.01 {
+            // Time to sober = (Current BAC - 0.01) / Elimination Rate
+            timeUntilSober = max(0, (currentBAC - 0.01) / alcoholEliminationRate * 3600)
         } else {
             timeUntilSober = 0
         }
-        WatchSessionManager.shared.sendBACDataToWatch(bac: currentBAC, timeUntilSober: timeUntilSober)
     }
     
     // MARK: - Persistence Methods
-    
     private func saveDrinks() {
         if let encoded = try? JSONEncoder().encode(drinks) {
             UserDefaults.standard.set(encoded, forKey: "savedDrinks")
@@ -150,6 +150,30 @@ public class DrinkTracker: ObservableObject {
         if let savedProfile = UserDefaults.standard.data(forKey: "userProfile"),
            let decodedProfile = try? JSONDecoder().decode(UserProfile.self, from: savedProfile) {
             userProfile = decodedProfile
+        }
+    }
+    
+    // MARK: - Advanced Analytics
+    public func getDailyDrinkStats(for date: Date = Date()) -> (totalDrinks: Int, standardDrinks: Double) {
+        let calendar = Calendar.current
+        let dayDrinks = drinks.filter {
+            calendar.isDate($0.timestamp, inSameDayAs: date)
+        }
+        
+        return (
+            totalDrinks: dayDrinks.count,
+            standardDrinks: dayDrinks.reduce(0) { $0 + $1.standardDrinks }
+        )
+    }
+    
+    // MARK: - Safety Methods
+    public func getSafetyStatus() -> SafetyStatus {
+        if currentBAC < 0.04 {
+            return .safe
+        } else if currentBAC < 0.08 {
+            return .borderline
+        } else {
+            return .unsafe
         }
     }
 }
