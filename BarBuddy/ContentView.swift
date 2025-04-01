@@ -1,3 +1,5 @@
+import SwiftUI
+
 struct ContentView: View {
     @State private var selectedTab = 0
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -35,7 +37,7 @@ struct ContentView: View {
                 // iPhone layout with tab bar
                 TabView(selection: $selectedTab) {
                     NavigationView {
-                        DashboardView()
+                        EnhancedDashboardView()
                             .navigationTitle("Dashboard")
                             .background(Color.appBackground)
                     }
@@ -45,7 +47,7 @@ struct ContentView: View {
                     .tag(0)
                     
                     NavigationView {
-                        DrinkLogView()
+                        EnhancedDrinkLogView()
                             .navigationTitle("Log Drink")
                             .background(Color.appBackground)
                     }
@@ -92,12 +94,12 @@ struct ContentView: View {
     @ViewBuilder
     private var enhancedSidebarContent: some View {
         List {
-            NavigationLink(destination: DashboardView().navigationTitle("Dashboard")) {
+            NavigationLink(destination: EnhancedDashboardView().navigationTitle("Dashboard")) {
                 Label("Dashboard", systemImage: "gauge")
                     .foregroundColor(.appTextPrimary)
             }
             
-            NavigationLink(destination: DrinkLogView().navigationTitle("Log Drink")) {
+            NavigationLink(destination: EnhancedDrinkLogView().navigationTitle("Log Drink")) {
                 Label("Log Drink", systemImage: "plus.circle")
                     .foregroundColor(.appTextPrimary)
             }
@@ -126,10 +128,10 @@ struct ContentView: View {
     private func selectedTabView() -> some View {
         switch selectedTab {
         case 0:
-            DashboardView()
+            EnhancedDashboardView()
                 .navigationTitle("Dashboard")
         case 1:
-            DrinkLogView()
+            EnhancedDrinkLogView()
                 .navigationTitle("Log Drink")
         case 2:
             HistoryView()
@@ -141,11 +143,20 @@ struct ContentView: View {
             SettingsView()
                 .navigationTitle("Settings")
         default:
-            DashboardView()
-                .navigationTitle("Dashboar
-                                 }
+            EnhancedDashboardView()
+                .navigationTitle("Dashboard")
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .environmentObject(DrinkTracker())
+    }
+}
 #Preview {
     ContentView()
 }
-                }
-                }
+
+

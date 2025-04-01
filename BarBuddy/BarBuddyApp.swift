@@ -14,7 +14,7 @@ struct BarBuddyApp: App {
     @State private var showingDisclaimerOnLaunch = true
     
     init() {
-        // Connect DrinkTracker to WatchSessionManager (keep existing functionality)
+        // Connect DrinkTracker to WatchSessionManager
         WatchSessionManager.shared.setDrinkTracker(drinkTracker)
         
         // Apply themed colors to UI elements
@@ -31,7 +31,7 @@ struct BarBuddyApp: App {
                     EnhancedUserSetupView(hasCompletedSetup: $hasCompletedPurchase)
                         .adaptiveLayout()
                 } else {
-                    EnhancedContentView()
+                    ContentView()
                         .environmentObject(drinkTracker)
                         .adaptiveLayout()
                         .onAppear {
@@ -44,6 +44,7 @@ struct BarBuddyApp: App {
                 checkIfFirstLaunch()
             }
         }
+    }
     }
     
     // Keep your existing methods intact to maintain functionality
