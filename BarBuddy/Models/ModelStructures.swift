@@ -5,6 +5,7 @@
 //  Created by Travis Rodriguez on 3/21/25.
 //
 import Foundation
+import SwiftUICore
 
 // MARK: - Drink Type Enumeration
 public enum DrinkType: String, Codable, CaseIterable, Hashable {

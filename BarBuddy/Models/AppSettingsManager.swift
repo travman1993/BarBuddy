@@ -143,6 +143,8 @@ class AppSettingsManager: ObservableObject {
                                 case .dark: return .dark
                                 case .light: return .light
                                 case nil: return .unspecified
+                                case .some(_):
+                                    <#code#>
                                 }
                             }()
                         }
@@ -223,6 +225,8 @@ extension AppSettingsManager {
             colorScheme = nil // System default
         case nil:
             colorScheme = .light
+        case .some(_):
+            <#code#>
         }
     }
 }

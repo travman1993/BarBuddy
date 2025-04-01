@@ -5,6 +5,7 @@
 //  Created by Travis Rodriguez on 4/1/25.
 //
 import SwiftUI
+import MessageUI
 
 // MARK: - Enhanced Feature Row
 struct EnhancedFeatureRow: View {
