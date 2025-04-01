@@ -343,7 +343,6 @@ struct EnhancedDrinkHistoryRow: View {
                 .navigationTitle("Dashboard")
         }
     }
-}
 
 // MARK: - Enhanced Dashboard View
 struct EnhancedDashboardView: View {

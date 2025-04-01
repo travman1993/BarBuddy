@@ -148,3 +148,12 @@ extension ShareManager {
         return "(\(areaCode)) \(firstThree)-\(lastFour)"
     }
 }
+struct ShareView: View {
+    @EnvironmentObject var drinkTracker: DrinkTracker
+    @StateObject private var shareManager = ShareManager.shared
+    
+    var body: some View {
+        // Add your view layout and UI elements here
+        Text("Share View")
+    }
+}
