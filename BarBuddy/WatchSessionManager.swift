@@ -157,6 +157,7 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
             try session?.transferFile(fileURL, metadata: metadata)
         } catch {
             print("Error transferring file to Watch: \(error.localizedDescription)")
+            // Add any additional error handling you need
         }
     }
 }

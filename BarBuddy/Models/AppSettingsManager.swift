@@ -20,7 +20,7 @@ class AppSettingsManager: ObservableObject {
     
     // MARK: - Appearance Settings
     @Published var useMetricUnits: Bool = false
-    @Published var dynamicTypeSize: DynamicTypeSize = .standard
+    @Published var dynamicTypeSize: DynamicTypeSize = .medium
     @Published var colorScheme: ColorScheme? = nil
     
     // MARK: - Tracking Settings
@@ -57,29 +57,42 @@ class AppSettingsManager: ObservableObject {
     
     // MARK: - Setup Methods
     private func setupBindings() {
-        // Automatically save settings when any published property changes
-        let publishers = [
-            $weight, $gender, $heightFeet, $heightInches,
-            $useMetricUnits, $dynamicTypeSize, $colorScheme,
-            $trackDrinkHistory, $trackLocations, $saveAlcoholSpending, $saveDrinksFor,
-            $enableBACAlerts, $enableHydrationReminders,
-            $enableDrinkingDurationAlerts, $enableMorningCheckIns,
-            $enablePasscodeProtection, $useBiometricAuthentication, $allowDataSharing,
-            $syncWithAppleWatch, $watchQuickAdd, $watchComplication
-        ]
+        setupBinding(for: $weight)
+        setupBinding(for: $gender)
+        setupBinding(for: $heightFeet)
+        setupBinding(for: $heightInches)
+        setupBinding(for: $useMetricUnits)
+        setupBinding(for: $dynamicTypeSize)
         
-        publishers.forEach { publisher in
-            publisher
-                .debounce(for: 0.5, scheduler: RunLoop.main)
-                .sink { [weak self] _ in self?.saveSettings() }
-                .store(in: &cancellables)
-        }
-        
-        // Special handling for color scheme changes
+        // Special handling for color scheme
         $colorScheme
             .sink { [weak self] _ in
                 self?.applyAppearanceSettings()
+                self?.saveSettings()
             }
+            .store(in: &cancellables)
+        
+        setupBinding(for: $trackDrinkHistory)
+        setupBinding(for: $trackLocations)
+        setupBinding(for: $saveAlcoholSpending)
+        setupBinding(for: $saveDrinksFor)
+        setupBinding(for: $enableBACAlerts)
+        setupBinding(for: $enableHydrationReminders)
+        setupBinding(for: $enableDrinkingDurationAlerts)
+        setupBinding(for: $enableMorningCheckIns)
+        setupBinding(for: $enablePasscodeProtection)
+        setupBinding(for: $useBiometricAuthentication)
+        setupBinding(for: $allowDataSharing)
+        setupBinding(for: $syncWithAppleWatch)
+        setupBinding(for: $watchQuickAdd)
+        setupBinding(for: $watchComplication)
+    }
+
+    // Helper method for setting up a binding
+    private func setupBinding<T>(for publisher: Published<T>.Publisher) {
+        publisher
+            .debounce(for: 0.5, scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.saveSettings() }
             .store(in: &cancellables)
     }
     
@@ -143,8 +156,7 @@ class AppSettingsManager: ObservableObject {
                                 case .dark: return .dark
                                 case .light: return .light
                                 case nil: return .unspecified
-                                case .some(_):
-                                    <#code#>
+                                case .some(_): return .unspecified  // Add a return statement here
                                 }
                             }()
                         }
@@ -226,7 +238,8 @@ extension AppSettingsManager {
         case nil:
             colorScheme = .light
         case .some(_):
-            <#code#>
+            // This case shouldn't actually return anything
+            break  // Do nothing, or handle as needed
         }
     }
 }

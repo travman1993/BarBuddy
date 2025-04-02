@@ -55,6 +55,113 @@ class DrinkTrackerViewModel: ObservableObject {
         calculateDailyStats()
         checkForDrinkingSession()
     }
+
+    // MARK: - Drinking Session Management
+    private func checkForDrinkingSession() {
+        // Check if we have recent drinks to determine if a drinking session is active
+        let calendar = Calendar.current
+        let recentDrinks = drinks.filter {
+            calendar.dateComponents([.hour], from: $0.timestamp, to: Date()).hour! < 6
+        }
+        
+        if !recentDrinks.isEmpty {
+            // If there are drinks in the last 6 hours, consider it an active session
+            isDrinkingSession = true
+            
+            // Find the earliest drink timestamp as session start time
+            if let earliestDrink = recentDrinks.min(by: { $0.timestamp < $1.timestamp }) {
+                sessionStartTime = earliestDrink.timestamp
+            }
+        } else {
+            // No recent drinks, no active session
+            isDrinkingSession = false
+            sessionStartTime = nil
+        }
+    }
+
+    // MARK: - Cost Tracking
+    private func saveDrinkCost(_ cost: Double) {
+        // Save the drink cost to UserDefaults
+        let currentDate = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let dateKey = dateFormatter.string(from: currentDate)
+        
+        // Get any existing costs for today
+        var dailyCosts = UserDefaults.standard.dictionary(forKey: "drinkCosts") as? [String: Double] ?? [:]
+        
+        // Add this cost to today's total
+        dailyCosts[dateKey] = (dailyCosts[dateKey] ?? 0.0) + cost
+        
+        // Save back to UserDefaults
+        UserDefaults.standard.set(dailyCosts, forKey: "drinkCosts")
+    }
+
+    private func loadDrinkCosts() {
+        // Load costs for today
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayKey = dateFormatter.string(from: Date())
+        
+        // Get costs dictionary
+        let costs = UserDefaults.standard.dictionary(forKey: "drinkCosts") as? [String: Double] ?? [:]
+        
+        // Set total cost for today
+        totalDrinkCost = costs[todayKey] ?? 0.0
+    }
+
+    // This fixes the "Initialization of immutable value 'today'" warning
+    private func updateStreaks() {
+        let calendar = Calendar.current
+        let currentDate = Date()
+        let today = calendar.startOfDay(for: currentDate)
+        
+        // Rest of your existing updateStreaks function...
+        // Check if had drinks today
+        let hadDrinksToday = !drinks.filter { calendar.isDateInToday($0.timestamp) }.isEmpty
+        
+        if hadDrinksToday {
+            // Count consecutive drinking days
+            var streakCount = 1
+            var currentDay = today
+            
+            while true {
+                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
+                
+                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
+                
+                if hadDrinksOnDay {
+                    streakCount += 1
+                    currentDay = previousDay
+                } else {
+                    break
+                }
+            }
+            
+            drinkingStreak = streakCount
+            soberDays = 0
+        } else {
+            // Count consecutive sober days
+            var soberCount = 1
+            var currentDay = today
+            
+            while true {
+                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
+                
+                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
+                
+                if !hadDrinksOnDay {
+                    soberCount += 1
+                    currentDay = previousDay
+                } else {
+                    break
+                }
+            }
+            
+            soberDays = soberCount
+            drinkingStreak = 0
+        }
+    }
     
     // MARK: - Setup Methods
     private func setupBindings() {
@@ -137,7 +244,7 @@ class DrinkTrackerViewModel: ObservableObject {
     // MARK: - Calculation Methods
     private func calculateDailyStats() {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        _ = calendar.startOfDay(for: Date())
         
         // Calculate total standard drinks today
         let todaysDrinks = drinks.filter {
@@ -215,57 +322,6 @@ class DrinkTrackerViewModel: ObservableObject {
                 bac: currentBAC,
                 timeUntilSober: timeUntilSober
             )
-        }
-    }
-    
-    // MARK: - Streak and Tracking Methods
-    private func updateStreaks() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // Check if had drinks today
-        let hadDrinksToday = !drinks.filter { calendar.isDateInToday($0.timestamp) }.isEmpty
-        
-        if hadDrinksToday {
-            // Count consecutive drinking days
-            var streakCount = 1
-            var currentDay = today
-            
-            while true {
-                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
-                
-                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
-                
-                if hadDrinksOnDay {
-                    streakCount += 1
-                    currentDay = previousDay
-                } else {
-                    break
-                }
-            }
-            
-            drinkingStreak = streakCount
-            soberDays = 0
-        } else {
-            // Count consecutive sober days
-            var soberCount = 1
-            var currentDay = today
-            
-            while true {
-                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else { break }
-                
-                let hadDrinksOnDay = !drinks.filter { calendar.isDate($0.timestamp, inSameDayAs: previousDay) }.isEmpty
-                
-                if !hadDrinksOnDay {
-                    soberCount += 1
-                    currentDay = previousDay
-                } else {
-                    break
-                }
-            }
-            
-            soberDays = soberCount
-            drinkingStreak = 0
         }
     }
     

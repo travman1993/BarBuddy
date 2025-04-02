@@ -8,36 +8,17 @@ import SwiftUI
 
 // MARK: - Color Extension
 extension Color {
-    // Base Background Colors
-    static let appBackground = Color("AppBackground")
-    static let appCardBackground = Color("AppCardBackground")
-    
-    // Text Colors
-    static let appTextPrimary = Color("AppTextPrimary")
-    static let appTextSecondary = Color("AppTextSecondary")
-    
-    // Accent and Interaction Colors
-    static let accent = Color("AccentColor")
-    static let accentDark = Color("AccentColorDark")
-    
-    // Status Colors
-    static let safe = Color("SafeColor")
-    static let warning = Color("WarningColor")
-    static let danger = Color("DangerColor")
-    
     // Drink Type Colors
     static let beerColor = Color("BeerColor")
     static let wineColor = Color("WineColor")
     static let cocktailColor = Color("CocktailColor")
     static let shotColor = Color("ShotColor")
+    static let accentDark = Color("AccentColorDark")
     
     // Background Tints
     static let safeBackground = safe.opacity(0.1)
     static let warningBackground = warning.opacity(0.1)
     static let dangerBackground = danger.opacity(0.1)
-    
-    // Separator
-    static let appSeparator = Color("AppSeparator")
 }
 
 // MARK: - View Extensions for Consistent Styling
