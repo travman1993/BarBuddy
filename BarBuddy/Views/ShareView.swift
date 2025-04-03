@@ -8,6 +8,7 @@ import Foundation
 import SwiftUI
 import Combine
 import os
+import MessageUI
 
 class ShareManager: ObservableObject {
     static let shared = ShareManager()
@@ -151,9 +152,183 @@ extension ShareManager {
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager.shared
+    @StateObject private var emergencyContactManager = EmergencyContactManager.shared
+    
+    @State private var selectedMessage: String = ""
+    @State private var includeLocation = false
+    @State private var selectedContacts: Set<EmergencyContact> = []
+    @State private var showingMessageComposer = false
+    @State private var messageRecipients: [String] = []
+    @State private var messageBody: String = ""
     
     var body: some View {
-        // Add your view layout and UI elements here
-        Text("Share View")
+        NavigationView {
+            Form {
+                // Current BAC Section
+                Section(header: Text("Your Current Status")) {
+                    HStack {
+                        Text("Blood Alcohol Content")
+                        Spacer()
+                        Text(String(format: "%.3f", drinkTracker.currentBAC))
+                            .fontWeight(.bold)
+                            .foregroundColor(getBACColor())
+                    }
+                    
+                    HStack {
+                        Text("Safety Status")
+                        Spacer()
+                        Text(getSafetyStatus())
+                            .foregroundColor(getBACColor())
+                    }
+                }
+                
+                // Message Customization Section
+                Section(header: Text("Share Message")) {
+                    Picker("Pre-written Message", selection: $selectedMessage) {
+                        ForEach(shareManager.messageTemplates, id: \.self) { template in
+                            Text(template).tag(template)
+                        }
+                    }
+                    
+                    Toggle("Include Approximate Location", isOn: $includeLocation)
+                }
+                
+                // Emergency Contacts Selection Section
+                Section(header: Text("Select Contacts")) {
+                    if emergencyContactManager.emergencyContacts.isEmpty {
+                        Text("No emergency contacts added")
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(emergencyContactManager.emergencyContacts, id: \.id) { contact in
+                            MultipleSelectionRow(
+                                title: contact.name,
+                                subtitle: contact.phoneNumber,
+                                isSelected: selectedContacts.contains(contact)
+                            ) {
+                                if selectedContacts.contains(contact) {
+                                    selectedContacts.remove(contact)
+                                } else {
+                                    selectedContacts.insert(contact)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Add Emergency Contact Button
+                Section {
+                    NavigationLink(destination: AddContactView { newContact in
+                        emergencyContactManager.addContact(newContact)
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Add Emergency Contact")
+                        }
+                    }
+                }
+                
+                // Share Button
+                Section {
+                    Button(action: shareStatus) {
+                        HStack {
+                            Spacer()
+                            Text("Share Status")
+                                .foregroundColor(.white)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                    }
+                    .disabled(selectedContacts.isEmpty)
+                }
+            }
+            .navigationTitle("Share Status")
+        }
+        .sheet(isPresented: $showingMessageComposer) {
+            #if os(iOS)
+            MessageComposerView(
+                recipients: messageRecipients,
+                body: messageBody,
+                delegate: ShareViewMessageDelegate()
+            )
+            #endif
+        }
     }
+    
+    private func shareStatus() {
+        let message = shareManager.createShareMessage(
+            bac: drinkTracker.currentBAC,
+            customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
+            includeLocation: includeLocation
+        )
+        
+        // Prepare recipients and message for Message Composer
+        messageRecipients = selectedContacts.map { $0.phoneNumber }
+        messageBody = message
+        
+        #if os(iOS)
+        if MessageComposerView.canSendText() {
+            showingMessageComposer = true
+        } else {
+            // Fallback for devices that can't send SMS
+            print("Device cannot send SMS")
+        }
+        #endif
+    }
+    
+    private func getBACColor() -> Color {
+        if drinkTracker.currentBAC < 0.04 {
+            return .green
+        } else if drinkTracker.currentBAC < 0.08 {
+            return .orange
+        } else {
+            return .red
+        }
+    }
+    
+    private func getSafetyStatus() -> String {
+        if drinkTracker.currentBAC < 0.04 {
+            return "Safe to Drive"
+        } else if drinkTracker.currentBAC < 0.08 {
+            return "Caution Advised"
+        } else {
+            return "Do Not Drive"
+        }
+    }
+}
+
+// Supporting view for multiple selection
+struct MultipleSelectionRow: View {
+    let title: String
+    let subtitle: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text(title)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .foregroundColor(.blue)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+    }
+}
+
+#Preview {
+    ShareView()
+        .environmentObject(DrinkTracker())
 }

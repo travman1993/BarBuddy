@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var showingPurchaseView = false
     @State private var showingDisclaimerView = false
     @State private var showingAboutView = false
+    @StateObject private var settingsManager = AppSettingsManager.shared
     
     var body: some View {
         Form {
@@ -70,18 +71,18 @@ struct SettingsView: View {
             
             // Notification Settings
             Section(header: Text("Notifications")) {
-                Toggle("Hydration Reminders", isOn: .constant(true))
-                Toggle("BAC Level Alerts", isOn: .constant(true))
-                Toggle("Auto-Text When Safe", isOn: .constant(false))
+                Toggle("Hydration Reminders", isOn: $settingsManager.enableHydrationReminders)
+                Toggle("BAC Level Alerts", isOn: $settingsManager.enableBACAlerts)
+                Toggle("Auto-Text When Safe", isOn: $settingsManager.enableMorningCheckIns)
             }
-            
-            // Apple Watch Settings
+                        
+            // Apple Watch Settings (update to use settingsManager)
             Section(header: Text("Apple Watch")) {
-                Toggle("Enable Quick Logging", isOn: .constant(true))
-                Toggle("Haptic Feedback", isOn: .constant(true))
-                Toggle("Complication Display", isOn: .constant(true))
+                Toggle("Enable Quick Logging", isOn: $settingsManager.watchQuickAdd)
+                Toggle("Haptic Feedback", isOn: $settingsManager.watchComplication)
+                Toggle("Complication Display", isOn: $settingsManager.syncWithAppleWatch)
             }
-            
+
             // App Settings
             Section(header: Text("App Settings")) {
                 Button("View Legal Disclaimer") {
@@ -185,6 +186,14 @@ struct AddContactView: View {
     @State private var phoneNumber: String = ""
     @State private var relationship: String = "Friend"
     @State private var sendAutomaticTexts: Bool = false
+    
+    private let relationshipOptions = [
+            "Friend",
+            "Family",
+            "Significant Other",
+            "Roommate",
+            "Other"
+        ]
     
     let onAdd: (EmergencyContact) -> Void
     
