@@ -53,7 +53,7 @@ struct AppAboutView: View {
                             .padding(.horizontal)
                     }
                     .padding()
-                    .background(Color(.systemGroupedBackground))
+                    .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .padding(.horizontal)
                     

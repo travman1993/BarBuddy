@@ -25,13 +25,16 @@ struct BarBuddyApp: App {
                 if showingDisclaimerOnLaunch {
                     EnhancedLaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
                         .adaptiveLayout()
+                        .background(Color.appBackground)
                 } else if !hasCompletedPurchase {
                     EnhancedUserSetupView(hasCompletedSetup: $hasCompletedPurchase)
                         .adaptiveLayout()
+                        .background(Color.appBackground)
                 } else {
                     ContentView()
                         .environmentObject(drinkTracker)
                         .adaptiveLayout()
+                        .background(Color.appBackground)
                         .onAppear {
                             setupAppConfiguration()
                             syncBACToWatch()
@@ -40,6 +43,7 @@ struct BarBuddyApp: App {
                         }
                 }
             }
+            .background(Color.appBackground) // Global background
             .onAppear {
                 checkIfFirstLaunch()
             }

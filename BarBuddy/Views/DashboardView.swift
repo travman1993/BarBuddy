@@ -248,23 +248,22 @@ struct QuickActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 5) {
+            VStack {
                 Image(systemName: systemImage)
-                    .font(.system(size: 24))
+                    .font(.system(size: 30))
                     .foregroundColor(color)
                 
                 Text(title)
                     .font(.caption)
-                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(10)
+            .padding()
+            .background(color.opacity(0.1))
+            .cornerRadius(12)
         }
     }
 }
-
 // MARK: - Recent Drinks Summary
 struct RecentDrinksSummary: View {
     let drinks: [Drink]
@@ -305,7 +304,7 @@ struct RecentDrinksSummary: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.appCardBackground)
             
             if recentDrinks.isEmpty {
                 Text("No drinks recorded in the last 24 hours")
@@ -344,7 +343,7 @@ struct RecentDrinksSummary: View {
                     }
                 }
                 .padding(.vertical, 10)
-                .background(Color(.systemBackground))
+                .background(Color.appCardBackground)
                 
                 if isExpanded {
                     // List of drinks
@@ -369,11 +368,11 @@ struct RecentDrinksSummary: View {
                             }
                         }
                     }
-                    .background(Color(.systemBackground))
+                    .background(Color.appCardBackground)
                 }
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         .padding(.horizontal)
@@ -459,7 +458,7 @@ struct SafetyTipsSection: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.appCardBackground)
             
             // Quick tip
             HStack {
@@ -482,10 +481,10 @@ struct SafetyTipsSection: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemBackground))
+                .background(Color.appCardBackground)
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         .padding(.horizontal)

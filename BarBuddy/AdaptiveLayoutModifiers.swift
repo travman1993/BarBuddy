@@ -29,19 +29,25 @@ struct ResponsiveContainer<Content: View>: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                VStack {
-                    if horizontalSizeClass == .regular {
-                        // iPad layout - centered with max width
-                        content()
-                            .frame(maxWidth: min(geometry.size.width * 0.8, 800))
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        // iPhone layout - full width
-                        content()
+                if horizontalSizeClass == .regular {
+                    // iPad layout
+                    VStack(spacing: 20) {
+                        HStack(alignment: .top, spacing: 20) {
+                            // Existing content, but add centering
+                            VStack(spacing: 16) {
+                                // Content
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal)
                     }
+                } else {
+                    // iPhone layout - full width
+                    content()
                 }
-                .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity)
         }
     }
 }

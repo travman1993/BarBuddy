@@ -113,7 +113,7 @@ struct DrinkLogView: View {
                                 }
                             }
                             .padding()
-                            .background(Color(.systemGroupedBackground))
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                         }
                         .frame(maxWidth: .infinity)
@@ -125,7 +125,7 @@ struct DrinkLogView: View {
                                 drinkTracker.removeDrink(drink)
                             }
                         )
-                        .background(Color(.systemGroupedBackground))
+                        .background(Color.appCardBackground)
                         .cornerRadius(12)
                         .frame(maxWidth: .infinity)
                     }
@@ -201,7 +201,7 @@ struct DrinkLogView: View {
                         .padding(.horizontal)
                     }
                     .padding(.vertical)
-                    .background(Color(.systemGroupedBackground))
+                    .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .padding(.horizontal)
                     
@@ -232,7 +232,7 @@ struct DrinkLogView: View {
                     RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
                         drinkTracker.removeDrink(drink)
                     })
-                    .background(Color(.systemGroupedBackground))
+                    .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .padding(.horizontal)
                 }
@@ -331,7 +331,7 @@ struct DrinkLogView: View {
                 .cornerRadius(15)
             }
             .padding()
-            .background(Color(.systemGroupedBackground))
+            .background(Color.appCardBackground)
             .cornerRadius(12)
             .padding(.horizontal)
         }

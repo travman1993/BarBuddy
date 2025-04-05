@@ -209,7 +209,7 @@ struct DrinkingSummaryCard: View {
             }
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -381,7 +381,7 @@ struct BACTrendChart: View {
             }
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
     
@@ -459,7 +459,7 @@ struct DayDrinksCard: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color.appCardBackground)
                 .cornerRadius(expanded ? 12 : 12)
             }
             .buttonStyle(PlainButtonStyle())
@@ -478,11 +478,11 @@ struct DayDrinksCard: View {
                         }
                     }
                 }
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color.appCardBackground)
                 .cornerRadius(12)
             }
         }
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
     
@@ -847,7 +847,7 @@ struct StatsSectionCard<Content: View>: View {
             content
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -990,7 +990,7 @@ struct BACAnalysisCard: View {
             }
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -1104,7 +1104,7 @@ struct DrinkingPatternsCard: View {
             PatternAnalysisView(drinkingFrequency: drinkingFrequency)
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -1227,7 +1227,7 @@ struct DrinkingCostCard: View {
             }
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -1313,7 +1313,7 @@ struct HealthImpactCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
@@ -1398,7 +1398,7 @@ struct RecommendationsCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appCardBackground)
         .cornerRadius(12)
     }
 }
