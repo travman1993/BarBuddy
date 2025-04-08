@@ -197,7 +197,7 @@ struct BarBuddyApp: App {
                         // Warning icon
                         ZStack {
                             Circle()
-                                .fill(Color.warningBackground)
+                                .fill(Color("WarningBackground"))
                                 .frame(width: 100, height: 100)
                             
                             Image(systemName: "exclamationmark.triangle")
@@ -250,7 +250,11 @@ struct BarBuddyApp: App {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(LinearGradient(gradient: Gradient(colors: [Color.accent, Color.accentDark]), startPoint: .leading, endPoint: .trailing))
+                                    .background(LinearGradient(
+                                        gradient: Gradient(colors: [Color("AccentColor"), Color("AccentColorDark")]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ))
                                     .cornerRadius(30)
                                     .shadow(color: Color.accent.opacity(0.5), radius: 5, x: 0, y: 3)
                             }

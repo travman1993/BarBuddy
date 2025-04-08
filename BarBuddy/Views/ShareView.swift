@@ -267,15 +267,16 @@ struct ShareView: View {
         )
         
         // Create a share
-        shareManager.addShare(
+        let share = shareManager.addShare(
             bac: drinkTracker.currentBAC,
             message: selectedMessage.isEmpty ? nil : selectedMessage
         )
-        
+
         // Include location if requested
-        var completeMessage = message
-        if includeLocation, let location = LocationManager.shared.getLocationString() {
-            completeMessage += "\nLocation: \(location)"
+        var completeMessage = share.message
+        if includeLocation {
+            let locationString = LocationManager.shared.getLocationString()
+            completeMessage += "\nLocation: \(locationString)"
         }
         
         // Prepare recipients and message for Message Composer

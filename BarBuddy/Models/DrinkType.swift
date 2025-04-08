@@ -66,16 +66,13 @@ public enum DrinkType: String, Codable, CaseIterable, Hashable {
         }
     }
     
-    /**
-     * Associated color for consistent UI representation.
-     */
-    public var color: Color {
-        switch self {
-        case .beer: return .beerColor
-        case .wine: return .wineColor
-        case .cocktail: return .cocktailColor
-        case .shot: return .shotColor
-        case .other: return .appTextSecondary
-        }
-    }
+     public var color: Color {
+         switch self {
+         case .beer: return Color("BeerColor")
+         case .wine: return Color("WineColor")
+         case .cocktail: return Color("CocktailColor")
+         case .shot: return Color("ShotColor")
+         case .other: return Color("AppTextSecondary")
+         }
+     }
 }

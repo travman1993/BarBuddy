@@ -1,9 +1,9 @@
-// File: LaunchScreenView.swift
 import SwiftUI
 
 struct LaunchScreenView: View {
     var body: some View {
         ZStack {
+            // Explicitly use Color.appBackground from Color extension
             Color.appBackground
                 .ignoresSafeArea()
             

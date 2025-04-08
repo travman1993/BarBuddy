@@ -26,7 +26,7 @@ extension View {
         self.padding()
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.accent, Color.accentDark]),
+                    gradient: Gradient(colors: [Color("AccentColor"), Color("AccentColorDark")]),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -89,11 +89,11 @@ struct AppColorScheme {
 // MARK: - Drink Type Color Helpers
 func getDrinkTypeColor(_ type: DrinkType) -> Color {
     switch type {
-    case .beer: return .beerColor
-    case .wine: return .wineColor
-    case .cocktail: return .cocktailColor
-    case .shot: return .shotColor
-    case .other: return .appTextSecondary
+    case .beer: return Color("BeerColor")
+    case .wine: return Color("WineColor")
+    case .cocktail: return Color("CocktailColor")
+    case .shot: return Color("ShotColor")
+    case .other: return Color("AppTextSecondary")
     }
 }
 
