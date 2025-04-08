@@ -258,23 +258,46 @@ struct ShareView: View {
         }
     }
     
-    private func shareStatus() {
+    // Update in ShareView.swift
+    func shareStatus() {
         let message = shareManager.createShareMessage(
             bac: drinkTracker.currentBAC,
             customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
             includeLocation: includeLocation
         )
         
+        // Create a share
+        shareManager.addShare(
+            bac: drinkTracker.currentBAC,
+            message: selectedMessage.isEmpty ? nil : selectedMessage
+        )
+        
+        // Include location if requested
+        var completeMessage = message
+        if includeLocation, let location = LocationManager.shared.getLocationString() {
+            completeMessage += "\nLocation: \(location)"
+        }
+        
         // Prepare recipients and message for Message Composer
         messageRecipients = selectedContacts.map { $0.phoneNumber }
-        messageBody = message
+        messageBody = completeMessage
         
         #if os(iOS)
         if MessageComposerView.canSendText() {
             showingMessageComposer = true
         } else {
             // Fallback for devices that can't send SMS
-            print("Device cannot send SMS")
+            let shareSheet = UIActivityViewController(
+                activityItems: [completeMessage],
+                applicationActivities: nil
+            )
+            
+            // Find the current UIWindow to present from
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = scene.windows.first?.rootViewController {
+                shareSheet.popoverPresentationController?.sourceView = rootVC.view
+                rootVC.present(shareSheet, animated: true)
+            }
         }
         #endif
     }

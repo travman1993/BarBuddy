@@ -305,168 +305,190 @@ struct BarBuddyApp: App {
         }
     }
     
-    // MARK: - Enhanced User Setup View
+    // Enhancing EnhancedUserSetupView in BarBuddyApp.swift
     struct EnhancedUserSetupView: View {
         @Binding var hasCompletedSetup: Bool
         @State private var weight: Double = 160.0
         @State private var gender: Gender = .male
+        @State private var currentPage = 0
+        @State private var showUnitSelector = false
+        @State private var useMetricUnits = false
         @Environment(\.horizontalSizeClass) var horizontalSizeClass
         
         var body: some View {
             GeometryReader { geometry in
-                ScrollView {
-                    VStack(spacing: 30) {
-                        // Header area with logo
-                        VStack(spacing: 15) {
-                            // Logo with glow
-                            ZStack {
-                                // Outer ring
-                                Circle()
-                                    .stroke(Color.accent.opacity(0.3), lineWidth: 3)
-                                    .frame(width: 120, height: 120)
-                                
-                                // Inner ring
-                                Circle()
-                                    .stroke(Color.accent.opacity(0.7), lineWidth: 3)
-                                    .frame(width: 80, height: 80)
-                                
-                                // Icon
-                                Image(systemName: "wineglass")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(Color.accent)
-                            }
-                            .padding(.top, 20)
-                            
-                            Text("BarBuddy")
-                                .font(.system(size: 40, weight: .bold, design: .default))
-                                .foregroundColor(Color.appTextPrimary)
-                            
-                            Text("Your Personal Drinking Companion")
-                                .font(.title3)
-                                .foregroundColor(Color.appTextSecondary)
-                        }
-                        .padding(.bottom, 20)
+                VStack(spacing: 0) {
+                    // Progress bar
+                    ProgressBar(currentStep: currentPage, totalSteps: 3)
+                        .padding(.top)
+                    
+                    TabView(selection: $currentPage) {
+                        // Welcome screen
+                        WelcomeView(nextAction: { currentPage = 1 })
+                            .tag(0)
                         
-                        // User profile setup
-                        VStack(alignment: .leading, spacing: 25) {
-                            Text("YOUR PROFILE")
-                                .font(.caption)
+                        // Profile setup
+                        VStack(spacing: 30) {
+                            // Header
+                            Text("Tell us about yourself")
+                                .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(Color.accent)
-                                .padding(.leading, 15)
+                                .padding(.top, 40)
                             
+                            // Weight selection
                             VStack(alignment: .leading, spacing: 15) {
-                                Text("Weight")
-                                    .font(.headline)
-                                    .foregroundColor(Color.appTextPrimary)
+                                HStack {
+                                    Text("Your Weight")
+                                        .font(.headline)
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: { showUnitSelector = true }) {
+                                        Text(useMetricUnits ? "kg" : "lbs")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 5)
+                                            .background(Color.blue.opacity(0.1))
+                                            .cornerRadius(8)
+                                    }
+                                }
                                 
                                 HStack {
-                                    Slider(value: $weight, in: 80...400, step: 1)
+                                    Text(weightDisplay)
+                                        .font(.title)
+                                        .fontWeight(.semibold)
+                                        .frame(width: 80, alignment: .leading)
+                                    
+                                    Slider(value: $weight, in: useMetricUnits ? 40...180 : 88...396, step: 1)
                                         .accentColor(Color.accent)
-                                    
-                                    Text("\(Int(weight)) lbs")
-                                        .font(.headline)
-                                        .foregroundColor(Color.appTextPrimary)
-                                        .frame(width: 70, alignment: .trailing)
                                 }
+                                
+                                Text("We use this to calculate your BAC more accurately")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
-                            .padding(.horizontal, 15)
+                            .padding()
+                            .background(Color.appCardBackground)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
                             
+                            // Gender selection
                             VStack(alignment: .leading, spacing: 15) {
-                                Text("Gender")
+                                Text("Your Gender")
                                     .font(.headline)
-                                    .foregroundColor(Color.appTextPrimary)
                                 
-                                Picker("Gender", selection: $gender) {
-                                    Text("Male").tag(Gender.male)
-                                    Text("Female").tag(Gender.female)
-                                }
-                                .pickerStyle(SegmentedPickerStyle())
-                                .padding(.trailing, 15)
-                            }
-                            .padding(.horizontal, 15)
-                        }
-                        .padding(.vertical, 25)
-                        .background(Color.appCardBackground)
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                        .padding(.horizontal, 20)
-                        
-                        // App features showcase
-                        VStack(alignment: .leading, spacing: 25) {
-                            Text("FEATURES")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(Color.accent)
-                                .padding(.leading, 15)
-                            
-                            if horizontalSizeClass == .regular {
-                                // iPad layout: features in 2 columns
-                                HStack(alignment: .top, spacing: 30) {
-                                    VStack(alignment: .leading, spacing: 25) {
-                                        EnhancedFeatureRow(icon: "gauge", title: "Real-time BAC Tracking", description: "Monitor your estimated blood alcohol content")
-                                        
-                                        EnhancedFeatureRow(icon: "person.2", title: "Share Status with Friends", description: "Let your friends know your status and stay safe")
-                                    }
+                                HStack(spacing: 15) {
+                                    GenderButton(
+                                        title: "Male",
+                                        icon: "person.fill",
+                                        isSelected: gender == .male,
+                                        action: { gender = .male }
+                                    )
                                     
-                                    VStack(alignment: .leading, spacing: 25) {
-                                        EnhancedFeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
-                                        
-                                        EnhancedFeatureRow(icon: "exclamationmark.triangle", title: "Emergency Contacts", description: "Set up contacts for when you need assistance")
-                                    }
+                                    GenderButton(
+                                        title: "Female",
+                                        icon: "person.fill",
+                                        isSelected: gender == .female,
+                                        action: { gender = .female }
+                                    )
                                 }
-                                .padding(.horizontal, 15)
-                            } else {
-                                // iPhone layout: features in single column
-                                EnhancedFeatureRow(icon: "gauge", title: "Real-time BAC Tracking", description: "Monitor your estimated blood alcohol content")
-                                    .padding(.horizontal, 15)
                                 
-                                EnhancedFeatureRow(icon: "person.2", title: "Share Status with Friends", description: "Let your friends know your status and stay safe")
-                                    .padding(.horizontal, 15)
-                                
-                                EnhancedFeatureRow(icon: "car", title: "Rideshare Integration", description: "Quick access to Uber and Lyft when you need a ride")
-                                    .padding(.horizontal, 15)
-                                
-                                EnhancedFeatureRow(icon: "exclamationmark.triangle", title: "Emergency Contacts", description: "Set up contacts for when you need assistance")
-                                    .padding(.horizontal, 15)
+                                Text("Gender affects how your body processes alcohol")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
+                            .padding()
+                            .background(Color.appCardBackground)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
+                            
+                            Spacer()
+                            
+                            // Navigation buttons
+                            HStack {
+                                Button(action: { currentPage = 0 }) {
+                                    HStack {
+                                        Image(systemName: "chevron.left")
+                                        Text("Back")
+                                    }
+                                    .padding()
+                                    .foregroundColor(.blue)
+                                }
+                                
+                                Spacer()
+                                
+                                Button(action: { currentPage = 2 }) {
+                                    HStack {
+                                        Text("Next")
+                                        Image(systemName: "chevron.right")
+                                    }
+                                    .padding()
+                                    .foregroundColor(.white)
+                                    .background(Color.accent)
+                                    .cornerRadius(10)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom)
                         }
-                        .padding(.vertical, 25)
-                        .background(Color.appCardBackground)
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                        .padding(.horizontal, 20)
+                        .tag(1)
                         
-                        Spacer(minLength: 20)
-                        
-                        // Continue button
-                        Button(action: {
-                            saveUserProfile()
-                            hasCompletedSetup = true
-                        }) {
-                            Text("GET STARTED")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
-                                .padding()
-                                .background(
-                                    LinearGradient(gradient: Gradient(colors: [Color.accent, Color.accentDark]), startPoint: .leading, endPoint: .trailing)
-                                )
-                                .cornerRadius(30)
-                                .shadow(color: Color.accent.opacity(0.5), radius: 5, x: 0, y: 3)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 30)
+                        // Settings & Completion
+                        FinalSetupView(
+                            weight: weight,
+                            gender: gender,
+                            useMetricUnits: useMetricUnits,
+                            onComplete: {
+                                saveUserProfile()
+                                hasCompletedSetup = true
+                            }
+                        )
+                        .tag(2)
                     }
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    .animation(.easeInOut, value: currentPage)
                 }
-                .background(Color.appBackground)
+                .actionSheet(isPresented: $showUnitSelector) {
+                    ActionSheet(
+                        title: Text("Select Unit"),
+                        buttons: [
+                            .default(Text("Pounds (lbs)")) {
+                                if useMetricUnits {
+                                    // Convert kg to lbs
+                                    weight = weight * 2.20462
+                                    useMetricUnits = false
+                                }
+                            },
+                            .default(Text("Kilograms (kg)")) {
+                                if !useMetricUnits {
+                                    // Convert lbs to kg
+                                    weight = weight / 2.20462
+                                    useMetricUnits = true
+                                }
+                            },
+                            .cancel()
+                        ]
+                    )
+                }
+            }
+            .background(Color.appBackground.edgesIgnoringSafeArea(.all))
+        }
+        
+        private var weightDisplay: String {
+            if useMetricUnits {
+                return "\(Int(weight)) kg"
+            } else {
+                return "\(Int(weight)) lbs"
             }
         }
         
         private func saveUserProfile() {
+            // Ensure weight is saved in pounds for consistency
+            let weightInPounds = useMetricUnits ? weight * 2.20462 : weight
+            
             let profile = UserProfile(
-                weight: weight,
+                weight: weightInPounds,
                 gender: gender,
                 emergencyContacts: []
             )
@@ -476,9 +498,249 @@ struct BarBuddyApp: App {
             drinkTracker.updateUserProfile(profile)
             
             // Also update settings manager
-            AppSettingsManager.shared.weight = weight
+            AppSettingsManager.shared.weight = weightInPounds
             AppSettingsManager.shared.gender = gender
+            AppSettingsManager.shared.useMetricUnits = useMetricUnits
             AppSettingsManager.shared.saveSettings()
+        }
+    }
+    
+    // Supporting components for the enhanced onboarding
+    struct WelcomeView: View {
+        let nextAction: () -> Void
+        
+        var body: some View {
+            VStack(spacing: 30) {
+                Spacer()
+                
+                // App logo and title
+                VStack(spacing: 15) {
+                    Image(systemName: "wineglass")
+                        .font(.system(size: 80))
+                        .foregroundColor(Color.accent)
+                        .padding()
+                        .background(
+                            Circle()
+                                .fill(Color.accent.opacity(0.1))
+                                .frame(width: 150, height: 150)
+                        )
+                    
+                    Text("Welcome to BarBuddy")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    Text("Your personal drinking companion")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                
+                // Key features
+                VStack(alignment: .leading, spacing: 15) {
+                    FeatureRow(icon: "gauge", title: "Track your BAC in real-time")
+                    FeatureRow(icon: "calendar", title: "Monitor your drinking habits")
+                    FeatureRow(icon: "person.2", title: "Share your status with friends")
+                    FeatureRow(icon: "car", title: "Get home safely with rideshare integration")
+                }
+                .padding()
+                .background(Color.appCardBackground)
+                .cornerRadius(15)
+                .padding(.horizontal)
+                
+                Spacer()
+                
+                // Start button
+                Button(action: nextAction) {
+                    Text("Get Started")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accent)
+                        .cornerRadius(15)
+                        .padding(.horizontal, 40)
+                }
+                .padding(.bottom, 40)
+            }
+        }
+    }
+    
+    struct FinalSetupView: View {
+        let weight: Double
+        let gender: Gender
+        let useMetricUnits: Bool
+        let onComplete: () -> Void
+        @State private var enableNotifications = true
+        @State private var enableLocationServices = true
+        
+        var body: some View {
+            VStack(spacing: 30) {
+                // Header
+                Text("Almost done!")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, 40)
+                
+                // Profile summary
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Your Profile")
+                        .font(.headline)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "scalemass")
+                                    .foregroundColor(Color.accent)
+                                Text("Weight:")
+                                    .foregroundColor(.secondary)
+                                Text(useMetricUnits ? "\(Int(weight)) kg" : "\(Int(weight)) lbs")
+                                    .fontWeight(.medium)
+                            }
+                            
+                            HStack {
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(Color.accent)
+                                Text("Gender:")
+                                    .foregroundColor(.secondary)
+                                Text(gender.rawValue)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                }
+                .padding()
+                .background(Color.appCardBackground)
+                .cornerRadius(15)
+                .padding(.horizontal)
+                
+                // App permissions
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("App Permissions")
+                        .font(.headline)
+                    
+                    Toggle("Enable Notifications", isOn: $enableNotifications)
+                    
+                    Text("Allows BAC alerts, hydration reminders, and safety check-ins")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Divider()
+                    
+                    Toggle("Enable Location Services", isOn: $enableLocationServices)
+                    
+                    Text("For accurate location sharing during emergencies")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color.appCardBackground)
+                .cornerRadius(15)
+                .padding(.horizontal)
+                
+                Spacer()
+                
+                // Complete button
+                Button(action: {
+                    if enableNotifications {
+                        requestNotificationPermissions()
+                    }
+                    
+                    if enableLocationServices {
+                        requestLocationPermissions()
+                    }
+                    
+                    onComplete()
+                }) {
+                    Text("Complete Setup")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accent)
+                        .cornerRadius(15)
+                        .padding(.horizontal, 40)
+                }
+                .padding(.bottom, 40)
+            }
+        }
+        
+        private func requestNotificationPermissions() {
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                if granted {
+                    // Setup notification categories for different types of notifications
+                    NotificationManager.shared.setupNotificationCategories()
+                }
+            }
+        }
+        
+        private func requestLocationPermissions() {
+            // This would integrate with LocationManager to request permissions
+            // Placeholder for now
+        }
+    }
+    
+    struct ProgressBar: View {
+        let currentStep: Int
+        let totalSteps: Int
+        
+        var body: some View {
+            HStack(spacing: 4) {
+                ForEach(0..<totalSteps, id: \.self) { step in
+                    Capsule()
+                        .fill(step <= currentStep ? Color.accent : Color.gray.opacity(0.3))
+                        .frame(height: 4)
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    struct FeatureRow: View {
+        let icon: String
+        let title: String
+        
+        var body: some View {
+            HStack(spacing: 15) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(Color.accent)
+                    .frame(width: 30)
+                
+                Text(title)
+                    .fontWeight(.medium)
+                
+                Spacer()
+            }
+        }
+    }
+    
+    struct GenderButton: View {
+        let title: String
+        let icon: String
+        let isSelected: Bool
+        let action: () -> Void
+        
+        var body: some View {
+            Button(action: action) {
+                VStack(spacing: 12) {
+                    Image(systemName: icon)
+                        .font(.system(size: 30))
+                        .foregroundColor(isSelected ? .white : Color.accent)
+                    
+                    Text(title)
+                        .font(.headline)
+                        .foregroundColor(isSelected ? .white : .primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isSelected ? Color.accent : Color.appCardBackground)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.clear : Color.accent, lineWidth: 2)
+                )
+            }
         }
     }
 }

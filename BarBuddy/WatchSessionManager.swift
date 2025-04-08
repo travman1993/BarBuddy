@@ -1,27 +1,42 @@
+//
+//  WatchSessionManager.swift
+//  BarBuddy
+//
+
 import Foundation
 import WatchConnectivity
 
+/**
+ * Manages communication between the iOS app and Apple Watch app.
+ *
+ * This class handles sending drink data, BAC updates, and user profile information
+ * to the companion Watch app, and processes requests from the Watch.
+ */
 class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
-    // Singleton instance
+    /// Shared singleton instance
     static let shared = WatchSessionManager()
     
-    // Published properties for tracking session state
+    /// Published properties for tracking session state
     @Published var isReachable = false
     @Published var isWatchAppInstalled = false
     
-    // Session reference
+    /// Session reference
     private var session: WCSession?
     
-    // Drink tracker reference (weak to avoid retain cycle)
+    /// Drink tracker reference (weak to avoid retain cycle)
     private weak var drinkTracker: DrinkTracker?
     
-    // Override initializer
+    /**
+     * Initializes the Watch Session Manager.
+     */
     override init() {
         super.init()
         setupWatchConnectivity()
     }
     
-    // Setup Watch Connectivity
+    /**
+     * Sets up the Watch Connectivity session.
+     */
     private func setupWatchConnectivity() {
         if WCSession.isSupported() {
             session = WCSession.default
@@ -30,14 +45,22 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
-    // Set drink tracker reference
+    /**
+     * Sets the drink tracker reference to enable data sharing.
+     *
+     * - Parameter tracker: The app's DrinkTracker instance
+     */
     func setDrinkTracker(_ tracker: DrinkTracker) {
         self.drinkTracker = tracker
     }
     
-    // MARK: - Data Transmission Methods
-    
-    /// Send BAC data to Watch
+    /**
+     * Sends BAC data to the Watch app.
+     *
+     * - Parameters:
+     *   - bac: Current blood alcohol content
+     *   - timeUntilSober: Estimated time until sober in seconds
+     */
     func sendBACDataToWatch(bac: Double, timeUntilSober: TimeInterval) {
         guard isReachable else { return }
         
@@ -52,7 +75,9 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
-    /// Send user profile to Watch
+    /**
+     * Sends user profile information to the Watch app.
+     */
     func sendUserProfileToWatch() {
         guard let drinkTracker = drinkTracker, isReachable else { return }
         
@@ -67,7 +92,9 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
-    /// Handle incoming messages from Watch
+    /**
+     * Handles incoming messages from the Watch app.
+     */
     func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
         guard let request = message["request"] as? String else {
             replyHandler(["error": "Invalid request"])
@@ -140,24 +167,14 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     }
     #endif
     
-    // MARK: - Utility Methods
-    
-    /// Check if Watch connectivity is supported and session is active
+    /**
+     * Checks if Watch connectivity is available and session is active.
+     *
+     * - Returns: True if Watch connectivity is fully operational
+     */
     func isWatchConnectivityAvailable() -> Bool {
         return WCSession.isSupported() &&
                session?.activationState == .activated &&
                session?.isReachable == true
-    }
-    
-    /// Transfer file to Watch (for larger data)
-    func transferFileToWatch(fileURL: URL, metadata: [String: Any] = [:]) {
-        guard isReachable else { return }
-        
-        do {
-            try session?.transferFile(fileURL, metadata: metadata)
-        } catch {
-            print("Error transferring file to Watch: \(error.localizedDescription)")
-            // Add any additional error handling you need
-        }
     }
 }

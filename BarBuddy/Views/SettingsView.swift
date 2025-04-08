@@ -244,7 +244,7 @@ struct AddContactView: View {
     }
 }
 
-// Disclaimer View
+// Update the Disclaimer view in SettingsView.swift
 struct DisclaimerView: View {
     @Environment(\.presentationMode) var presentationMode
     
@@ -257,23 +257,31 @@ struct DisclaimerView: View {
                             .font(.title)
                             .fontWeight(.bold)
                         
-                        Text("BAC Estimation")
+                        Text("Not a Medical Device")
+                            .font(.headline)
+                            .foregroundColor(.red)
+                        
+                        Text("BarBuddy is not a medical device and has not been evaluated by the FDA or any regulatory agency. It is designed for informational and educational purposes only.")
+                            .foregroundColor(.primary)
+                        
+                        Text("BAC Estimation Limitations")
                             .font(.headline)
                         
-                        Text("BarBuddy provides an estimate of your blood alcohol content (BAC) based on the information you provide. This estimate is not intended to be a precise measurement of your actual BAC and should not be relied upon to determine whether you are legally able to drive.")
+                        Text("The Blood Alcohol Content (BAC) calculations provided are estimates based on general formulas and user-provided information. Actual BAC levels can vary significantly based on numerous individual factors including but not limited to: metabolism, body composition, hydration level, food consumption, medications, health conditions, and fatigue.")
                         
-                        Text("Not a Substitute for Judgment")
+                        Text("Never Drink and Drive")
                             .font(.headline)
+                            .foregroundColor(.red)
                         
-                        Text("BarBuddy is not a substitute for your own judgment or for a professional grade breathalyzer or blood test. Many factors can affect your BAC, including but not limited to: your rate of alcohol consumption, your metabolism, what and when you've eaten, your hydration level, medications you may be taking, and your overall health.")
-                        
-                        Text("Do Not Drink and Drive")
-                            .font(.headline)
-                        
-                        Text("Never drive or operate machinery if you have consumed any amount of alcohol, regardless of what BarBuddy or any app indicates. The only safe BAC when driving is 0.00%.")
+                        Text("Never drive or operate machinery if you have consumed any amount of alcohol, regardless of what BarBuddy indicates. The only safe BAC when driving is 0.00%. Legal driving limits vary by jurisdiction, and exceeding them may result in serious legal consequences.")
                     }
                     
                     Group {
+                        Text("Not a Substitute for Professional Advice")
+                            .font(.headline)
+                        
+                        Text("This app is not a substitute for professional medical or legal advice. Consult healthcare providers for questions about alcohol consumption and health, and legal professionals for advice on alcohol-related laws.")
+                        
                         Text("Emergency Features")
                             .font(.headline)
                         

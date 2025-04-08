@@ -5,7 +5,7 @@
 //  Created by Travis Rodriguez on 3/21/25.
 //
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 // MARK: - Drink Type Enumeration
 public enum DrinkType: String, Codable, CaseIterable, Hashable {
@@ -96,55 +96,6 @@ public enum SafetyStatus: String, Codable, Hashable {
         case .borderline: return "exclamationmark.triangle"
         case .unsafe: return "xmark.octagon"
         }
-    }
-}
-
-// MARK: - Drink Structure
-public struct Drink: Identifiable, Codable, Hashable {
-    public let id: UUID
-    public let type: DrinkType
-    public let size: Double        // in fluid ounces
-    public let alcoholPercentage: Double
-    public let timestamp: Date
-    
-    // Initializer
-    public init(
-        type: DrinkType,
-        size: Double,
-        alcoholPercentage: Double,
-        timestamp: Date = Date()
-    ) {
-        self.id = UUID()
-        self.type = type
-        self.size = size
-        self.alcoholPercentage = alcoholPercentage
-        self.timestamp = timestamp
-    }
-    
-    // Calculate standard drinks
-    public var standardDrinks: Double {
-        // A standard drink is 0.6 fl oz of pure alcohol
-        let pureAlcohol = size * (alcoholPercentage / 100)
-        return pureAlcohol / 0.6
-    }
-    
-    // Estimated calories
-    public var estimatedCalories: Int {
-        // Alcohol calories: 7 calories per gram of alcohol
-        let alcoholGrams = size * (alcoholPercentage / 100) * 0.789
-        let alcoholCalories = Int(alcoholGrams * 7)
-        
-        // Additional calories from carbs
-        let carbCalories: Int
-        switch type {
-        case .beer: carbCalories = Int(size * 13)
-        case .wine: carbCalories = Int(size * 4)
-        case .cocktail: carbCalories = Int(size * 12)
-        case .shot: carbCalories = Int(size * 2)
-        case .other: carbCalories = Int(size * 8)
-        }
-        
-        return alcoholCalories + carbCalories
     }
 }
 

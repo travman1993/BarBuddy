@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		26F895D82DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 26F895D62DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodeld */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		263D10222D8E3435003D370E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -40,11 +44,25 @@
 		263D10112D8E3433003D370E /* BarBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		263D10212D8E3435003D370E /* BarBuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		263D102B2D8E3435003D370E /* BarBuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarBuddyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		26F895D72DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BarBuddy.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		26F895D52DA49E2C00FDD3B4 /* Exceptions for "BarBuddy" folder in "BarBuddy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 263D10102D8E3433003D370E /* BarBuddy */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		263D10132D8E3433003D370E /* BarBuddy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				26F895D52DA49E2C00FDD3B4 /* Exceptions for "BarBuddy" folder in "BarBuddy" target */,
+			);
 			path = BarBuddy;
 			sourceTree = "<group>";
 		};
@@ -88,6 +106,7 @@
 		263D10082D8E3433003D370E = {
 			isa = PBXGroup;
 			children = (
+				26F895D62DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodeld */,
 				263D10132D8E3433003D370E /* BarBuddy */,
 				263D10242D8E3435003D370E /* BarBuddyTests */,
 				263D102E2D8E3435003D370E /* BarBuddyUITests */,
@@ -250,6 +269,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26F895D82DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,7 +433,9 @@
 				DEVELOPMENT_TEAM = UQNHPS9NWL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BarBuddy/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BarBuddy uses your location to share with emergency contacts when you choose to do so, and to help you find nearby ride services.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -443,7 +465,9 @@
 				DEVELOPMENT_TEAM = UQNHPS9NWL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BarBuddy/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BarBuddy uses your location to share with emergency contacts when you choose to do so, and to help you find nearby ride services.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -574,6 +598,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		26F895D62DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				26F895D72DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodel */,
+			);
+			currentVersion = 26F895D72DA4A1BC00FDD3B4 /* BarBuddy.xcdatamodel */;
+			path = BarBuddy.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 263D10092D8E3433003D370E /* Project object */;
 }

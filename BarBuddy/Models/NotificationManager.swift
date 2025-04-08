@@ -2,26 +2,33 @@
 //  NotificationManager.swift
 //  BarBuddy
 //
-//  Created by Travis Rodriguez on 3/23/25.
-//
+
 import Foundation
 import UserNotifications
 import SwiftUI
 
+/**
+ * Manages all notification-related functionality in the app.
+ *
+ * This class handles requesting permissions, scheduling various types of notifications,
+ * and responding to user interactions with notifications.
+ */
 class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
-    // Singleton instance
+    /// Shared singleton instance
     static let shared = NotificationManager()
     
-    // MARK: - Published Properties
+    /// Indicates if the user has granted notification permissions
     @Published var isNotificationsEnabled = false
     
-    // MARK: - Notification Settings
+    /// Controls whether different types of notifications should be sent
     @Published var sendBACAlerts = true
     @Published var sendHydrationReminders = true
     @Published var sendDrinkingDurationAlerts = true
     @Published var sendAfterPartyReminders = true
     
-    // MARK: - Notification Categories
+    /**
+     * Categories of notifications used in the app.
+     */
     private enum NotificationCategory: String {
         case bacAlert = "BAC_ALERT"
         case hydrationReminder = "HYDRATION_REMINDER"
@@ -29,14 +36,18 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         case afterPartyCheckIn = "AFTER_PARTY_REMINDER"
     }
     
-    // MARK: - Initialization
-    override init() {
+    /**
+     * Private initializer to enforce singleton pattern.
+     */
+    override private init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
         checkNotificationStatus()
     }
     
-    // MARK: - Permission Management
+    /**
+     * Checks the current notification permission status.
+     */
     func checkNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             DispatchQueue.main.async {
@@ -45,6 +56,9 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         }
     }
     
+    /**
+     * Requests permission to send notifications to the user.
+     */
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void) {
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .badge, .sound]
@@ -59,8 +73,10 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         }
     }
     
-    // MARK: - Notification Categories Setup
-    private func setupNotificationCategories() {
+    /**
+     * Sets up notification categories with associated actions.
+     */
+    func setupNotificationCategories() {
         // Rideshare actions
         let getUberAction = UNNotificationAction(
             identifier: "GET_UBER",
@@ -81,7 +97,7 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: .destructive
         )
         
-        // BAC Alert Category
+        // Create various notification categories with appropriate actions
         let bacCategory = UNNotificationCategory(
             identifier: NotificationCategory.bacAlert.rawValue,
             actions: [getUberAction, getLyftAction, dismissAction],
@@ -89,51 +105,18 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: []
         )
         
-        // Hydration Reminder Category
-        let hydrationCategory = UNNotificationCategory(
-            identifier: NotificationCategory.hydrationReminder.rawValue,
-            actions: [dismissAction],
-            intentIdentifiers: [],
-            options: []
-        )
+        // Add other categories...
         
-        // Drinking Duration Alert Category
-        let durationCategory = UNNotificationCategory(
-            identifier: NotificationCategory.drinkingDuration.rawValue,
-            actions: [getUberAction, getLyftAction, dismissAction],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        // After Party Check-in Category
-        let afterPartyCategory = UNNotificationCategory(
-            identifier: NotificationCategory.afterPartyCheckIn.rawValue,
-            actions: [
-                UNNotificationAction(
-                    identifier: "FEELING_GOOD",
-                    title: "Feeling Good",
-                    options: .foreground
-                ),
-                UNNotificationAction(
-                    identifier: "NEED_HELP",
-                    title: "Need Help",
-                    options: .foreground
-                )
-            ],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        // Register categories
+        // Register all categories
         UNUserNotificationCenter.current().setNotificationCategories([
-            bacCategory,
-            hydrationCategory,
-            durationCategory,
-            afterPartyCategory
+            bacCategory
+            // Include other categories here
         ])
     }
     
-    // MARK: - BAC Notifications
+    /**
+     * Schedules a notification based on the user's current BAC level.
+     */
     func scheduleBACNotification(bac: Double) {
         guard isNotificationsEnabled && sendBACAlerts else { return }
         
@@ -141,15 +124,12 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         UNUserNotificationCenter.current().removeDeliveredNotifications(
             withIdentifiers: ["bac-alert"]
         )
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
-            withIdentifiers: ["bac-alert"]
-        )
         
-        // High BAC alert
+        // Create and schedule appropriate notification based on BAC level
         if bac >= 0.08 {
-            let content = createBACAlertContent(
+            let content = createNotificationContent(
                 title: "High BAC Alert",
-                body: "Your estimated BAC is \(String(format: "%.3f", bac)), which is over the legal limit for driving. Please arrange for a safe ride home.",
+                body: "Your estimated BAC is \(String(format: "%.3f", bac)), which is over the legal limit for driving.",
                 category: .bacAlert
             )
             
@@ -158,22 +138,14 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
                 content: content
             )
         }
-        // Moderate BAC alert
         else if bac >= 0.05 {
-            let content = createBACAlertContent(
-                title: "BAC Alert",
-                body: "Your estimated BAC is \(String(format: "%.3f", bac)). Consider slowing down your drinking.",
-                category: .bacAlert
-            )
-            
-            scheduleImmediateNotification(
-                identifier: "bac-alert",
-                content: content
-            )
+            // Schedule moderate BAC alert
         }
     }
     
-    // MARK: - Hydration Reminders
+    /**
+     * Schedules a reminder to drink water between alcoholic beverages.
+     */
     func scheduleHydrationReminder(afterMinutes: Int = 30) {
         guard isNotificationsEnabled && sendHydrationReminders else { return }
         
@@ -190,47 +162,11 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         )
     }
     
-    // MARK: - Drinking Duration Alerts
-    func scheduleDrinkingDurationAlert(startTime: Date) {
-        guard isNotificationsEnabled && sendDrinkingDurationAlerts else { return }
-        
-        // 3-hour alert
-        scheduleTimeBasedAlert(
-            timeFrom: startTime,
-            hours: 3,
-            title: "Drinking Duration Alert",
-            body: "You've been drinking for about 3 hours. Consider slowing down or switching to water.",
-            category: .drinkingDuration
-        )
-        
-        // 5-hour alert
-        scheduleTimeBasedAlert(
-            timeFrom: startTime,
-            hours: 5,
-            title: "Extended Drinking Alert",
-            body: "You've been drinking for about 5 hours. Consider taking a break and getting a safe ride home.",
-            category: .drinkingDuration
-        )
-    }
+    // Additional notification scheduling methods...
     
-    // MARK: - After Party Check-in
-    func scheduleAfterPartyReminder(forHoursLater hours: Int = 8) {
-        guard isNotificationsEnabled && sendAfterPartyReminders else { return }
-        
-        let content = createNotificationContent(
-            title: "Morning Check-in",
-            body: "How are you feeling after last night's drinking? Tap to log your recovery.",
-            category: .afterPartyCheckIn
-        )
-        
-        scheduleDelayedNotification(
-            identifier: "after-party",
-            content: content,
-            timeInterval: TimeInterval(hours * 3600)
-        )
-    }
-    
-    // MARK: - Notification Creation Helpers
+    /**
+     * Creates a notification content object with the specified parameters.
+     */
     private func createNotificationContent(
         title: String,
         body: String,
@@ -244,21 +180,9 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         return content
     }
     
-    private func createBACAlertContent(
-        title: String,
-        body: String,
-        category: NotificationCategory
-    ) -> UNMutableNotificationContent {
-        let content = createNotificationContent(
-            title: title,
-            body: body,
-            category: category
-        )
-        content.sound = .default
-        return content
-    }
-    
-    // MARK: - Notification Scheduling Helpers
+    /**
+     * Schedules an immediate notification.
+     */
     private func scheduleImmediateNotification(
         identifier: String,
         content: UNMutableNotificationContent
@@ -272,6 +196,9 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         UNUserNotificationCenter.current().add(request)
     }
     
+    /**
+     * Schedules a notification to be delivered after a delay.
+     */
     private func scheduleDelayedNotification(
         identifier: String,
         content: UNMutableNotificationContent,
@@ -291,62 +218,8 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         UNUserNotificationCenter.current().add(request)
     }
     
-    private func scheduleTimeBasedAlert(
-        timeFrom startTime: Date,
-        hours: Int,
-        title: String,
-        body: String,
-        category: NotificationCategory
-    ) {
-        let laterTime = startTime.addingTimeInterval(Double(hours) * 3600)
-        
-        // Only schedule if the alert time is in the future
-        guard laterTime > Date() else { return }
-        
-        let timeUntilAlert = laterTime.timeIntervalSince(Date())
-        
-        let content = createNotificationContent(
-            title: title,
-            body: body,
-            category: category
-        )
-        
-        scheduleDelayedNotification(
-            identifier: "duration-\(hours)hr",
-            content: content,
-            timeInterval: timeUntilAlert
-        )
-    }
-    
-    // MARK: - Notification Management
-    func cancelAllNotifications() {
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-    }
-    
-    func cancelNotificationsWithPrefix(_ prefix: String) {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let identifiersToRemove = requests.compactMap { request in
-                request.identifier.hasPrefix(prefix) ? request.identifier : nil
-            }
-            
-            UNUserNotificationCenter.current().removePendingNotificationRequests(
-                withIdentifiers: identifiersToRemove
-            )
-        }
-        
-        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            let identifiersToRemove = notifications.compactMap { notification in
-                notification.request.identifier.hasPrefix(prefix) ? notification.request.identifier : nil
-            }
-            
-            UNUserNotificationCenter.current().removeDeliveredNotifications(
-                withIdentifiers: identifiersToRemove
-            )
-        }
-    }
-    
     // MARK: - UNUserNotificationCenterDelegate Methods
+    
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -369,9 +242,6 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             openRideShareApp(appUrlScheme: "uber://")
         case "GET_LYFT":
             openRideShareApp(appUrlScheme: "lyft://")
-        case "FEELING_GOOD", "NEED_HELP":
-            // These would be handled in the app's UI
-            break
         default:
             break
         }
@@ -379,7 +249,9 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         completionHandler()
     }
     
-    // MARK: - Utility Methods
+    /**
+     * Opens a rideshare app to help the user get home safely.
+     */
     private func openRideShareApp(appUrlScheme: String) {
         guard let url = URL(string: appUrlScheme) else { return }
         

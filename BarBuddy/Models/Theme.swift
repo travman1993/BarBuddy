@@ -6,21 +6,6 @@
 //
 import SwiftUI
 
-// MARK: - Color Extension
-extension Color {
-    // Drink Type Colors
-    static let beerColor = Color("BeerColor")
-    static let wineColor = Color("WineColor")
-    static let cocktailColor = Color("CocktailColor")
-    static let shotColor = Color("ShotColor")
-    static let accentDark = Color("AccentColorDark")
-    
-    // Background Tints
-    static let safeBackground = safe.opacity(0.1)
-    static let warningBackground = warning.opacity(0.1)
-    static let dangerBackground = danger.opacity(0.1)
-}
-
 // MARK: - View Extensions for Consistent Styling
 extension View {
     // Adaptive layout for tablets and phones
