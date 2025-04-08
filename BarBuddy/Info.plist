@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAppTransportSecurity</key>
+	<dict/>
+	<key>NSAllowsArbitraryLoads</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BarBuddy uses your location to share with emergency contacts when you choose to do so, and to help you find nearby ride services.</string>
 	<key>NSUserNotificationUsageDescription</key>
