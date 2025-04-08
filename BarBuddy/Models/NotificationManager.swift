@@ -97,7 +97,7 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: .destructive
         )
         
-        // Create various notification categories with appropriate actions
+        // Create BAC notification category
         let bacCategory = UNNotificationCategory(
             identifier: NotificationCategory.bacAlert.rawValue,
             actions: [getUberAction, getLyftAction, dismissAction],
@@ -105,12 +105,36 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: []
         )
         
-        // Add other categories...
+        // Create hydration reminder category
+        let hydrationCategory = UNNotificationCategory(
+            identifier: NotificationCategory.hydrationReminder.rawValue,
+            actions: [dismissAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        // Create drinking duration alert category
+        let durationCategory = UNNotificationCategory(
+            identifier: NotificationCategory.drinkingDuration.rawValue,
+            actions: [getUberAction, getLyftAction, dismissAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        // Create after party check-in category
+        let afterPartyCategory = UNNotificationCategory(
+            identifier: NotificationCategory.afterPartyCheckIn.rawValue,
+            actions: [dismissAction],
+            intentIdentifiers: [],
+            options: []
+        )
         
         // Register all categories
         UNUserNotificationCenter.current().setNotificationCategories([
-            bacCategory
-            // Include other categories here
+            bacCategory,
+            hydrationCategory,
+            durationCategory,
+            afterPartyCategory
         ])
     }
     
@@ -140,6 +164,16 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         }
         else if bac >= 0.05 {
             // Schedule moderate BAC alert
+            let content = createNotificationContent(
+                title: "Moderate BAC Alert",
+                body: "Your estimated BAC is \(String(format: "%.3f", bac)), which is approaching the legal limit. Consider taking a break.",
+                category: .bacAlert
+            )
+            
+            scheduleImmediateNotification(
+                identifier: "bac-alert",
+                content: content
+            )
         }
     }
     
@@ -162,7 +196,68 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         )
     }
     
-    // Additional notification scheduling methods...
+    /**
+     * Schedules notifications to monitor drinking duration.
+     * Alerts the user when they've been drinking for an extended period.
+     */
+    func scheduleDrinkingDurationAlert(startTime: Date) {
+        guard isNotificationsEnabled && sendDrinkingDurationAlerts else { return }
+        
+        // Schedule alert for 3 hours after drinking started
+        let threeHourContent = createNotificationContent(
+            title: "Drinking Duration Alert",
+            body: "You've been drinking for 3 hours. Consider taking a break or switching to water.",
+            category: .drinkingDuration
+        )
+        
+        scheduleDelayedNotification(
+            identifier: "duration-3hr",
+            content: threeHourContent,
+            timeInterval: 3 * 60 * 60
+        )
+        
+        // Schedule another alert for 5 hours after drinking started
+        let fiveHourContent = createNotificationContent(
+            title: "Extended Drinking Alert",
+            body: "You've been drinking for 5 hours. Consider ending your session or getting a ride home.",
+            category: .drinkingDuration
+        )
+        
+        scheduleDelayedNotification(
+            identifier: "duration-5hr",
+            content: fiveHourContent,
+            timeInterval: 5 * 60 * 60
+        )
+    }
+    
+    /**
+     * Schedules a morning check-in notification for the next day.
+     * Useful for checking on the user after a night of drinking.
+     */
+    func scheduleAfterPartyReminder() {
+        guard isNotificationsEnabled && sendAfterPartyReminders else { return }
+        
+        let content = createNotificationContent(
+            title: "Morning Check-In",
+            body: "Good morning! How are you feeling today? Remember to hydrate and rest if needed.",
+            category: .afterPartyCheckIn
+        )
+        
+        // Calculate time for next morning (10 AM)
+        let calendar = Calendar.current
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        dateComponents.day! += 1 // Next day
+        dateComponents.hour = 10
+        dateComponents.minute = 0
+        
+        if let nextMorning = calendar.date(from: dateComponents) {
+            scheduleCalendarNotification(
+                identifier: "morning-checkin",
+                content: content,
+                date: nextMorning
+            )
+        }
+    }
     
     /**
      * Creates a notification content object with the specified parameters.
@@ -206,6 +301,33 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
     ) {
         let trigger = UNTimeIntervalNotificationTrigger(
             timeInterval: timeInterval,
+            repeats: false
+        )
+        
+        let request = UNNotificationRequest(
+            identifier: identifier,
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request)
+    }
+    
+    /**
+     * Schedules a notification to be delivered at a specific date.
+     */
+    private func scheduleCalendarNotification(
+        identifier: String,
+        content: UNMutableNotificationContent,
+        date: Date
+    ) {
+        let components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute],
+            from: date
+        )
+        
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: components,
             repeats: false
         )
         

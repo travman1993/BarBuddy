@@ -260,7 +260,7 @@ struct ShareView: View {
     
     // Update in ShareView.swift
     func shareStatus() {
-        let message = shareManager.createShareMessage(
+        _ = shareManager.createShareMessage(
             bac: drinkTracker.currentBAC,
             customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
             includeLocation: includeLocation
