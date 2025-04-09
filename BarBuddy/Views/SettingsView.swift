@@ -111,6 +111,7 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .background(Color("AppBackground"))
         .onAppear {
             // Load current user profile when view appears
             loadUserProfile()

@@ -246,6 +246,7 @@ struct ShareView: View {
                 }
             }
             .navigationTitle("Share Status")
+            .background(Color("AppBackground"))
         }
         .sheet(isPresented: $showingMessageComposer) {
             #if os(iOS)

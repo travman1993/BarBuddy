@@ -240,6 +240,7 @@ struct DrinkLogView: View {
             }
         }
         .navigationTitle("Log Drink")
+        .background(Color("AppBackground"))
         .sheet(isPresented: $showingCustomDrinkView) {
             EnhancedCustomDrinkView(
                 selectedDrinkType: $selectedDrinkType,

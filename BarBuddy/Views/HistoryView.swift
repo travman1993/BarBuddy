@@ -100,6 +100,7 @@ struct HistoryView: View {
             }
             .padding(.vertical)
             .navigationTitle("Drinking History")
+            .background(Color("AppBackground"))
             .sheet(isPresented: $showingStatsView) {
                 DrinkingStatsView(drinks: filteredDrinks(), timeFrame: selectedTimeFrame)
             }

@@ -183,6 +183,7 @@ struct DashboardView: View {
             }
         }
         .navigationTitle("Dashboard")
+        .background(Color("AppBackground"))
         .sheet(isPresented: $showingQuickAdd) {
             QuickAddDrinkSheet()
         }

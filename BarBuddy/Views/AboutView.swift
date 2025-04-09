@@ -160,6 +160,7 @@ struct AppAboutView: View {
                 .padding(.bottom, 20)
             }
             .navigationTitle("About")
+            .background(Color("AppBackground"))
             .navigationBarItems(trailing: Button("Close") {
                 presentationMode.wrappedValue.dismiss()
             })
