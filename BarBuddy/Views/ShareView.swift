@@ -149,10 +149,12 @@ extension ShareManager {
         return "(\(areaCode)) \(firstThree)-\(lastFour)"
     }
 }
+
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager.shared
     @StateObject private var emergencyContactManager = EmergencyContactManager.shared
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State private var selectedMessage: String = ""
     @State private var includeLocation = false
@@ -162,100 +164,117 @@ struct ShareView: View {
     @State private var messageBody: String = ""
     
     var body: some View {
-        NavigationView {
-            Form {
-                // Current BAC Section
-                Section(header: Text("Your Current Status")) {
-                    HStack {
-                        Text("Blood Alcohol Content")
-                        Spacer()
-                        Text(String(format: "%.3f", drinkTracker.currentBAC))
-                            .fontWeight(.bold)
-                            .foregroundColor(getBACColor())
-                    }
-                    
-                    HStack {
-                        Text("Safety Status")
-                        Spacer()
-                        Text(getSafetyStatus())
-                            .foregroundColor(getBACColor())
+        // Main content without navigation wrapper
+        let content = Form {
+            // Current BAC Section
+            Section(header: Text("YOUR CURRENT STATUS")) {
+                HStack {
+                    Text("Blood Alcohol Content")
+                    Spacer()
+                    Text(String(format: "%.3f", drinkTracker.currentBAC))
+                        .fontWeight(.bold)
+                        .foregroundColor(getBACColor())
+                }
+                
+                HStack {
+                    Text("Safety Status")
+                    Spacer()
+                    Text(getSafetyStatus())
+                        .foregroundColor(getBACColor())
+                }
+            }
+            
+            // Message Customization Section
+            Section(header: Text("SHARE MESSAGE")) {
+                Picker("Pre-written Message", selection: $selectedMessage) {
+                    ForEach(shareManager.messageTemplates, id: \.self) { template in
+                        Text(template).tag(template)
                     }
                 }
                 
-                // Message Customization Section
-                Section(header: Text("Share Message")) {
-                    Picker("Pre-written Message", selection: $selectedMessage) {
-                        ForEach(shareManager.messageTemplates, id: \.self) { template in
-                            Text(template).tag(template)
-                        }
-                    }
-                    
-                    Toggle("Include Approximate Location", isOn: $includeLocation)
-                }
-                
-                // Emergency Contacts Selection Section
-                Section(header: Text("Select Contacts")) {
-                    if emergencyContactManager.emergencyContacts.isEmpty {
-                        Text("No emergency contacts added")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(emergencyContactManager.emergencyContacts, id: \.id) { contact in
-                            MultipleSelectionRow(
-                                title: contact.name,
-                                subtitle: contact.phoneNumber,
-                                isSelected: selectedContacts.contains(contact)
-                            ) {
-                                if selectedContacts.contains(contact) {
-                                    selectedContacts.remove(contact)
-                                } else {
-                                    selectedContacts.insert(contact)
-                                }
+                Toggle("Include Approximate Location", isOn: $includeLocation)
+            }
+            
+            // Emergency Contacts Selection Section
+            Section(header: Text("SELECT CONTACTS")) {
+                if emergencyContactManager.emergencyContacts.isEmpty {
+                    Text("No emergency contacts added")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(emergencyContactManager.emergencyContacts, id: \.id) { contact in
+                        MultipleSelectionRow(
+                            title: contact.name,
+                            subtitle: contact.phoneNumber,
+                            isSelected: selectedContacts.contains(contact)
+                        ) {
+                            if selectedContacts.contains(contact) {
+                                selectedContacts.remove(contact)
+                            } else {
+                                selectedContacts.insert(contact)
                             }
                         }
                     }
                 }
-                
-                // Add Emergency Contact Button
-                Section {
-                    NavigationLink(destination: AddContactView { newContact in
-                        emergencyContactManager.addContact(newContact)
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Add Emergency Contact")
-                        }
+            }
+            
+            // Add Emergency Contact Button
+            Section {
+                NavigationLink(destination: AddContactView { newContact in
+                    emergencyContactManager.addContact(newContact)
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Add Emergency Contact")
                     }
-                }
-                
-                // Share Button
-                Section {
-                    Button(action: shareStatus) {
-                        HStack {
-                            Spacer()
-                            Text("Share Status")
-                                .foregroundColor(.white)
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                    }
-                    .disabled(selectedContacts.isEmpty)
                 }
             }
-            .navigationTitle("Share Status")
-            .background(Color("AppBackground"))
+            
+            // Share Button
+            Section {
+                Button(action: shareStatus) {
+                    HStack {
+                        Spacer()
+                        Text("Share Status")
+                            .foregroundColor(.white)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .disabled(selectedContacts.isEmpty)
+            }
         }
-        .sheet(isPresented: $showingMessageComposer) {
-            #if os(iOS)
-            MessageComposerView(
-                recipients: messageRecipients,
-                body: messageBody,
-                delegate: ShareViewMessageDelegate()
-            )
-            #endif
+        .navigationTitle("Share Status")
+        .background(Color("AppBackground"))
+        
+        // On iPhone, wrap in NavigationView; on iPad (when in a NavigationSplitView), just return the content
+        if horizontalSizeClass == .compact {
+            NavigationView {
+                content
+            }
+            .sheet(isPresented: $showingMessageComposer) {
+                #if os(iOS)
+                MessageComposerView(
+                    recipients: messageRecipients,
+                    body: messageBody,
+                    delegate: ShareViewMessageDelegate()
+                )
+                #endif
+            }
+        } else {
+            content
+                .sheet(isPresented: $showingMessageComposer) {
+                    #if os(iOS)
+                    MessageComposerView(
+                        recipients: messageRecipients,
+                        body: messageBody,
+                        delegate: ShareViewMessageDelegate()
+                    )
+                    #endif
+                }
         }
     }
     

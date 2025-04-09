@@ -9,25 +9,18 @@ struct ContentView: View {
     var body: some View {
         Group {
             if horizontalSizeClass == .regular {
-                if #available(iOS 16.0, *) {
-                    NavigationSplitView {
-                        sidebarContent
-                            .navigationTitle("BarBuddy")
-                    } detail: {
+                // iPad/tablet layout
+                NavigationSplitView {
+                    sidebarContent
+                        .navigationTitle("BarBuddy")
+                } detail: {
+                    NavigationStack {
                         selectedTabView()
                     }
-                    .navigationSplitViewStyle(.balanced)
-                } else {
-                    NavigationView {
-                        HStack(spacing: 0) {
-                            sidebarContent
-                                .frame(width: 250)
-                                .navigationTitle("BarBuddy")
-                            selectedTabView()
-                        }
-                    }
                 }
+                .navigationSplitViewStyle(.balanced)
             } else {
+                // iPhone layout
                 TabView(selection: $selectedTab) {
                     NavigationView { DashboardView() }
                         .tabItem { Label("Dashboard", systemImage: "gauge") }
@@ -41,7 +34,7 @@ struct ContentView: View {
                         .tabItem { Label("History", systemImage: "clock") }
                         .tag(2)
 
-                    NavigationView { ShareView() } // Ensure ShareView.swift is correctly referenced
+                    NavigationView { ShareView() }
                         .tabItem { Label("Share", systemImage: "person.2") }
                         .tag(3)
 
@@ -55,11 +48,45 @@ struct ContentView: View {
     
     private var sidebarContent: some View {
         List {
-            NavigationLink(destination: DashboardView()) { Label("Dashboard", systemImage: "gauge") }
-            NavigationLink(destination: DrinkLogView()) { Label("Log Drink", systemImage: "plus.circle") }
-            NavigationLink(destination: HistoryView()) { Label("History", systemImage: "clock") }
-            NavigationLink(destination: ShareView()) { Label("Share", systemImage: "person.2") }
-            NavigationLink(destination: SettingsView()) { Label("Settings", systemImage: "gear") }
+            Button {
+                selectedTab = 0
+            } label: {
+                Label("Dashboard", systemImage: "gauge")
+                    .foregroundColor(selectedTab == 0 ? .accentColor : .primary)
+            }
+            .padding(.vertical, 8)
+            
+            Button {
+                selectedTab = 1
+            } label: {
+                Label("Log Drink", systemImage: "plus.circle")
+                    .foregroundColor(selectedTab == 1 ? .accentColor : .primary)
+            }
+            .padding(.vertical, 8)
+            
+            Button {
+                selectedTab = 2
+            } label: {
+                Label("History", systemImage: "clock")
+                    .foregroundColor(selectedTab == 2 ? .accentColor : .primary)
+            }
+            .padding(.vertical, 8)
+            
+            Button {
+                selectedTab = 3
+            } label: {
+                Label("Share", systemImage: "person.2")
+                    .foregroundColor(selectedTab == 3 ? .accentColor : .primary)
+            }
+            .padding(.vertical, 8)
+            
+            Button {
+                selectedTab = 4
+            } label: {
+                Label("Settings", systemImage: "gear")
+                    .foregroundColor(selectedTab == 4 ? .accentColor : .primary)
+            }
+            .padding(.vertical, 8)
         }
     }
     

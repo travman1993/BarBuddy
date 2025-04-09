@@ -130,23 +130,27 @@ public class DrinkTracker: ObservableObject {
             return
         }
         
-        // Comprehensive BAC calculation
-        let totalAlcoholGrams = calculateTotalAlcohol(from: recentDrinks)
+        // Widmark formula implementation with proper time-based processing
+        var currentBac = 0.0
         let bodyWaterConstant = userProfile.gender == .male ? 0.68 : 0.55
         let weightInGrams = userProfile.weight * 453.592 // Convert lbs to grams
         
-        // Initial BAC calculation using Widmark formula
-        var estimatedBAC = totalAlcoholGrams / (weightInGrams * bodyWaterConstant) * 100
-        
-        // Time-based BAC reduction
+        // Process each drink individually
         for drink in recentDrinks {
+            // Calculate the initial BAC contribution from this drink
+            let alcoholGrams = drink.size * (drink.alcoholPercentage / 100) * 0.789 * 29.5735
+            let drinkBac = alcoholGrams / (weightInGrams * bodyWaterConstant) * 100
+            
+            // Calculate how much of this drink has been metabolized
             let hoursSinceDrink = Date().timeIntervalSince(drink.timestamp) / 3600
-            // Subtract alcohol elimination rate
-            estimatedBAC -= alcoholEliminationRate * hoursSinceDrink
+            let bacRemaining = max(0, drinkBac - (alcoholEliminationRate * hoursSinceDrink))
+            
+            // Add this drink's remaining BAC to the total
+            currentBac += bacRemaining
         }
         
-        // Ensure BAC doesn't go negative
-        currentBAC = max(0, estimatedBAC)
+        // Set final BAC
+        currentBAC = max(0, currentBac)
         
         // Calculate time until sober
         calculateTimeUntilSober()

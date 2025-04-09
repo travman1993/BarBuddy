@@ -131,28 +131,39 @@ struct SettingsView: View {
         }
     }
     
-    // Load user profile from drinkTracker
-    private func loadUserProfile() {
-        weight = drinkTracker.userProfile.weight
-        gender = drinkTracker.userProfile.gender
-        emergencyContacts = drinkTracker.userProfile.emergencyContacts
-    }
-    
-    // Update user profile in drinkTracker
-    private func updateUserProfile() {
-        let updatedProfile = UserProfile(
-            weight: weight,
-            gender: gender,
-            emergencyContacts: emergencyContacts
-        )
-        drinkTracker.updateUserProfile(updatedProfile)
-    }
-    
-    // Delete emergency contact
     private func deleteContact(at offsets: IndexSet) {
         emergencyContacts.remove(atOffsets: offsets)
         updateUserProfile()
     }
+    
+    // Load user profile from drinkTracker
+        private func loadUserProfile() {
+            // Load from drinkTracker
+            weight = drinkTracker.userProfile.weight
+            gender = drinkTracker.userProfile.gender
+            emergencyContacts = drinkTracker.userProfile.emergencyContacts
+            
+            // Also sync with AppSettingsManager
+            settingsManager.weight = weight
+            settingsManager.gender = gender
+        }
+        
+        // Update user profile in drinkTracker and AppSettingsManager
+        private func updateUserProfile() {
+            let updatedProfile = UserProfile(
+                weight: weight,
+                gender: gender,
+                emergencyContacts: emergencyContacts
+            )
+            
+            // Update drinkTracker
+            drinkTracker.updateUserProfile(updatedProfile)
+            
+            // Update settings manager for consistency
+            settingsManager.weight = weight
+            settingsManager.gender = gender
+            settingsManager.saveSettings()
+        }
 }
 
 // Emergency Contact Row

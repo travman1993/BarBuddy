@@ -31,15 +31,16 @@ struct DrinkLogView: View {
                         VStack(spacing: 20) {
                             // Current BAC status card
                             BACStatusCard(bac: drinkTracker.currentBAC)
-                            
+                                
+
                             // Quick Add buttons
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("Quick Add")
-                                        .font(.headline)
-                                    
+                                        .font(.title3)
+
                                     Spacer()
-                                    
+
                                     Button(action: {
                                         withAnimation {
                                             showHistoryChart.toggle()
@@ -51,35 +52,35 @@ struct DrinkLogView: View {
                                         .foregroundColor(.blue)
                                     }
                                 }
-                                
+
                                 // Toast-style confirmation message
                                 if showingQuickAddConfirmation, let drink = lastAddedDrink {
                                     HStack(spacing: 8) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
                                         Text("\(drink.rawValue) added")
-                                            .font(.subheadline)
+                                            .font(.footnote)
                                         Spacer()
                                     }
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 10)
                                     .background(Color.green.opacity(0.1))
                                     .cornerRadius(8)
                                     .transition(.opacity.combined(with: .move(edge: .top)))
                                 }
-                                
+
                                 // Drink history chart
                                 if showHistoryChart {
                                     DrinkHistoryChart(drinks: drinkTracker.drinks)
-                                        .frame(height: 180)
-                                        .padding(.vertical, 8)
+                                        .frame(height: 160)
+                                        .padding(.vertical, 6)
                                 }
-                                
-                                // Quick add drink buttons - grid with 2 columns
+
+                                // Quick add drink buttons - smaller
                                 LazyVGrid(columns: [
                                     GridItem(.flexible()),
                                     GridItem(.flexible())
-                                ], spacing: 15) {
+                                ], spacing: 12) {
                                     ForEach(DrinkType.allCases, id: \.self) { drinkType in
                                         EnhancedQuickAddButton(
                                             drinkType: drinkType,
@@ -87,23 +88,22 @@ struct DrinkLogView: View {
                                                 addDefaultDrink(type: drinkType)
                                             }
                                         )
+                                        .font(.caption) // smaller font
                                     }
                                 }
-                                
+
                                 // Custom Drink Button
                                 Button(action: {
-                                    // Pre-populate with values from selected drink type
                                     selectedDrinkType = .beer
                                     customSize = selectedDrinkType.defaultSize
                                     customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
-                                    
                                     showingCustomDrinkView = true
                                 }) {
                                     HStack {
                                         Image(systemName: "slider.horizontal.3")
-                                            .font(.system(size: 16))
+                                            .font(.system(size: 14))
                                         Text("Custom Drink")
-                                            .font(.headline)
+                                            .font(.subheadline)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding()
@@ -115,16 +115,27 @@ struct DrinkLogView: View {
                             .padding()
                             .background(Color.appCardBackground)
                             .cornerRadius(12)
+                            .frame(maxWidth: 800) // Wider + centered
+                            .frame(maxWidth: .infinity, alignment: .center)
                         }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Right column - Recently added drinks
-                        RecentlyAddedDrinksView(
-                            drinks: drinkTracker.drinks,
-                            onRemove: { drink in
-                                drinkTracker.removeDrink(drink)
+
+                        // Right column - Recently added drinks (scrollable)
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Recent Drinks")
+                                    .font(.title3)
+                                    .padding(.bottom, 4)
+
+                                ForEach(drinkTracker.drinks, id: \.id) { drink in
+                                    RecentlyAddedDrinkRow(drink: drink) { drinkToRemove in
+                                        drinkTracker.removeDrink(drinkToRemove)
+                                    }
+                                    .font(.caption)
+                                }
                             }
-                        )
+                            .padding()
+                        }
+                        .frame(height: 230)
                         .background(Color.appCardBackground)
                         .cornerRadius(12)
                         .frame(maxWidth: .infinity)
@@ -132,20 +143,15 @@ struct DrinkLogView: View {
                 }
                 .padding()
             } else {
-                
-                // iPhone layout (original layout)
+                // iPhone layout (more compact)
                 VStack(spacing: 20) {
-                    // Current BAC status card
                     BACStatusCard(bac: drinkTracker.currentBAC)
-                    
-                    // Quick Add Section with improved visuals
-                    VStack(alignment: .leading) {
+
+                    VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Quick Add")
                                 .font(.headline)
-                            
                             Spacer()
-                            
                             Button(action: {
                                 withAnimation {
                                     showHistoryChart.toggle()
@@ -158,37 +164,34 @@ struct DrinkLogView: View {
                             }
                         }
                         .padding(.horizontal)
-                        
-                        // Toast-style confirmation message
+
                         if showingQuickAddConfirmation, let drink = lastAddedDrink {
                             HStack(spacing: 8) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                                 Text("\(drink.rawValue) added")
-                                    .font(.subheadline)
+                                    .font(.footnote)
                                 Spacer()
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
                             .background(Color.green.opacity(0.1))
                             .cornerRadius(8)
                             .padding(.horizontal)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
-                        
-                        // Drink history chart
+
                         if showHistoryChart {
                             DrinkHistoryChart(drinks: drinkTracker.drinks)
-                                .frame(height: 180)
+                                .frame(height: 160)
                                 .padding(.horizontal)
-                                .padding(.vertical, 8)
+                                .padding(.vertical, 6)
                         }
-                        
-                        // Quick add drink buttons
+
                         LazyVGrid(columns: [
                             GridItem(.flexible()),
                             GridItem(.flexible())
-                        ], spacing: 15) {
+                        ], spacing: 12) {
                             ForEach(DrinkType.allCases, id: \.self) { drinkType in
                                 EnhancedQuickAddButton(
                                     drinkType: drinkType,
@@ -196,6 +199,7 @@ struct DrinkLogView: View {
                                         addDefaultDrink(type: drinkType)
                                     }
                                 )
+                                .font(.caption)
                             }
                         }
                         .padding(.horizontal)
@@ -204,21 +208,18 @@ struct DrinkLogView: View {
                     .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .padding(.horizontal)
-                    
-                    // Custom Drink Button
+
                     Button(action: {
-                        // Pre-populate with values from selected drink type
                         selectedDrinkType = .beer
                         customSize = selectedDrinkType.defaultSize
                         customAlcoholPercentage = selectedDrinkType.defaultAlcoholPercentage
-                        
                         showingCustomDrinkView = true
                     }) {
                         HStack {
                             Image(systemName: "slider.horizontal.3")
-                                .font(.system(size: 16))
+                                .font(.system(size: 14))
                             Text("Custom Drink")
-                                .font(.headline)
+                                .font(.subheadline)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -227,11 +228,24 @@ struct DrinkLogView: View {
                         .cornerRadius(10)
                     }
                     .padding(.horizontal)
-                    
-                    // Recently Added Drinks
-                    RecentlyAddedDrinksView(drinks: drinkTracker.drinks, onRemove: { drink in
-                        drinkTracker.removeDrink(drink)
-                    })
+
+                    // Recently Added Drinks with scrollable box
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Recent Drinks")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+
+                            ForEach(drinkTracker.drinks, id: \.id) { drink in
+                                RecentlyAddedDrinkRow(drink: drink) { drinkToRemove in
+                                    drinkTracker.removeDrink(drinkToRemove)
+                                }
+                                .font(.caption)
+                            }
+                        }
+                        .padding()
+                    }
+                    .frame(height: 220)
                     .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .padding(.horizontal)
@@ -260,6 +274,7 @@ struct DrinkLogView: View {
             confirmationTimer?.invalidate()
         }
     }
+
     
     private func addDefaultDrink(type: DrinkType) {
         drinkTracker.addDrink(
