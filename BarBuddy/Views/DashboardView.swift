@@ -32,6 +32,7 @@ struct DashboardView: View {
                                 timeUntilSober: drinkTracker.timeUntilSober,
                                 isExpanded: true,
                                 onToggleExpand: {}
+                                
                             )
                             
                             // Quick Actions in a grid

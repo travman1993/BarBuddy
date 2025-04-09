@@ -94,7 +94,9 @@ struct EnhancedBACStatusCard: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.appCardBackground)
+            
+            
             
             // Status banner
             HStack {

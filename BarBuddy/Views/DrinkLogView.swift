@@ -31,8 +31,7 @@ struct DrinkLogView: View {
                         VStack(spacing: 20) {
                             // Current BAC status card
                             BACStatusCard(bac: drinkTracker.currentBAC)
-                                
-
+                                .frame(height: 230)
                             // Quick Add buttons
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
@@ -115,7 +114,6 @@ struct DrinkLogView: View {
                             .padding()
                             .background(Color.appCardBackground)
                             .cornerRadius(12)
-                            .frame(maxWidth: 800) // Wider + centered
                             .frame(maxWidth: .infinity, alignment: .center)
                         }
 
