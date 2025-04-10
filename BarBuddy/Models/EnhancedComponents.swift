@@ -39,7 +39,7 @@ struct EnhancedFeatureRow: View {
     }
 }
 
-// MARK: - Enhanced BAC Status Card
+// Fix for EnhancedBACStatusCard struct
 struct EnhancedBACStatusCard: View {
     let bac: Double
     let timeUntilSober: TimeInterval
@@ -61,6 +61,14 @@ struct EnhancedBACStatusCard: View {
         case .safe: return .green
         case .borderline: return .yellow
         case .unsafe: return .red
+        }
+    }
+    
+    var safetyStatusIcon: String {
+        switch safetyStatus {
+        case .safe: return "checkmark.circle"
+        case .borderline: return "exclamationmark.triangle"
+        case .unsafe: return "xmark.octagon"
         }
     }
     
@@ -95,8 +103,6 @@ struct EnhancedBACStatusCard: View {
             }
             .padding()
             .background(Color.appCardBackground)
-            
-            
             
             // Status banner
             HStack {
@@ -137,18 +143,6 @@ struct EnhancedBACStatusCard: View {
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
         .padding(.horizontal)
-
-    }
-    .cornerRadius(14)
-    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-}
-    
-private var safetyStatusIcon: String {
-        switch safetyStatus {
-        case .safe: return "checkmark.circle"
-        case .borderline: return "exclamationmark.triangle"
-        case .unsafe: return "xmark.octagon"
-        }
     }
     
     private func formatTimeUntilSober(_ time: TimeInterval) -> String {
@@ -161,6 +155,7 @@ private var safetyStatusIcon: String {
             return "\(minutes) minutes"
         }
     }
+}
 
 
 
