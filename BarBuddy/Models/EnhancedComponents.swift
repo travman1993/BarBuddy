@@ -111,12 +111,39 @@ struct EnhancedBACStatusCard: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .background(statusColor)
+            
+            if isExpanded {
+                VStack(spacing: 15) {
+                    if timeUntilSober > 0 {
+                        KeyInfoRow(
+                            title: "Time until sober",
+                            value: formatTimeUntilSober(timeUntilSober),
+                            icon: "clock",
+                            warning: false
+                        )
+                    }
+                    
+                    Button(action: onToggleExpand) {
+                        Text("Show Less")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 5)
+                }
+                .padding()
+                .background(Color.appCardBackground)
+            }
         }
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        .padding(.horizontal)
+
     }
+    .cornerRadius(14)
+    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+}
     
-    private var safetyStatusIcon: String {
+private var safetyStatusIcon: String {
         switch safetyStatus {
         case .safe: return "checkmark.circle"
         case .borderline: return "exclamationmark.triangle"
@@ -134,7 +161,8 @@ struct EnhancedBACStatusCard: View {
             return "\(minutes) minutes"
         }
     }
-}
+
+
 
 // MARK: - Enhanced Quick Action Button
 struct EnhancedQuickActionButton: View {
