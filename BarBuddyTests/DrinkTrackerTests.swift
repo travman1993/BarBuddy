@@ -1,10 +1,3 @@
-//
-//  DrinkTrackerTests.swift
-//  BarBuddy
-//
-//  Created by Travis Rodriguez on 4/7/25.
-//
-// File: BarBuddyTests/DrinkTrackerTests.swift
 import XCTest
 @testable import BarBuddy
 
@@ -30,14 +23,14 @@ final class DrinkTrackerTests: XCTestCase {
     }
     
     func testAddDrink() {
-        // Initial BAC should be 0
-        XCTAssertEqual(drinkTracker.currentBAC, 0.0, "Initial BAC should be 0")
+        // Initial standard drink count should be 0
+        XCTAssertEqual(drinkTracker.standardDrinkCount, 0.0, "Initial standard drink count should be 0")
         
         // Add a drink
         drinkTracker.addDrink(type: .beer, size: 12.0, alcoholPercentage: 5.0)
         
-        // BAC should now be greater than 0
-        XCTAssertGreaterThan(drinkTracker.currentBAC, 0.0, "BAC should increase after adding a drink")
+        // Standard drink count should now be greater than 0
+        XCTAssertGreaterThan(drinkTracker.standardDrinkCount, 0.0, "Standard drink count should increase after adding a drink")
         
         // Drinks array should have one item
         XCTAssertEqual(drinkTracker.drinks.count, 1, "Drinks array should have one item")
@@ -54,19 +47,19 @@ final class DrinkTrackerTests: XCTestCase {
         // Drinks array should be empty
         XCTAssertEqual(drinkTracker.drinks.count, 0, "Drinks array should be empty after removing the drink")
         
-        // BAC should now be 0 again
-        XCTAssertEqual(drinkTracker.currentBAC, 0.0, "BAC should be 0 after removing all drinks")
+        // Standard drink count should now be 0 again
+        XCTAssertEqual(drinkTracker.standardDrinkCount, 0.0, "Standard drink count should be 0 after removing all drinks")
     }
     
-    func testBACCalculation() {
+    func testStandardDrinkCalculation() {
         // Add a standard drink (1.5 oz of 40% liquor)
         drinkTracker.addDrink(type: .shot, size: 1.5, alcoholPercentage: 40.0)
         
-        // For a 160 lb male, one standard drink should result in approximately 0.02 - 0.025 BAC
-        XCTAssertGreaterThanOrEqual(drinkTracker.currentBAC, 0.01, "BAC should be at least 0.01 for one standard drink")
-        XCTAssertLessThanOrEqual(drinkTracker.currentBAC, 0.03, "BAC should be at most 0.03 for one standard drink")
+        // Check standard drink count
+        XCTAssertGreaterThanOrEqual(drinkTracker.standardDrinkCount, 0.5, "Standard drink count should be at least 0.5 for one shot")
+        XCTAssertLessThanOrEqual(drinkTracker.standardDrinkCount, 1.5, "Standard drink count should be at most 1.5 for one shot")
         
-        // Test BAC for female (should be higher with same drink)
+        // Test standard drink count for female (could be slightly different)
         let femaleProfile = UserProfile(
             weight: 160.0,
             gender: .female,
@@ -78,22 +71,20 @@ final class DrinkTrackerTests: XCTestCase {
         drinkTracker.clearDrinks()
         drinkTracker.addDrink(type: .shot, size: 1.5, alcoholPercentage: 40.0)
         
-        // Female BAC should be higher than male BAC for same drink
-        XCTAssertGreaterThan(drinkTracker.currentBAC, 0.02, "Female BAC should be higher than male BAC for same drink")
+        // Verify standard drink calculation
+        XCTAssertGreaterThan(drinkTracker.standardDrinkCount, 0.5, "Standard drink count should be consistent")
     }
     
-    func testTimeUntilSober() {
+    func testTimeUntilReset() {
         // Add multiple drinks
         drinkTracker.addDrink(type: .beer, size: 12.0, alcoholPercentage: 5.0)
         drinkTracker.addDrink(type: .beer, size: 12.0, alcoholPercentage: 5.0)
         
-        // Time until sober should be greater than 0
-        XCTAssertGreaterThan(drinkTracker.timeUntilSober, 0, "Time until sober should be greater than 0")
+        // Time until reset should be greater than 0
+        XCTAssertGreaterThan(drinkTracker.timeUntilReset, 0, "Time until reset should be greater than 0")
         
-        // General estimate: Each standard drink takes about 1 hour to process
-        // Two beers are roughly 2 standard drinks, so time until sober should be roughly 2 hours
-        let twoHoursInSeconds: TimeInterval = 2 * 60 * 60
-        XCTAssertGreaterThanOrEqual(drinkTracker.timeUntilSober, twoHoursInSeconds * 0.7, "Time until sober should be roughly 2 hours for 2 beers")
-        XCTAssertLessThanOrEqual(drinkTracker.timeUntilSober, twoHoursInSeconds * 1.3, "Time until sober should be roughly 2 hours for 2 beers")
+        // General estimate: Reset occurs at 4 AM
+        let fourAMInSeconds: TimeInterval = 4 * 60 * 60
+        XCTAssertLessThanOrEqual(drinkTracker.timeUntilReset, 24 * 60 * 60, "Time until reset should be within 24 hours")
     }
 }

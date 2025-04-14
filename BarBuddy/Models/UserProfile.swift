@@ -6,7 +6,7 @@
 import Foundation
 
 /**
- * Represents a user's profile information used for BAC calculations.
+ * Represents a user's profile information used for calculations.
  *
  * The profile includes biological factors that affect alcohol processing,
  * such as weight and gender, as well as optional personal information.
@@ -15,7 +15,7 @@ public struct UserProfile: Codable, Hashable {
     /// User's weight in pounds
     public var weight: Double
     
-    /// User's biological sex (affects BAC calculations)
+    /// User's biological sex
     public var gender: Gender
     
     /// List of user's emergency contacts

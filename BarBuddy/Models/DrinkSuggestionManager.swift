@@ -11,12 +11,14 @@ import Combine
 class DrinkSuggestionManager: ObservableObject {
     static let shared = DrinkSuggestionManager()
     
+    @EnvironmentObject var drinkTracker: DrinkTracker
+
     @Published var preferredDrinkTypes: [DrinkType] = []
     @Published var showLowAlcoholSuggestions: Bool = false
     @Published var showHydrationReminders: Bool = true
     @Published var showModerateOptions: Bool = true
     
-    // Suggested drinks based on BAC
+    // Suggested drinks based
     struct DrinkSuggestion: Identifiable {
         let id = UUID()
         let name: String
@@ -260,10 +262,10 @@ class DrinkSuggestionManager: ObservableObject {
         }
         
         // Near or exceeded limit - suggest non-alcoholic options only
-        if drinkCount >= drinkLimit {
-            suggestions.append(contentsOf: nonAlcoholicOptions.filter { $0.name != "Water" })
-            return suggestions.shuffled()
+        if let water = nonAlcoholicOptions.first(where: { $0.name == "Water" }) {
+            suggestions.append(water)
         }
+
         
         // Approaching limit - suggest low alcohol options and water
         if drinkCount >= drinkLimit * 0.75 {
@@ -345,8 +347,8 @@ struct DrinkSuggestionView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
                     let suggestions = suggestionManager.getSuggestions(
-                        for: drinkTracker.currentBAC,
-                        currentDrinkCount: drinkTracker.drinks.count
+                        for: drinkTracker.standardDrinkCount,
+                        drinkLimit: drinkTracker.drinkLimit
                     )
                     
                     ForEach(suggestions) { suggestion in
@@ -363,383 +365,384 @@ struct DrinkSuggestionView: View {
                 .padding(.horizontal)
             }
             
-            if drinkTracker.currentBAC >= 0.08 {
+            
+            if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.red)
                     
-                    Text("Your BAC is above the legal limit. Consider non-alcoholic options.")
+                    Text("You've reached your drink limit. Consider switching to non-alcoholic options.")
                         .font(.caption)
                         .foregroundColor(.red)
                 }
                 .padding(.horizontal)
             }
+                .sheet(isPresented: $showingPreferences) {
+                    DrinkPreferencesView(suggestionManager: suggestionManager)
+                }
         }
-        .sheet(isPresented: $showingPreferences) {
-            DrinkPreferencesView(suggestionManager: suggestionManager)
-        }
-    }
-    
-    private func addDrink(_ suggestion: DrinkSuggestionManager.DrinkSuggestion) {
-        drinkTracker.addDrink(
-            type: suggestion.type,
-            size: suggestion.size,
-            alcoholPercentage: suggestion.alcoholPercentage
-        )
         
-        // Schedule a hydration reminder
-        if suggestionManager.showHydrationReminders {
-            NotificationManager.shared.scheduleHydrationReminder(afterMinutes: 30)
-        }
-    }
-}
-
-// MARK: - Drink Suggestion Card
-struct DrinkSuggestionCard: View {
-    let suggestion: DrinkSuggestionManager.DrinkSuggestion
-    let onAdd: () -> Void
-    @State private var showingDetails = false
-    
-    var backgroundColor: Color {
-        if suggestion.isNonAlcoholic {
-            return Color.green.opacity(0.1)
-        } else if suggestion.standardDrinks <= 0.7 {
-            return Color.blue.opacity(0.1)
-        } else {
-            return Color.orange.opacity(0.1)
-        }
-    }
-    
-    var body: some View {
-        Button(action: {
-            showingDetails = true
-        }) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(suggestion.emoji)
-                        .font(.title)
-                    
-                    Spacer()
-                    
-                    if suggestion.isNonAlcoholic {
-                        Text("Non-Alcoholic")
-                            .font(.system(size: 10))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.green.opacity(0.2))
-                            .foregroundColor(.green)
-                            .cornerRadius(4)
-                    }
-                }
-                
-                Text(suggestion.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                HStack {
-                    Text(suggestion.formattedSize)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if !suggestion.isNonAlcoholic {
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(Int(suggestion.alcoholPercentage))%")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(String(format: "%.1f", suggestion.standardDrinks)) std")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Text(suggestion.description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                    .frame(height: 32)
-                
-                if !suggestion.isNonAlcoholic {
-                    Button(action: onAdd) {
-                        Text("Add to Log")
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                }
-            }
-            .padding()
-            .frame(width: 160)
-            .background(backgroundColor)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        private func addDrink(_ suggestion: DrinkSuggestionManager.DrinkSuggestion) {
+            drinkTracker.addDrink(
+                type: suggestion.type,
+                size: suggestion.size,
+                alcoholPercentage: suggestion.alcoholPercentage
             )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $showingDetails) {
-            DrinkDetailView(suggestion: suggestion, onAdd: onAdd)
+            
+            // Schedule a hydration reminder
+            if suggestionManager.showHydrationReminders {
+                NotificationManager.shared.scheduleHydrationReminder(afterMinutes: 30)
+            }
         }
     }
-}
-
-// MARK: - Drink Detail View
-struct DrinkDetailView: View {
-    let suggestion: DrinkSuggestionManager.DrinkSuggestion
-    let onAdd: () -> Void
-    @Environment(\.presentationMode) var presentationMode
     
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Header
-                    HStack(alignment: .top) {
+    // MARK: - Drink Suggestion Card
+    struct DrinkSuggestionCard: View {
+        let suggestion: DrinkSuggestionManager.DrinkSuggestion
+        let onAdd: () -> Void
+        @State private var showingDetails = false
+        
+        var backgroundColor: Color {
+            if suggestion.isNonAlcoholic {
+                return Color.green.opacity(0.1)
+            } else if suggestion.standardDrinks <= 0.7 {
+                return Color.blue.opacity(0.1)
+            } else {
+                return Color.orange.opacity(0.1)
+            }
+        }
+        
+        var body: some View {
+            Button(action: {
+                showingDetails = true
+            }) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
                         Text(suggestion.emoji)
-                            .font(.system(size: 72))
-                            .frame(width: 80, alignment: .leading)
+                            .font(.title)
                         
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(suggestion.name)
-                                .font(.title)
-                                .fontWeight(.bold)
-                            
-                            if suggestion.isNonAlcoholic {
-                                Text("Non-Alcoholic")
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Color.green.opacity(0.2))
-                                    .foregroundColor(.green)
-                                    .cornerRadius(8)
-                            } else {
-                                Text("\(String(format: "%.1f", suggestion.standardDrinks)) standard drinks")
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Color.blue.opacity(0.2))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(8)
-                            }
+                        Spacer()
+                        
+                        if suggestion.isNonAlcoholic {
+                            Text("Non-Alcoholic")
+                                .font(.system(size: 10))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.green.opacity(0.2))
+                                .foregroundColor(.green)
+                                .cornerRadius(4)
                         }
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
                     
-                    // Details
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Details")
-                            .font(.headline)
+                    Text(suggestion.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    HStack {
+                        Text(suggestion.formattedSize)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
-                        HStack {
-                            DetailItem(
-                                title: "Size",
-                                value: suggestion.formattedSize,
-                                systemImage: "ruler"
-                            )
+                        if !suggestion.isNonAlcoholic {
+                            Text("•")
+                                .foregroundColor(.secondary)
                             
-                            Divider()
-                                .frame(height: 40)
+                            Text("\(Int(suggestion.alcoholPercentage))%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                             
-                            DetailItem(
-                                title: "Type",
-                                value: suggestion.type.rawValue,
-                                systemImage: "tag"
-                            )
+                            Text("•")
+                                .foregroundColor(.secondary)
                             
-                            if !suggestion.isNonAlcoholic {
+                            Text("\(String(format: "%.1f", suggestion.standardDrinks)) std")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Text(suggestion.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .frame(height: 32)
+                    
+                    if !suggestion.isNonAlcoholic {
+                        Button(action: onAdd) {
+                            Text("Add to Log")
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
+                .padding()
+                .frame(width: 160)
+                .background(backgroundColor)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingDetails) {
+                DrinkDetailView(suggestion: suggestion, onAdd: onAdd)
+            }
+        }
+    }
+    
+    // MARK: - Drink Detail View
+    struct DrinkDetailView: View {
+        let suggestion: DrinkSuggestionManager.DrinkSuggestion
+        let onAdd: () -> Void
+        @Environment(\.presentationMode) var presentationMode
+        
+        var body: some View {
+            NavigationView {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Header
+                        HStack(alignment: .top) {
+                            Text(suggestion.emoji)
+                                .font(.system(size: 72))
+                                .frame(width: 80, alignment: .leading)
+                            
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(suggestion.name)
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                
+                                if suggestion.isNonAlcoholic {
+                                    Text("Non-Alcoholic")
+                                        .font(.subheadline)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(Color.green.opacity(0.2))
+                                        .foregroundColor(.green)
+                                        .cornerRadius(8)
+                                } else {
+                                    Text("\(String(format: "%.1f", suggestion.standardDrinks)) standard drinks")
+                                        .font(.subheadline)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(Color.blue.opacity(0.2))
+                                        .foregroundColor(.blue)
+                                        .cornerRadius(8)
+                                }
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                        
+                        // Details
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Details")
+                                .font(.headline)
+                            
+                            HStack {
+                                DetailItem(
+                                    title: "Size",
+                                    value: suggestion.formattedSize,
+                                    systemImage: "ruler"
+                                )
+                                
                                 Divider()
                                     .frame(height: 40)
                                 
                                 DetailItem(
-                                    title: "Alcohol",
-                                    value: "\(String(format: "%.1f", suggestion.alcoholPercentage))%",
-                                    systemImage: "percent"
+                                    title: "Type",
+                                    value: suggestion.type.rawValue,
+                                    systemImage: "tag"
                                 )
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Description
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Description")
-                            .font(.headline)
-                        
-                        Text(suggestion.description)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Ingredients
-                    if let ingredients = suggestion.ingredients, !ingredients.isEmpty {
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Ingredients")
-                                .font(.headline)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(ingredients, id: \.self) { ingredient in
-                                    HStack(alignment: .top) {
-                                        Text("•")
-                                            .font(.headline)
-                                            .foregroundColor(.blue)
-                                        
-                                        Text(ingredient)
-                                    }
+                                
+                                if !suggestion.isNonAlcoholic {
+                                    Divider()
+                                        .frame(height: 40)
+                                    
+                                    DetailItem(
+                                        title: "Alcohol",
+                                        value: "\(String(format: "%.1f", suggestion.alcoholPercentage))%",
+                                        systemImage: "percent"
+                                    )
                                 }
                             }
                             .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(12)
                         }
                         .padding(.horizontal)
-                    }
-                    
-                    // Add button for alcoholic drinks
-                    if !suggestion.isNonAlcoholic {
-                        Button(action: {
-                            onAdd()
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Add to Drink Log")
+                        
+                        // Description
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Description")
                                 .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
+                            
+                            Text(suggestion.description)
                                 .padding()
-                                .background(Color.blue)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.1))
                                 .cornerRadius(12)
                         }
-                        .padding()
-                    }
-                }
-                .padding(.vertical)
-            }
-            .navigationBarTitle("", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Close") {
-                presentationMode.wrappedValue.dismiss()
-            })
-        }
-    }
-}
-
-// Detail item for drink details
-struct DetailItem: View {
-    let title: String
-    let value: String
-    let systemImage: String
-    
-    var body: some View {
-        VStack(spacing: 5) {
-            Image(systemName: systemImage)
-                .foregroundColor(.blue)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .fontWeight(.medium)
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
-
-// MARK: - Drink Preferences View
-struct DrinkPreferencesView: View {
-    @ObservedObject var suggestionManager: DrinkSuggestionManager
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    ForEach(DrinkType.allCases, id: \.self) { type in
-                        Button(action: {
-                            suggestionManager.togglePreferredDrinkType(type)
-                        }) {
-                            HStack {
-                                Text(type.icon)
-                                    .font(.title2)
+                        .padding(.horizontal)
+                        
+                        // Ingredients
+                        if let ingredients = suggestion.ingredients, !ingredients.isEmpty {
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Ingredients")
+                                    .font(.headline)
                                 
-                                Text(type.rawValue)
-                                
-                                Spacer()
-                                
-                                if suggestionManager.preferredDrinkTypes.contains(type) {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.blue)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(ingredients, id: \.self) { ingredient in
+                                        HStack(alignment: .top) {
+                                            Text("•")
+                                                .font(.headline)
+                                                .foregroundColor(.blue)
+                                            
+                                            Text(ingredient)
+                                        }
+                                    }
                                 }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(12)
                             }
-                            .contentShape(Rectangle())
+                            .padding(.horizontal)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Add button for alcoholic drinks
+                        if !suggestion.isNonAlcoholic {
+                            Button(action: {
+                                onAdd()
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                Text("Add to Drink Log")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .cornerRadius(12)
+                            }
+                            .padding()
+                        }
                     }
-                    
-                    if !suggestionManager.preferredDrinkTypes.isEmpty {
-                        Button(action: {
-                            suggestionManager.preferredDrinkTypes = []
-                            suggestionManager.savePreferences()
-                        }) {
-                            Text("Clear All")
-                                .foregroundColor(.red)
-                        }
-                    }
-                } header: {
-                    Text("Preferred Drink Types")
-                } footer: {
-                    Text("Selecting specific drink types will filter your suggestions. If none are selected, you'll see all types.")
+                    .padding(.vertical)
                 }
-                
-                Section {
-                    Toggle("Show Low-Alcohol Options", isOn: $suggestionManager.showLowAlcoholSuggestions)
-                        .onChange(of: suggestionManager.showLowAlcoholSuggestions) { oldValue, newValue in
-                            suggestionManager.savePreferences()
-                        }
-                    
-                    Toggle("Show Hydration Reminders", isOn: $suggestionManager.showHydrationReminders)
-                        .onChange(of: suggestionManager.showHydrationReminders) { oldValue, newValue in
-                            suggestionManager.savePreferences()
-                        }
-                    
-                    Toggle("Show Moderate Options", isOn: $suggestionManager.showModerateOptions)
-                        .onChange(of: suggestionManager.showModerateOptions) { oldValue, newValue in
-                            suggestionManager.savePreferences()
-                        }
-                } header: {
-                    Text("Suggestion Options")
-                } footer: {
-                    Text("These settings control what types of drink suggestions you'll receive based on your current BAC.")
-                }
-                
-                Section {
-                    Text("Note: When your BAC is above 0.08, you'll only see non-alcoholic suggestions regardless of these settings.")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
+                .navigationBarTitle("", displayMode: .inline)
+                .navigationBarItems(trailing: Button("Close") {
+                    presentationMode.wrappedValue.dismiss()
+                })
             }
-            .navigationTitle("Drink Preferences")
-            .navigationBarItems(trailing: Button("Done") {
-                presentationMode.wrappedValue.dismiss()
-            })
+        }
+    }
+    
+    // Detail item for drink details
+    struct DetailItem: View {
+        let title: String
+        let value: String
+        let systemImage: String
+        
+        var body: some View {
+            VStack(spacing: 5) {
+                Image(systemName: systemImage)
+                    .foregroundColor(.blue)
+                
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text(value)
+                    .fontWeight(.medium)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
+    // MARK: - Drink Preferences View
+    struct DrinkPreferencesView: View {
+        @ObservedObject var suggestionManager: DrinkSuggestionManager
+        @Environment(\.presentationMode) var presentationMode
+        
+        var body: some View {
+            NavigationView {
+                Form {
+                    Section {
+                        ForEach(DrinkType.allCases, id: \.self) { type in
+                            Button(action: {
+                                suggestionManager.togglePreferredDrinkType(type)
+                            }) {
+                                HStack {
+                                    Text(type.icon)
+                                        .font(.title2)
+                                    
+                                    Text(type.rawValue)
+                                    
+                                    Spacer()
+                                    
+                                    if suggestionManager.preferredDrinkTypes.contains(type) {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        
+                        if !suggestionManager.preferredDrinkTypes.isEmpty {
+                            Button(action: {
+                                suggestionManager.preferredDrinkTypes = []
+                                suggestionManager.savePreferences()
+                            }) {
+                                Text("Clear All")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    } header: {
+                        Text("Preferred Drink Types")
+                    } footer: {
+                        Text("Selecting specific drink types will filter your suggestions. If none are selected, you'll see all types.")
+                    }
+                    
+                    Section {
+                        Toggle("Show Low-Alcohol Options", isOn: $suggestionManager.showLowAlcoholSuggestions)
+                            .onChange(of: suggestionManager.showLowAlcoholSuggestions) { oldValue, newValue in
+                                suggestionManager.savePreferences()
+                            }
+                        
+                        Toggle("Show Hydration Reminders", isOn: $suggestionManager.showHydrationReminders)
+                            .onChange(of: suggestionManager.showHydrationReminders) { oldValue, newValue in
+                                suggestionManager.savePreferences()
+                            }
+                        
+                        Toggle("Show Moderate Options", isOn: $suggestionManager.showModerateOptions)
+                            .onChange(of: suggestionManager.showModerateOptions) { oldValue, newValue in
+                                suggestionManager.savePreferences()
+                            }
+                    } header: {
+                        Text("Suggestion Options")
+                    } footer: {
+                        Text("These settings control what types of drink suggestions you'll receive based on your current BAC.")
+                    }
+                    
+                    Section {
+                        Text("Note: When your above 0.08, you'll only see non-alcoholic suggestions regardless of these settings.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .navigationTitle("Drink Preferences")
+                .navigationBarItems(trailing: Button("Done") {
+                    presentationMode.wrappedValue.dismiss()
+                })
+            }
         }
     }
 }

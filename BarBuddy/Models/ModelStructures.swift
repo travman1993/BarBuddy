@@ -43,7 +43,7 @@ public struct EmergencyContact: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - BAC Share Structure
+// MARK: - Share Structure
 public struct BACShare: Identifiable, Codable, Hashable {
     public let id: UUID
     public let bac: Double

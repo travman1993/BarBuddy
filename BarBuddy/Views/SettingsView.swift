@@ -20,7 +20,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             // Personal Information Section
-            Section(header: Text("Personal Information"), footer: Text("Weight and gender are used to calculate your BAC more accurately.")) {
+            Section(header: Text("Personal Information"), footer: Text("Weight and Gender")) {
                 VStack(alignment: .leading) {
                     Text("Weight")
                         .font(.subheadline)
@@ -72,7 +72,6 @@ struct SettingsView: View {
             // Notification Settings
             Section(header: Text("Notifications")) {
                 Toggle("Hydration Reminders", isOn: $settingsManager.enableHydrationReminders)
-                Toggle("BAC Level Alerts", isOn: $settingsManager.enableBACAlerts)
                 Toggle("Auto-Text When Safe", isOn: $settingsManager.enableMorningCheckIns)
             }
                         
@@ -231,7 +230,7 @@ struct AddContactView: View {
                     }
                 }
                 
-                Section(header: Text("Automatic Texts"), footer: Text("If enabled, this contact will receive automatic text messages when you reach certain BAC levels.")) {
+                Section(header: Text("Automatic Texts"), footer: Text("If enabled, this contact will receive automatic text messages when you reach certain levels.")) {
                     Toggle("Send Automatic Texts", isOn: $sendAutomaticTexts)
                 }
             }
@@ -276,16 +275,11 @@ struct DisclaimerView: View {
                         Text("BarBuddy is not a medical device and has not been evaluated by the FDA or any regulatory agency. It is designed for informational and educational purposes only.")
                             .foregroundColor(.primary)
                         
-                        Text("BAC Estimation Limitations")
-                            .font(.headline)
-                        
-                        Text("The Blood Alcohol Content (BAC) calculations provided are estimates based on general formulas and user-provided information. Actual BAC levels can vary significantly based on numerous individual factors including but not limited to: metabolism, body composition, hydration level, food consumption, medications, health conditions, and fatigue.")
-                        
                         Text("Never Drink and Drive")
                             .font(.headline)
                             .foregroundColor(.red)
                         
-                        Text("Never drive or operate machinery if you have consumed any amount of alcohol, regardless of what BarBuddy indicates. The only safe BAC when driving is 0.00%. Legal driving limits vary by jurisdiction, and exceeding them may result in serious legal consequences.")
+                        Text("Never drive or operate machinery if you have consumed any amount of alcohol, regardless of what BarBuddy indicates. The only safe level when driving is 0.00%. Legal driving limits vary by jurisdiction, and exceeding them may result in serious legal consequences.")
                     }
                     
                     Group {
@@ -343,7 +337,7 @@ struct AboutView: View {
                     Text("BarBuddy helps you:")
                         .font(.headline)
                     
-                    BulletPoint(text: "Track your drinks and estimate BAC")
+                    BulletPoint(text: "Track your drinks")
                     BulletPoint(text: "Make safer decisions about drinking")
                     BulletPoint(text: "Share your status with friends")
                     BulletPoint(text: "Get home safely with rideshare integration")

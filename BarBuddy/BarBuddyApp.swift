@@ -99,7 +99,7 @@ struct BarBuddyApp: App {
     
     private func setupNotificationCategories() {
         // Keep existing functionality
-        // Create actions for BAC notifications
+        // Create actions for notifications
         let getUberAction = UNNotificationAction(
             identifier: "GET_UBER",
             title: "Get Uber",
@@ -118,7 +118,7 @@ struct BarBuddyApp: App {
             options: .destructive
         )
         
-        // Create BAC notification category
+        // Create notification category
         let bacCategory = UNNotificationCategory(
             identifier: "BAC_ALERT",
             actions: [getUberAction, getLyftAction, dismissAction],
@@ -131,16 +131,16 @@ struct BarBuddyApp: App {
     }
     
     private func syncBACToWatch() {
-        // Keep existing functionality
         // Send data via WatchConnectivity
-        WatchSessionManager.shared.sendBACDataToWatch(
-            bac: drinkTracker.currentBAC,
-            timeUntilSober: drinkTracker.timeUntilSober
+        WatchSessionManager.shared.sendDrinkDataToWatch(
+            drinkCount: drinkTracker.standardDrinkCount,
+            drinkLimit: drinkTracker.drinkLimit,
+            timeUntilReset: drinkTracker.timeUntilReset
         )
         
-        // Also keep UserDefaults for backward compatibility
-        UserDefaults.standard.set(drinkTracker.currentBAC, forKey: "currentBAC")
-        UserDefaults.standard.set(drinkTracker.timeUntilSober, forKey: "timeUntilSober")
+        // UserDefaults
+        UserDefaults.standard.set(drinkTracker.standardDrinkCount, forKey: "currentDrinkCount")
+        UserDefaults.standard.set(drinkTracker.timeUntilReset, forKey: "timeUntilReset")
     }
     
     // Add new method to apply custom theme colors
@@ -209,12 +209,12 @@ struct BarBuddyApp: App {
                         // Main disclaimer content
                         VStack(alignment: .leading, spacing: 25) {
                             DisclaimerSection(
-                                title: "BarBuddy provides estimates only",
+                                title: "BarBuddy provides guidance only",
                                 items: [
-                                    "The BAC calculations are estimates and should not be relied on for legal purposes.",
-                                    "Many factors affect your actual BAC that this app cannot measure.",
+                                    "The drink calculations are estimates and should not be relied on for legal purposes.",
+                                    "Many factors affect how alcohol impacts your body that this app cannot measure.",
                                     "Never drive after consuming alcohol, regardless of what this app indicates.",
-                                    "The only safe BAC when driving is 0.00%.",
+                                    "The only safe option when driving is to not drink at all.",
                                     "This app is for informational and educational purposes only."
                                 ]
                             )
@@ -368,7 +368,7 @@ struct BarBuddyApp: App {
                                         .accentColor(Color.accent)
                                 }
                                 
-                                Text("We use this to calculate your BAC more accurately")
+                                Text("We use this to calculate more accurately")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -540,10 +540,12 @@ struct BarBuddyApp: App {
                 
                 // Key features
                 VStack(alignment: .leading, spacing: 15) {
-                    FeatureRow(icon: "gauge", title: "Track your BAC in real-time")
-                    FeatureRow(icon: "calendar", title: "Monitor your drinking habits")
-                    FeatureRow(icon: "person.2", title: "Share your status with friends")
-                    FeatureRow(icon: "car", title: "Get home safely with rideshare integration")
+                    FeatureRow(icon: "chart.bar", title: "Track your drink consumption")
+                    FeatureRow(icon: "calendar", title: "Monitor drinking patterns")
+                    FeatureRow(icon: "person.2", title: "Share your drinking status")
+                    FeatureRow(icon: "list.clipboard", title: "Set daily drink limits")
+                    FeatureRow(icon: "stopwatch", title: "Track time between drinks")
+                    FeatureRow(icon: "car", title: "Get home safely with rideshare")
                 }
                 .padding()
                 .background(Color.appCardBackground)
@@ -625,7 +627,7 @@ struct BarBuddyApp: App {
                     
                     Toggle("Enable Notifications", isOn: $enableNotifications)
                     
-                    Text("Allows BAC alerts, hydration reminders, and safety check-ins")
+                    Text("Allows alerts, hydration reminders, and safety check-ins")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     

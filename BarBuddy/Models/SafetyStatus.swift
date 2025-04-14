@@ -6,7 +6,7 @@
 import SwiftUI
 
 /**
- * Represents the safety status based on the user's current BAC level.
+ * Represents the safety status based on the user's current level.
  */
 public enum SafetyStatus: String, Codable, Hashable {
     /// Drink count is below 75% of limit

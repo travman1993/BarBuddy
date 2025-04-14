@@ -285,13 +285,6 @@ class DrinkTrackerViewModel: ObservableObject {
     
     // MARK: - Notification and Sync Methods
     private func scheduleNotificationsIfNeeded() {
-        // Drink limit notifications
-        if settingsManager.enableBACAlerts {
-            notificationManager.scheduleDrinkLimitNotification(
-                currentCount: standardDrinkCount, 
-                limit: drinkLimit
-            )
-        }
         
         // Hydration reminders
         if settingsManager.enableHydrationReminders {
@@ -329,41 +322,41 @@ class DrinkTrackerViewModel: ObservableObject {
     }
     
     func getSafetyStatus() -> SafetyStatus {
-        if standardDrinkCount >= drinkLimit {
-            return .unsafe
-        } else if standardDrinkCount >= drinkLimit * 0.75 {
-            return .borderline
-        } else {
-            return .safe
+            if standardDrinkCount >= drinkLimit {
+                return .unsafe
+            } else if standardDrinkCount >= drinkLimit * 0.75 {
+                return .borderline
+            } else {
+                return .safe
+            }
         }
-    }
-    
-    func getDrinkSuggestions() -> [DrinkSuggestionManager.DrinkSuggestion] {
-        return suggestionManager.getSuggestions(
-            for: standardDrinkCount,
-            drinkLimit: drinkLimit
-        )
-    }
-    
-    func getDrinksRemaining() -> Double {
-        return max(0, drinkLimit - standardDrinkCount)
-    }
-    
-    func contactEmergencyHelp() {
-        if let firstContact = emergencyContactManager.emergencyContacts.first {
-            emergencyContactManager.callEmergencyContact(firstContact)
-        } else {
-            // Fallback if no emergency contacts
-            if let url = URL(string: "tel://911") {
-                UIApplication.shared.open(url)
+        
+        func getDrinkSuggestions() -> [DrinkSuggestionManager.DrinkSuggestion] {
+            return suggestionManager.getSuggestions(
+                for: standardDrinkCount,
+                drinkLimit: drinkLimit
+            )
+        }
+        
+        func getDrinksRemaining() -> Double {
+            return max(0, drinkLimit - standardDrinkCount)
+        }
+        
+        func contactEmergencyHelp() {
+            if let firstContact = emergencyContactManager.emergencyContacts.first {
+                emergencyContactManager.callEmergencyContact(firstContact)
+            } else {
+                // Fallback if no emergency contacts
+                if let url = URL(string: "tel://911") {
+                    UIApplication.shared.open(url)
+                }
             }
         }
     }
-}
 
 // Extension with Statistics Methods
 extension DrinkTrackerViewModel {
-    // Get drinking history data for charts and analysis
+    // Existing methods for drinking history data, standard drinks, etc.
     func getDrinkingHistoryData(timeFrame: HistoryView.TimeFrame) -> [Date: [Drink]] {
         let calendar = Calendar.current
         let endDate = Date()
@@ -398,7 +391,7 @@ extension DrinkTrackerViewModel {
         return standardDrinksByDay.sorted { $0.date < $1.date }
     }
     
-    // Get standard drinks by hour (instead of BAC)
+    // Get standard drinks by hour
     func getStandardDrinksByHour(for date: Date) -> [(hour: Int, standardDrinks: Double)] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)

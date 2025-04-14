@@ -46,19 +46,6 @@ class EmergencyContactManager: ObservableObject {
     
     // MARK: - Emergency Messaging
     
-    func sendEmergencyBACUpdate(bac: Double, timeUntilSober: TimeInterval) {
-        let eligibleContacts = emergencyContacts.filter { $0.sendAutomaticTexts }
-        
-        guard !eligibleContacts.isEmpty else { return }
-        
-        let soberTime = formatTimeInterval(timeUntilSober)
-        let message = "BarBuddy Automatic Alert: My current BAC is \(String(format: "%.3f", bac)). I'll be safe to drive in approximately \(soberTime)."
-        
-        for contact in eligibleContacts {
-            sendMessage(to: contact, message: message)
-        }
-    }
-    
     func sendSafetyCheckInMessage(to contact: EmergencyContact) {
         let message = "Hi, just checking in to let you know I made it home safely. (Sent via BarBuddy)"
         sendMessage(to: contact, message: message)
@@ -210,10 +197,10 @@ struct EmergencyContactDetailView: View {
             }
             
             Section(header: Text("Automatic Alerts")) {
-                Toggle("Send BAC updates automatically", isOn: $contact.sendAutomaticTexts)
+                Toggle("Send updates automatically", isOn: $contact.sendAutomaticTexts)
                 
                 if contact.sendAutomaticTexts {
-                    Text("This contact will receive automatic updates when your BAC exceeds 0.08.")
+                    Text("This contact will receive automatic updates when you exceed 0.08.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -288,10 +275,10 @@ struct AddEmergencyContactView: View {
                 }
                 
                 Section(header: Text("Options")) {
-                    Toggle("Send automatic BAC updates", isOn: $sendAutomaticTexts)
+                    Toggle("Send automatic updates", isOn: $sendAutomaticTexts)
                     
                     if sendAutomaticTexts {
-                        Text("This contact will receive automatic text messages with your BAC when it exceeds certain thresholds.")
+                        Text("This contact will receive automatic text messages when it exceeds certain thresholds.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

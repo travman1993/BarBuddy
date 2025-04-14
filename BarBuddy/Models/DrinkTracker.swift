@@ -1,5 +1,4 @@
 // DrinkTracker.swift - Modified Version
-
 import Foundation
 import Combine
 
@@ -10,6 +9,8 @@ public class DrinkTracker: ObservableObject {
     @Published public private(set) var standardDrinkCount: Double = 0.0
     @Published public private(set) var drinkLimit: Double = 4.0 // Default limit
     @Published public private(set) var timeUntilReset: TimeInterval = 0
+    
+    // Removed current property
     
     // MARK: - Private Properties
     private var resetTimer: Timer?

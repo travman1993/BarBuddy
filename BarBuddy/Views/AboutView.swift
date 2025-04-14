@@ -65,12 +65,6 @@ struct AppAboutView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                         
                         FeatureRow(
-                            icon: "gauge",
-                            title: "BAC Tracking",
-                            description: "Real-time estimation of your blood alcohol content"
-                        )
-                        
-                        FeatureRow(
                             icon: "calendar",
                             title: "Drink History",
                             description: "Track and analyze your drinking patterns over time"
@@ -79,20 +73,15 @@ struct AppAboutView: View {
                         FeatureRow(
                             icon: "person.2",
                             title: "Share Status",
-                            description: "Let friends know your BAC and when you'll be sober"
+                            description: "Let friends know information"
                         )
                         
                         FeatureRow(
                             icon: "bell",
                             title: "Smart Notifications",
-                            description: "Get alerts about your BAC level and reminders to hydrate"
+                            description: "Get alerts about reminders to hydrate"
                         )
                         
-                        FeatureRow(
-                            icon: "applewatch",
-                            title: "Apple Watch Support",
-                            description: "Log drinks and check your BAC from your wrist"
-                        )
                         
                         FeatureRow(
                             icon: "phone.fill",
@@ -245,10 +234,10 @@ struct AppDisclaimerView: View {
                         
                         Text("BarBuddy is designed to help users be more aware of their alcohol consumption and to make more informed decisions. It is an educational and informational tool only.")
                         
-                        Text("BAC Calculation Limitations")
+                        Text("Calculation Limitations")
                             .font(.headline)
                         
-                        Text("The Blood Alcohol Content (BAC) calculations provided by BarBuddy are estimates based on generalized formulas. Actual BAC levels can vary significantly based on numerous factors including but not limited to: metabolism, hydration, food consumption, medications, health conditions, altitude, and fatigue.")
+                        Text("The Blood Alcohol Content (BAC) calculations provided by BarBuddy are estimates based on generalized formulas. Actual levels can vary significantly based on numerous factors including but not limited to: metabolism, hydration, food consumption, medications, health conditions, altitude, and fatigue.")
                         
                         Text("Not a Medical Device")
                             .font(.headline)
@@ -264,8 +253,6 @@ struct AppDisclaimerView: View {
                         
                         Text("Legal Driving Limits")
                             .font(.headline)
-                        
-                        Text("Different jurisdictions have different legal limits for BAC while driving. The app may reference common limits (such as 0.08%), but these are for informational purposes only. Your local laws may differ and you should consult your local laws for the actual legal limits in your area.")
                         
                         Text("Emergency Features")
                             .font(.headline)

@@ -6,10 +6,10 @@
 import Foundation
 
 /**
- * Represents biological sex for BAC calculation purposes.
+ * .
  *
- * Gender affects how the body processes alcohol due to differences in
- * body composition, particularly water content and enzyme levels.
+ *
+ *
  */
 public enum Gender: String, Codable, CaseIterable, Hashable {
     /// Male biological factors
@@ -19,7 +19,7 @@ public enum Gender: String, Codable, CaseIterable, Hashable {
     case female = "Female"
     
     /**
-     * Body water constant used in Widmark formula for BAC calculation.
+     * Body water constant 
      */
     public var bodyWaterConstant: Double {
         switch self {

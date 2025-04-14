@@ -30,31 +30,31 @@ class AppSettingsManager: ObservableObject {
     @Published var saveDrinksFor: Int = 90 // Days
     
     // MARK: - Notification Settings
-    @Published var enableBACAlerts: Bool = true
+    @Published var enableDrinkAlerts: Bool = true
     @Published var enableHydrationReminders: Bool = true
     @Published var enableDrinkingDurationAlerts: Bool = true
     @Published var enableMorningCheckIns: Bool = false
-    
+
     // MARK: - Privacy Settings
     @Published var enablePasscodeProtection: Bool = false
     @Published var useBiometricAuthentication: Bool = false
     @Published var allowDataSharing: Bool = false
-    
+
     // MARK: - Watch Settings
     @Published var syncWithAppleWatch: Bool = true
     @Published var watchQuickAdd: Bool = true
     @Published var watchComplication: Bool = true
-    
+
     // Cancellables for Combine
     private var cancellables = Set<AnyCancellable>()
-    
+
     // Private initializer for singleton
     private init() {
         loadSettings()
         setupBindings()
         applyAppearanceSettings()
     }
-    
+
     // MARK: - Setup Methods
     private func setupBindings() {
         setupBinding(for: $weight)
@@ -76,7 +76,7 @@ class AppSettingsManager: ObservableObject {
         setupBinding(for: $trackLocations)
         setupBinding(for: $saveAlcoholSpending)
         setupBinding(for: $saveDrinksFor)
-        setupBinding(for: $enableBACAlerts)
+        setupBinding(for: $enableDrinkAlerts)
         setupBinding(for: $enableHydrationReminders)
         setupBinding(for: $enableDrinkingDurationAlerts)
         setupBinding(for: $enableMorningCheckIns)
@@ -207,7 +207,6 @@ class AppSettingsManager: ObservableObject {
         saveAlcoholSpending = true
         saveDrinksFor = 90
         
-        enableBACAlerts = true
         enableHydrationReminders = true
         enableDrinkingDurationAlerts = true
         enableMorningCheckIns = false

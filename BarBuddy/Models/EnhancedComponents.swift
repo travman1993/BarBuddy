@@ -74,7 +74,7 @@ struct EnhancedBACStatusCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Main BAC display
+            // Main display
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("CURRENT BAC")
@@ -704,7 +704,7 @@ struct EnhancedSafetyTipsView: View {
     
     var quickTip: String {
         if bac >= 0.08 {
-            return "Your BAC is above the legal limit. DO NOT drive and consider switching to water."
+            return "Your above the legal limit. DO NOT drive and consider switching to water."
         } else if bac >= 0.04 {
             return "Remember to alternate alcoholic drinks with water to stay hydrated."
         } else if bac > 0 {

@@ -111,7 +111,7 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         )
 
         
-        // Create BAC notification category
+        // Create notification category
         let bacCategory = UNNotificationCategory(
             identifier: NotificationCategory.bacAlert.rawValue,
             actions: [getUberAction, getLyftAction, dismissAction],
@@ -208,46 +208,6 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             timeInterval: TimeInterval(afterMinutes * 60)
         )
     }
-    
-    /**
-     * Schedules a notification based on the user's current drink count versus limit.
-     */
-    func scheduleDrinkLimitNotification(currentCount: Double, limit: Double) {
-        guard isNotificationsEnabled else { return }
-        
-        // Clear existing drink limit notifications
-        UNUserNotificationCenter.current().removeDeliveredNotifications(
-            withIdentifiers: ["drink-limit-alert"]
-        )
-        
-        // Create and schedule appropriate notification based on drink count
-        if currentCount >= limit {
-            let content = createNotificationContent(
-                title: "Drink Limit Reached",
-                body: "You've reached your drink limit of \(Int(limit)) standard drinks. Consider switching to water.",
-                category: .drinkingLimit // New category (defined below)
-            )
-            
-            scheduleImmediateNotification(
-                identifier: "drink-limit-alert",
-                content: content
-            )
-        }
-        else if currentCount >= limit * 0.75 {
-            // Schedule approaching limit alert
-            let content = createNotificationContent(
-                title: "Approaching Drink Limit",
-                body: "You're approaching your drink limit of \(Int(limit)) standard drinks. Consider slowing down.",
-                category: .drinkingLimit
-            )
-            
-            scheduleImmediateNotification(
-                identifier: "drink-limit-alert",
-                content: content
-            )
-        }
-    }
-    
     /**
      * Schedules notifications to monitor drinking duration.
      * Alerts the user when they've been drinking for an extended period.

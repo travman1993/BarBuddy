@@ -48,8 +48,8 @@ struct HistoryView: View {
                 DrinkingSummaryCard(drinks: filteredDrinks(), timeFrame: selectedTimeFrame)
                     .padding(.horizontal)
                 
-                // BAC Trend Chart
-                BACTrendChart(drinks: filteredDrinks(), timeFrame: selectedTimeFrame)
+                // Drinking Trend Chart
+                DrinkingTrendChart(drinks: filteredDrinks(), timeFrame: selectedTimeFrame)
                     .frame(height: 220)
                     .padding(.horizontal)
                 
@@ -128,7 +128,6 @@ struct HistoryView: View {
         return drinkTracker.drinks.filter { $0.timestamp >= startDate && $0.timestamp <= endDate }
     }
     
-    
     // Group drinks by date
     private var drinksByDate: [Date: [Drink]] {
         let calendar = Calendar.current
@@ -137,6 +136,162 @@ struct HistoryView: View {
         return Dictionary(grouping: filteredDrinks()) { drink in
             let components = calendar.dateComponents([.year, .month, .day], from: drink.timestamp)
             return calendar.date(from: components) ?? Date()
+        }
+    }
+    
+    // Drinking Trend Chart
+    struct DrinkingTrendChart: View {
+        let drinks: [Drink]
+        let timeFrame: HistoryView.TimeFrame
+        
+        var chartData: [DrinkPoint] {
+            guard !drinks.isEmpty else { return [] }
+            
+            let calendar = Calendar.current
+            
+            // Get date range
+            let endDate = Date()
+            let startDate = calendar.date(byAdding: .day, value: -timeFrame.days, to: endDate) ?? Date()
+            
+            var currentDate = startDate
+            var points: [DrinkPoint] = []
+            
+            // Create a function to calculate total standard drinks for a specific time
+            func standardDrinksAtTime(_ date: Date) -> Double {
+                // Get drinks before this time
+                let relevantDrinks = drinks.filter { $0.timestamp <= date }
+                
+                // Calculate total standard drinks
+                return relevantDrinks.reduce(0) { $0 + $1.standardDrinks }
+            }
+            
+            // Create data points (more for shorter timeframes, fewer for longer ones)
+            let interval: TimeInterval
+            switch timeFrame {
+            case .day: interval = 3600 // hourly
+            case .week: interval = 6 * 3600 // every 6 hours
+            case .month: interval = 24 * 3600 // daily
+            case .threeMonths: interval = 3 * 24 * 3600 // every 3 days
+            case .year: interval = 7 * 24 * 3600 // weekly
+            }
+            
+            while currentDate <= endDate {
+                points.append(DrinkPoint(date: currentDate, standardDrinks: standardDrinksAtTime(currentDate)))
+                currentDate = currentDate.addingTimeInterval(interval)
+            }
+            
+            // Ensure we include the current time
+            points.append(DrinkPoint(date: endDate, standardDrinks: standardDrinksAtTime(endDate)))
+            
+            return points
+        }
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Drinking Trend")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                if #available(iOS 16.0, *) {
+                    Chart {
+                        ForEach(chartData) { point in
+                            LineMark(
+                                x: .value("Time", point.date),
+                                y: .value("Standard Drinks", point.standardDrinks)
+                            )
+                            .foregroundStyle(Color.blue.gradient)
+                            .interpolationMethod(.catmullRom)
+                        }
+                        
+                        // Add a line for the recommended maximum
+                        RuleMark(y: .value("Recommended Max", 4))
+                            .foregroundStyle(.red)
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                            .annotation(position: .trailing) {
+                                Text("Recommended Limit")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                    }
+                    .chartYScale(domain: 0...(maxStandardDrinks * 1.2))
+                    .chartXAxis {
+                        AxisMarks(values: .automatic) { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let date = value.as(Date.self) {
+                                    Text(formatDate(date))
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback for iOS 15
+                    HStack(alignment: .bottom, spacing: 4) {
+                        // Create a simple view for older iOS versions
+                        ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
+                            if index % max(1, chartData.count / 20) == 0 { // Show at most ~20 points
+                                VStack {
+                                    Rectangle()
+                                        .fill(point.standardDrinks >= 4 ? Color.red : Color.blue)
+                                        .frame(width: 4, height: max(point.standardDrinks * 20, 1))
+                                    
+                                    if index % max(1, chartData.count / 10) == 0 { // Show fewer labels
+                                        Text(formatDate(point.date))
+                                            .font(.system(size: 8))
+                                            .foregroundColor(.secondary)
+                                            .rotationEffect(.degrees(-45))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: 180)
+                }
+                
+                // Additional information
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Peak Standard Drinks: \(String(format: "%.1f", maxStandardDrinks))")
+                        .font(.caption)
+                        .foregroundColor(maxStandardDrinks >= 4 ? .red : .primary)
+                    
+                    if maxStandardDrinks >= 4 {
+                        Text("⚠️ Exceeded recommended limit during this period")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.appCardBackground)
+            .cornerRadius(12)
+        }
+        
+        var maxStandardDrinks: Double {
+            chartData.map { $0.standardDrinks }.max() ?? 0.0
+        }
+        
+        private func formatDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            
+            switch timeFrame {
+            case .day:
+                formatter.dateFormat = "h a"
+            case .week:
+                formatter.dateFormat = "EEE"
+            case .month, .threeMonths:
+                formatter.dateFormat = "MMM d"
+            case .year:
+                formatter.dateFormat = "MMM"
+            }
+            
+            return formatter.string(from: date)
+        }
+        
+        struct DrinkPoint: Identifiable {
+            let id = UUID()
+            let date: Date
+            let standardDrinks: Double
         }
     }
     
@@ -157,28 +312,6 @@ struct HistoryView: View {
         var averageDrinksPerDay: Double {
             guard timeFrame.days > 0 else { return 0 }
             return Double(totalDrinks) / Double(timeFrame.days)
-        }
-        
-        var maxBACReached: Double {
-            // This is an approximation - would need proper calculation
-            // Going with a simple calculation here for demonstration
-            let calendar = Calendar.current
-            var maxBAC = 0.0
-            
-            // Group drinks by hour to estimate BAC at each hour
-            let drinksByHour = Dictionary(grouping: drinks) { drink in
-                calendar.component(.hour, from: drink.timestamp) +
-                calendar.component(.day, from: drink.timestamp) * 24
-            }
-            
-            for (_, hourlyDrinks) in drinksByHour {
-                let hourlyStandardDrinks = hourlyDrinks.reduce(0) { $0 + $1.standardDrinks }
-                // Very rough estimation - multiply standard drinks by factor
-                let estimatedBAC = hourlyStandardDrinks * 0.02
-                maxBAC = max(maxBAC, estimatedBAC)
-            }
-            
-            return maxBAC
         }
         
         var body: some View {
@@ -207,13 +340,6 @@ struct HistoryView: View {
                         label: "Daily\nAverage",
                         systemImage: "calendar",
                         color: .green
-                    )
-                    
-                    StatisticCard(
-                        value: String(format: "%.3f", maxBACReached),
-                        label: "Max\nBAC",
-                        systemImage: "gauge",
-                        color: .red
                     )
                 }
             }
@@ -247,178 +373,6 @@ struct HistoryView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-        }
-    }
-    
-    // BAC Trend Chart showing estimated BAC over time
-    struct BACTrendChart: View {
-        let drinks: [Drink]
-        let timeFrame: HistoryView.TimeFrame
-        
-        var chartData: [BACPoint] {
-            guard !drinks.isEmpty else { return [] }
-            
-            let calendar = Calendar.current
-            
-            // Get date range
-            let endDate = Date()
-            let startDate = calendar.date(byAdding: .day, value: -timeFrame.days, to: endDate) ?? Date()
-            
-            var currentDate = startDate
-            var points: [BACPoint] = []
-            
-            // Create a function to calculate BAC for a specific time
-            func bacAtTime(_ date: Date) -> Double {
-                // This is a simplified BAC calculation
-                // In a real app, you'd use the Widmark formula or similar
-                
-                // Get drinks before this time
-                let relevantDrinks = drinks.filter { $0.timestamp <= date }
-                
-                // Calculate BAC for each drink and account for time passed
-                var totalBAC = 0.0
-                for drink in relevantDrinks {
-                    let hoursSinceDrink = date.timeIntervalSince(drink.timestamp) / 3600
-                    
-                    // Each standard drink adds about 0.02% BAC for a 160lb person
-                    // This decreases by about 0.015% per hour
-                    let initialBACIncrease = drink.standardDrinks * 0.02
-                    let bacDecreaseFromTime = min(hoursSinceDrink * 0.015, initialBACIncrease)
-                    
-                    let remainingBAC = max(0, initialBACIncrease - bacDecreaseFromTime)
-                    totalBAC += remainingBAC
-                }
-                
-                return totalBAC
-            }
-            
-            // Create data points (more for shorter timeframes, fewer for longer ones)
-            let interval: TimeInterval
-            switch timeFrame {
-            case .day: interval = 3600 // hourly
-            case .week: interval = 6 * 3600 // every 6 hours
-            case .month: interval = 24 * 3600 // daily
-            case .threeMonths: interval = 3 * 24 * 3600 // every 3 days
-            case .year: interval = 7 * 24 * 3600 // weekly
-            }
-            
-            while currentDate <= endDate {
-                points.append(BACPoint(date: currentDate, bac: bacAtTime(currentDate)))
-                currentDate = currentDate.addingTimeInterval(interval)
-            }
-            
-            // Ensure we include the current time
-            points.append(BACPoint(date: endDate, bac: bacAtTime(endDate)))
-            
-            return points
-        }
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("BAC Trend")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                
-                if #available(iOS 16.0, *) {
-                    Chart {
-                        ForEach(chartData) { point in
-                            LineMark(
-                                x: .value("Time", point.date),
-                                y: .value("BAC", point.bac)
-                            )
-                            .foregroundStyle(Color.red.gradient)
-                            .interpolationMethod(.catmullRom)
-                        }
-                        
-                        // Add a line for the legal driving limit
-                        RuleMark(y: .value("Legal Limit", 0.08))
-                            .foregroundStyle(.red)
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .annotation(position: .trailing) {
-                                Text("Legal Limit")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                            }
-                    }
-                    .chartYScale(domain: 0...(maxBAC * 1.2))
-                    .chartXAxis {
-                        AxisMarks(values: .automatic) { value in
-                            AxisGridLine()
-                            AxisValueLabel {
-                                if let date = value.as(Date.self) {
-                                    Text(formatDate(date))
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Fallback for iOS 15
-                    HStack(alignment: .bottom, spacing: 4) {
-                        // Create a simple view for older iOS versions
-                        ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
-                            if index % max(1, chartData.count / 20) == 0 { // Show at most ~20 points
-                                VStack {
-                                    Rectangle()
-                                        .fill(point.bac >= 0.08 ? Color.red : Color.orange)
-                                        .frame(width: 4, height: max(point.bac * 1000, 1))
-                                    
-                                    if index % max(1, chartData.count / 10) == 0 { // Show fewer labels
-                                        Text(formatDate(point.date))
-                                            .font(.system(size: 8))
-                                            .foregroundColor(.secondary)
-                                            .rotationEffect(.degrees(-45))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(height: 180)
-                }
-                
-                // Additional information
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Peak BAC: \(String(format: "%.3f", maxBAC))")
-                        .font(.caption)
-                        .foregroundColor(maxBAC >= 0.08 ? .red : .primary)
-                    
-                    if maxBAC >= 0.08 {
-                        Text("⚠️ Exceeded legal limit during this period")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-                }
-            }
-            .padding()
-            .background(Color.appCardBackground)
-            .cornerRadius(12)
-        }
-        
-        var maxBAC: Double {
-            chartData.map { $0.bac }.max() ?? 0.0
-        }
-        
-        private func formatDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            
-            switch timeFrame {
-            case .day:
-                formatter.dateFormat = "h a"
-            case .week:
-                formatter.dateFormat = "EEE"
-            case .month, .threeMonths:
-                formatter.dateFormat = "MMM d"
-            case .year:
-                formatter.dateFormat = "MMM"
-            }
-            
-            return formatter.string(from: date)
-        }
-        
-        struct BACPoint: Identifiable {
-            let id = UUID()
-            let date: Date
-            let bac: Double
         }
     }
     
@@ -889,7 +843,7 @@ struct HistoryView: View {
             NavigationView {
                 ScrollView {
                     VStack(spacing: 20) {
-                        // BAC analysis
+                        // analysis
                         BACAnalysisCard(drinks: drinks, timeFrame: timeFrame)
                         
                         // Drinking patterns
@@ -914,7 +868,7 @@ struct HistoryView: View {
         }
     }
     
-    // BAC Analysis Card
+    // standard drinks Analysis Card
     struct BACAnalysisCard: View {
         let drinks: [Drink]
         let timeFrame: HistoryView.TimeFrame
@@ -926,7 +880,7 @@ struct HistoryView: View {
             var count = 0
             for (_, dailyDrinkList) in dailyDrinks {
                 let totalStandardDrinks = dailyDrinkList.reduce(0) { $0 + $1.standardDrinks }
-                // Very roughly, 4 standard drinks in a day might put someone over 0.08 BAC
+                
                 if totalStandardDrinks >= 4.0 {
                     count += 1
                 }
@@ -958,7 +912,7 @@ struct HistoryView: View {
         
         var body: some View {
             VStack(alignment: .leading, spacing: 15) {
-                Text("BAC Analysis")
+                Text("Analysis")
                     .font(.headline)
                 
                 HStack {
@@ -990,7 +944,7 @@ struct HistoryView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.red)
                         
-                        Text("You may have exceeded the legal BAC limit on \(exceededLegalLimitCount) day\(exceededLegalLimitCount == 1 ? "" : "s") during this period.")
+                        Text("You may have exceeded the legal limit on \(exceededLegalLimitCount) day\(exceededLegalLimitCount == 1 ? "" : "s") during this period.")
                             .font(.caption)
                     }
                     .padding()
