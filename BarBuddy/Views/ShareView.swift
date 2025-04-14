@@ -13,7 +13,7 @@ import MessageUI
 class ShareManager: ObservableObject {
     static let shared = ShareManager()
     
-    @Published var activeShares: [BACShare] = []
+    @Published var activeShares: [DrinkShare] = []
     @Published var contacts: [Contact] = []
     
     private let maxActiveShares = 10
@@ -22,7 +22,7 @@ class ShareManager: ObservableObject {
     
     let messageTemplates = [
         "Checking in with my current status.",
-        "Just tracking my BAC for safety.",
+        "Just tracking my drinks for safety.",
         "Staying responsible tonight.",
         "Keeping an eye on my drinking.",
         "Safety first."
@@ -34,7 +34,7 @@ class ShareManager: ObservableObject {
         cleanupExpiredShares()
     }
     
-    func addShare(bac: Double, message: String? = nil, expirationHours: Double? = nil) -> BACShare {
+    func addShare(drinkCount: Double, drinkLimit: Double, message: String? = nil, expirationHours: Double? = nil) -> DrinkShare {
         cleanupExpiredShares()
         
         if activeShares.count >= maxActiveShares {
@@ -43,8 +43,9 @@ class ShareManager: ObservableObject {
         }
         
         let expirationTime = expirationHours ?? defaultShareDuration / 3600
-        let newShare = BACShare(
-            bac: bac,
+        let newShare = DrinkShare(
+            drinkCount: drinkCount,
+            drinkLimit: drinkLimit,
             message: message ?? messageTemplates.randomElement()!,
             expiresAfter: expirationTime
         )
@@ -55,7 +56,7 @@ class ShareManager: ObservableObject {
         return newShare
     }
     
-    func removeShare(_ share: BACShare) {
+    func removeShare(_ share: DrinkShare) {
         activeShares.removeAll { $0.id == share.id }
         saveShares()
     }
@@ -75,7 +76,7 @@ class ShareManager: ObservableObject {
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(activeShares)
-            UserDefaults.standard.set(data, forKey: "activeBACShares")
+            UserDefaults.standard.set(data, forKey: "activeDrinkShares")
             logger.info("Shares saved successfully.")
         } catch {
             logger.error("Error saving shares: \(error.localizedDescription)")
@@ -83,14 +84,14 @@ class ShareManager: ObservableObject {
     }
     
     private func loadShares() {
-        guard let data = UserDefaults.standard.data(forKey: "activeBACShares") else {
+        guard let data = UserDefaults.standard.data(forKey: "activeDrinkShares") else {
             logger.info("No saved shares found.")
             return
         }
         
         do {
             let decoder = JSONDecoder()
-            activeShares = try decoder.decode([BACShare].self, from: data)
+            activeShares = try decoder.decode([DrinkShare].self, from: data)
             cleanupExpiredShares()
             logger.info("Shares loaded successfully.")
         } catch {
@@ -107,11 +108,13 @@ class ShareManager: ObservableObject {
         ]
     }
     
-    func createShareMessage(bac: Double, customMessage: String? = nil, includeLocation: Bool = false) -> String {
+    func createShareMessage(drinkCount: Double, drinkLimit: Double, customMessage: String? = nil, includeLocation: Bool = false) -> String {
         let baseMessage = customMessage ?? messageTemplates.randomElement()!
-        let bacString = String(format: "%.3f", bac)
+        let drinkStatus = drinkCount >= drinkLimit 
+            ? "reached my drink limit" 
+            : "\(String(format: "%.1f", drinkCount)) of \(String(format: "%.1f", drinkLimit)) drinks"
         
-        var fullMessage = "\(baseMessage)\n\nCurrent BAC: \(bacString)"
+        var fullMessage = "\(baseMessage)\n\nCurrent Status: \(drinkStatus)"
         
         if includeLocation {
             fullMessage += "\nApproximate Location: [Location would be included]"
@@ -120,10 +123,11 @@ class ShareManager: ObservableObject {
         return fullMessage
     }
     
-    func prepareShareForWatch(share: BACShare) -> [String: Any] {
+    func prepareShareForWatch(share: DrinkShare) -> [String: Any] {
         return [
             "id": share.id.uuidString,
-            "bac": share.bac,
+            "drinkCount": share.drinkCount,
+            "drinkLimit": share.drinkLimit,
             "message": share.message,
             "timestamp": share.timestamp,
             "expiresAt": share.expiresAt
@@ -150,6 +154,47 @@ extension ShareManager {
     }
 }
 
+// MARK: - DrinkShare Structure
+public struct DrinkShare: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let drinkCount: Double
+    public let drinkLimit: Double
+    public let message: String
+    public let timestamp: Date
+    public let expiresAt: Date
+    
+    // Initializer
+    public init(
+        drinkCount: Double,
+        drinkLimit: Double,
+        message: String,
+        expiresAfter hours: Double = 2.0
+    ) {
+        self.id = UUID()
+        self.drinkCount = drinkCount
+        self.drinkLimit = drinkLimit
+        self.message = message
+        self.timestamp = Date()
+        self.expiresAt = Date().addingTimeInterval(hours * 3600)
+    }
+    
+    // Check if share is still active
+    public var isActive: Bool {
+        return Date() < expiresAt
+    }
+    
+    // Determine safety status based on drink count
+    public var safetyStatus: SafetyStatus {
+        if drinkCount >= drinkLimit {
+            return .unsafe
+        } else if drinkCount >= drinkLimit * 0.75 {
+            return .borderline
+        } else {
+            return .safe
+        }
+    }
+}
+
 struct ShareView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @StateObject private var shareManager = ShareManager.shared
@@ -166,21 +211,30 @@ struct ShareView: View {
     var body: some View {
         // Main content without navigation wrapper
         let content = Form {
-            // Current BAC Section
+            // Current Drink Status Section
             Section(header: Text("YOUR CURRENT STATUS")) {
                 HStack {
-                    Text("Blood Alcohol Content")
+                    Text("Standard Drinks")
                     Spacer()
-                    Text(String(format: "%.3f", drinkTracker.currentBAC))
+                    Text(String(format: "%.1f of %.1f", drinkTracker.standardDrinkCount, drinkTracker.drinkLimit))
                         .fontWeight(.bold)
-                        .foregroundColor(getBACColor())
+                        .foregroundColor(getDrinkStatusColor())
                 }
                 
                 HStack {
-                    Text("Safety Status")
+                    Text("Status")
                     Spacer()
-                    Text(getSafetyStatus())
-                        .foregroundColor(getBACColor())
+                    Text(getDrinkStatusText())
+                        .foregroundColor(getDrinkStatusColor())
+                }
+                
+                if drinkTracker.timeUntilReset > 0 {
+                    HStack {
+                        Text("Resets In")
+                        Spacer()
+                        Text(formatTimeUntilReset(drinkTracker.timeUntilReset))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             
@@ -278,22 +332,23 @@ struct ShareView: View {
         }
     }
     
-    // Update in ShareView.swift
     func shareStatus() {
-        _ = shareManager.createShareMessage(
-            bac: drinkTracker.currentBAC,
+        let message = shareManager.createShareMessage(
+            drinkCount: drinkTracker.standardDrinkCount,
+            drinkLimit: drinkTracker.drinkLimit,
             customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
             includeLocation: includeLocation
         )
         
         // Create a share
         let share = shareManager.addShare(
-            bac: drinkTracker.currentBAC,
+            drinkCount: drinkTracker.standardDrinkCount,
+            drinkLimit: drinkTracker.drinkLimit,
             message: selectedMessage.isEmpty ? nil : selectedMessage
         )
 
         // Include location if requested
-        var completeMessage = share.message
+        var completeMessage = message
         if includeLocation {
             let locationString = LocationManager.shared.getLocationString()
             completeMessage += "\nLocation: \(locationString)"
@@ -323,23 +378,34 @@ struct ShareView: View {
         #endif
     }
     
-    private func getBACColor() -> Color {
-        if drinkTracker.currentBAC < 0.04 {
-            return .green
-        } else if drinkTracker.currentBAC < 0.08 {
+    private func getDrinkStatusColor() -> Color {
+        if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit {
+            return .red
+        } else if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit * 0.75 {
             return .orange
         } else {
-            return .red
+            return .green
         }
     }
     
-    private func getSafetyStatus() -> String {
-        if drinkTracker.currentBAC < 0.04 {
-            return "Safe to Drive"
-        } else if drinkTracker.currentBAC < 0.08 {
-            return "Caution Advised"
+    private func getDrinkStatusText() -> String {
+        if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit {
+            return "Limit Reached"
+        } else if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit * 0.75 {
+            return "Approaching Limit"
         } else {
-            return "Do Not Drive"
+            return "Under Limit"
+        }
+    }
+    
+    private func formatTimeUntilReset(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes) minutes"
         }
     }
 }

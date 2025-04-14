@@ -9,14 +9,14 @@ import SwiftUI
  * Represents the safety status based on the user's current BAC level.
  */
 public enum SafetyStatus: String, Codable, Hashable {
-    /// BAC is below 0.04%, generally considered safe for most activities
-    case safe = "Safe to Drive"
+    /// Drink count is below 75% of limit
+    case safe = "Under Limit"
     
-    /// BAC is between 0.04% and 0.08%, approaching legal limits
-    case borderline = "Borderline"
+    /// Drink count is between 75% and 100% of limit
+    case borderline = "Approaching Limit"
     
-    /// BAC is above 0.08%, exceeding legal driving limits in most jurisdictions
-    case unsafe = "Call a Ride"
+    /// Drink count has reached or exceeded limit
+    case unsafe = "Limit Reached"
     
     /**
      * Color associated with each safety status for UI representation.

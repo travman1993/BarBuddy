@@ -3,13 +3,18 @@
 //  BarBuddy
 //
 
+//
+//  WatchSessionManager.swift
+//  BarBuddy
+//
+
 import Foundation
 import WatchConnectivity
 
 /**
  * Manages communication between the iOS app and Apple Watch app.
  *
- * This class handles sending drink data, BAC updates, and user profile information
+ * This class handles sending drink data, and user profile information
  * to the companion Watch app, and processes requests from the Watch.
  */
 class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
@@ -55,23 +60,25 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     }
     
     /**
-     * Sends BAC data to the Watch app.
+     * Sends drink data to the Watch app.
      *
      * - Parameters:
-     *   - bac: Current blood alcohol content
-     *   - timeUntilSober: Estimated time until sober in seconds
+     *   - drinkCount: Current standard drink count
+     *   - drinkLimit: User's set drink limit
+     *   - timeUntilReset: Time until count resets at 4am
      */
-    func sendBACDataToWatch(bac: Double, timeUntilSober: TimeInterval) {
+    func sendDrinkDataToWatch(drinkCount: Double, drinkLimit: Double, timeUntilReset: TimeInterval) {
         guard isReachable else { return }
         
-        let bacData: [String: Any] = [
-            "currentBAC": bac,
-            "timeUntilSober": timeUntilSober,
+        let drinkData: [String: Any] = [
+            "drinkCount": drinkCount,
+            "drinkLimit": drinkLimit,
+            "timeUntilReset": timeUntilReset,
             "timestamp": Date().timeIntervalSince1970
         ]
         
-        session?.sendMessage(bacData, replyHandler: nil) { error in
-            print("Error sending BAC data: \(error.localizedDescription)")
+        session?.sendMessage(drinkData, replyHandler: nil) { error in
+            print("Error sending drink data: \(error.localizedDescription)")
         }
     }
     
@@ -102,16 +109,17 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
         
         switch request {
-        case "getCurrentBAC":
-            // Respond with current BAC if available
+        case "getCurrentDrinkData":
+            // Respond with current drink data if available
             guard let drinkTracker = drinkTracker else {
                 replyHandler(["error": "Drink tracker not available"])
                 return
             }
             
             replyHandler([
-                "currentBAC": drinkTracker.currentBAC,
-                "timeUntilSober": drinkTracker.timeUntilSober
+                "drinkCount": drinkTracker.standardDrinkCount,
+                "drinkLimit": drinkTracker.drinkLimit,
+                "timeUntilReset": drinkTracker.timeUntilReset
             ])
             
         case "logDrink":
@@ -129,10 +137,11 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
                 alcoholPercentage: type.defaultAlcoholPercentage
             )
             
-            // Respond with updated BAC
+            // Respond with updated drink data
             replyHandler([
-                "currentBAC": drinkTracker?.currentBAC ?? 0,
-                "timeUntilSober": drinkTracker?.timeUntilSober ?? 0
+                "drinkCount": drinkTracker?.standardDrinkCount ?? 0,
+                "drinkLimit": drinkTracker?.drinkLimit ?? 4.0,
+                "timeUntilReset": drinkTracker?.timeUntilReset ?? 0
             ])
             
         default:

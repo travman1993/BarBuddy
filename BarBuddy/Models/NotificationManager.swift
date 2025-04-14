@@ -13,7 +13,12 @@ import SwiftUI
  * This class handles requesting permissions, scheduling various types of notifications,
  * and responding to user interactions with notifications.
  */
+
+
 class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
+    
+    
+    
     /// Shared singleton instance
     static let shared = NotificationManager()
     
@@ -34,6 +39,7 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         case hydrationReminder = "HYDRATION_REMINDER"
         case drinkingDuration = "DURATION_ALERT"
         case afterPartyCheckIn = "AFTER_PARTY_REMINDER"
+        case drinkingLimit = "DRINKING_LIMIT"
     }
     
     /**
@@ -97,6 +103,14 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: .destructive
         )
         
+        let drinkLimitCategory = UNNotificationCategory(
+            identifier: NotificationCategory.drinkingLimit.rawValue,
+            actions: [getUberAction, getLyftAction, dismissAction],
+            intentIdentifiers: [],
+            options: []
+        )
+
+        
         // Create BAC notification category
         let bacCategory = UNNotificationCategory(
             identifier: NotificationCategory.bacAlert.rawValue,
@@ -129,54 +143,53 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             options: []
         )
         
-        // Register all categories
         UNUserNotificationCenter.current().setNotificationCategories([
-            bacCategory,
+            bacCategory, // keep this for backwards compatibility
             hydrationCategory,
             durationCategory,
-            afterPartyCategory
+            afterPartyCategory,
+            drinkLimitCategory // add this new category
         ])
     }
     
     /**
-     * Schedules a notification based on the user's current BAC level.
+     * Schedules a notification based on the user's current drink count versus limit.
      */
-    func scheduleBACNotification(bac: Double) {
+    func scheduleDrinkLimitNotification(currentCount: Double, limit: Double) {
         guard isNotificationsEnabled && sendBACAlerts else { return }
         
-        // Clear existing BAC notifications
+        // Clear existing drink limit notifications
         UNUserNotificationCenter.current().removeDeliveredNotifications(
-            withIdentifiers: ["bac-alert"]
+            withIdentifiers: ["drink-limit-alert"]
         )
         
-        // Create and schedule appropriate notification based on BAC level
-        if bac >= 0.08 {
+        // Create and schedule appropriate notification based on drink count
+        if currentCount >= limit {
             let content = createNotificationContent(
-                title: "High BAC Alert",
-                body: "Your estimated BAC is \(String(format: "%.3f", bac)), which is over the legal limit for driving.",
-                category: .bacAlert
+                title: "Drink Limit Reached",
+                body: "You've reached your drink limit of \(Int(limit)) standard drinks. Consider switching to water.",
+                category: .bacAlert // Reusing the existing category
             )
             
             scheduleImmediateNotification(
-                identifier: "bac-alert",
+                identifier: "drink-limit-alert",
                 content: content
             )
         }
-        else if bac >= 0.05 {
-            // Schedule moderate BAC alert
+        else if currentCount >= limit * 0.75 {
+            // Schedule approaching limit alert
             let content = createNotificationContent(
-                title: "Moderate BAC Alert",
-                body: "Your estimated BAC is \(String(format: "%.3f", bac)), which is approaching the legal limit. Consider taking a break.",
-                category: .bacAlert
+                title: "Approaching Drink Limit",
+                body: "You're approaching your drink limit of \(Int(limit)) standard drinks. Consider slowing down.",
+                category: .bacAlert // Reusing the existing category
             )
             
             scheduleImmediateNotification(
-                identifier: "bac-alert",
+                identifier: "drink-limit-alert",
                 content: content
             )
         }
     }
-    
     /**
      * Schedules a reminder to drink water between alcoholic beverages.
      */
@@ -194,6 +207,45 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
             content: content,
             timeInterval: TimeInterval(afterMinutes * 60)
         )
+    }
+    
+    /**
+     * Schedules a notification based on the user's current drink count versus limit.
+     */
+    func scheduleDrinkLimitNotification(currentCount: Double, limit: Double) {
+        guard isNotificationsEnabled else { return }
+        
+        // Clear existing drink limit notifications
+        UNUserNotificationCenter.current().removeDeliveredNotifications(
+            withIdentifiers: ["drink-limit-alert"]
+        )
+        
+        // Create and schedule appropriate notification based on drink count
+        if currentCount >= limit {
+            let content = createNotificationContent(
+                title: "Drink Limit Reached",
+                body: "You've reached your drink limit of \(Int(limit)) standard drinks. Consider switching to water.",
+                category: .drinkingLimit // New category (defined below)
+            )
+            
+            scheduleImmediateNotification(
+                identifier: "drink-limit-alert",
+                content: content
+            )
+        }
+        else if currentCount >= limit * 0.75 {
+            // Schedule approaching limit alert
+            let content = createNotificationContent(
+                title: "Approaching Drink Limit",
+                body: "You're approaching your drink limit of \(Int(limit)) standard drinks. Consider slowing down.",
+                category: .drinkingLimit
+            )
+            
+            scheduleImmediateNotification(
+                identifier: "drink-limit-alert",
+                content: content
+            )
+        }
     }
     
     /**

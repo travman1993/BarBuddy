@@ -14,7 +14,7 @@ struct DashboardView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     enum DashboardSection {
-        case bac, drinks, safeTips
+        case drinkCount, drinks, safeTips
     }
     
     var body: some View {
@@ -22,17 +22,17 @@ struct DashboardView: View {
             if horizontalSizeClass == .regular {
                 // iPad layout
                 VStack(spacing: 20) {
-                    // Top section with BAC indicator and quick actions
+                    // Top section with drink count indicator and quick actions
                     HStack(alignment: .top, spacing: 20) {
                         // Left column
                         VStack(spacing: 16) {
-                            // BAC Indicator Section
-                            EnhancedBACStatusCard(
-                                bac: drinkTracker.currentBAC,
-                                timeUntilSober: drinkTracker.timeUntilSober,
+                            // Drink Count Indicator Section
+                            DrinkCountStatusCard(
+                                drinkCount: drinkTracker.standardDrinkCount,
+                                drinkLimit: drinkTracker.drinkLimit,
+                                timeUntilReset: drinkTracker.timeUntilReset,
                                 isExpanded: true,
                                 onToggleExpand: {}
-                                
                             )
                             
                             // Quick Actions in a grid
@@ -78,9 +78,9 @@ struct DashboardView: View {
                                 onToggleExpand: {}
                             )
                             
-                            // Quick BAC Share
-                            if drinkTracker.currentBAC > 0 {
-                                QuickShareButton(bac: drinkTracker.currentBAC)
+                            // Quick Share Button
+                            if drinkTracker.standardDrinkCount > 0 {
+                                QuickShareButton(drinkCount: drinkTracker.standardDrinkCount, drinkLimit: drinkTracker.drinkLimit)
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -91,13 +91,14 @@ struct DashboardView: View {
                     VStack(spacing: 16) {
                         // Safety Tips Section (always expanded on iPad)
                         SafetyTipsSection(
-                            bac: drinkTracker.currentBAC,
+                            drinkCount: drinkTracker.standardDrinkCount,
+                            drinkLimit: drinkTracker.drinkLimit,
                             isExpanded: true,
                             onToggleExpand: {}
                         )
                         
-                        // Drink Suggestions (if BAC is present)
-                        if drinkTracker.currentBAC > 0 {
+                        // Drink Suggestions (if drinks are present)
+                        if drinkTracker.standardDrinkCount > 0 {
                             DrinkSuggestionView()
                         }
                     }
@@ -107,14 +108,15 @@ struct DashboardView: View {
             } else {
                 // iPhone layout (original layout)
                 VStack(spacing: 16) {
-                    // BAC Indicator Section
-                    EnhancedBACStatusCard(
-                        bac: drinkTracker.currentBAC,
-                        timeUntilSober: drinkTracker.timeUntilSober,
-                        isExpanded: expandedSection == .bac,
+                    // Drink Count Indicator Section
+                    DrinkCountStatusCard(
+                        drinkCount: drinkTracker.standardDrinkCount,
+                        drinkLimit: drinkTracker.drinkLimit,
+                        timeUntilReset: drinkTracker.timeUntilReset,
+                        isExpanded: expandedSection == .drinkCount,
                         onToggleExpand: {
                             withAnimation {
-                                expandedSection = expandedSection == .bac ? nil : .bac
+                                expandedSection = expandedSection == .drinkCount ? nil : .drinkCount
                             }
                         }
                     )
@@ -158,15 +160,16 @@ struct DashboardView: View {
                         }
                     )
                     
-                    // Quick BAC Share
-                    if drinkTracker.currentBAC > 0 {
-                        QuickShareButton(bac: drinkTracker.currentBAC)
+                    // Quick Share Button
+                    if drinkTracker.standardDrinkCount > 0 {
+                        QuickShareButton(drinkCount: drinkTracker.standardDrinkCount, drinkLimit: drinkTracker.drinkLimit)
                             .padding(.horizontal)
                     }
                     
                     // Safety Tips Section
                     SafetyTipsSection(
-                        bac: drinkTracker.currentBAC,
+                        drinkCount: drinkTracker.standardDrinkCount,
+                        drinkLimit: drinkTracker.drinkLimit,
                         isExpanded: expandedSection == .safeTips,
                         onToggleExpand: {
                             withAnimation {
@@ -175,8 +178,8 @@ struct DashboardView: View {
                         }
                     )
                     
-                    // Drink Suggestions (if BAC is present)
-                    if drinkTracker.currentBAC > 0 {
+                    // Drink Suggestions (if drinks are present)
+                    if drinkTracker.standardDrinkCount > 0 {
                         DrinkSuggestionView()
                     }
                 }
@@ -241,6 +244,157 @@ struct KeyInfoRow: View {
     }
 }
 
+// MARK: - Drink Count Status Card
+struct DrinkCountStatusCard: View {
+    let drinkCount: Double
+    let drinkLimit: Double
+    let timeUntilReset: TimeInterval
+    let isExpanded: Bool
+    let onToggleExpand: () -> Void
+    
+    var safetyStatus: SafetyStatus {
+        if drinkCount >= drinkLimit {
+            return .unsafe
+        } else if drinkCount >= drinkLimit * 0.75 {
+            return .borderline
+        } else {
+            return .safe
+        }
+    }
+    
+    var statusColor: Color {
+        switch safetyStatus {
+        case .safe: return .green
+        case .borderline: return .yellow
+        case .unsafe: return .red
+        }
+    }
+    
+    var safetyStatusIcon: String {
+        switch safetyStatus {
+        case .safe: return "checkmark.circle"
+        case .borderline: return "exclamationmark.triangle"
+        case .unsafe: return "xmark.octagon"
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Main drink count display
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CURRENT DRINKS")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(String(format: "%.1f", drinkCount))
+                        .font(.system(size: 42, weight: .bold))
+                        .foregroundColor(statusColor)
+                }
+                
+                Spacer()
+                
+                if timeUntilReset > 0 {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("RESETS IN")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(formatTimeUntilReset(timeUntilReset))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(statusColor)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.appCardBackground)
+            
+            // Status banner
+            HStack {
+                Image(systemName: safetyStatusIcon)
+                    .foregroundColor(.white)
+                
+                if drinkCount >= drinkLimit {
+                    Text("Limit Reached")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                } else {
+                    Text("\(String(format: "%.1f", drinkLimit - drinkCount)) drinks remaining")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(statusColor)
+            
+            if isExpanded {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("Drink Limit:")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("\(String(format: "%.1f", drinkLimit)) standard drinks")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.horizontal)
+                    
+                    ProgressBar(value: min(drinkCount / drinkLimit, 1.0), color: statusColor)
+                        .frame(height: 8)
+                        .padding(.horizontal)
+                    
+                    Button(action: onToggleExpand) {
+                        Text("Show Less")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 5)
+                }
+                .padding()
+                .background(Color.appCardBackground)
+            }
+        }
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        .padding(.horizontal)
+    }
+    
+    private func formatTimeUntilReset(_ time: TimeInterval) -> String {
+        let hours = Int(time) / 3600
+        let minutes = (Int(time) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes) minutes"
+        }
+    }
+}
+
+struct ProgressBar: View {
+    let value: Double
+    let color: Color
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.2))
+                    .cornerRadius(5)
+                
+                Rectangle()
+                    .fill(color)
+                    .frame(width: geometry.size.width * CGFloat(value))
+                    .cornerRadius(5)
+            }
+        }
+    }
+}
+
 // MARK: - Quick Action Button
 struct QuickActionButton: View {
     let title: String
@@ -266,6 +420,7 @@ struct QuickActionButton: View {
         }
     }
 }
+
 // MARK: - Recent Drinks Summary
 struct RecentDrinksSummary: View {
     let drinks: [Drink]
@@ -455,7 +610,8 @@ struct Statistic: View {
 
 // MARK: - Quick Share Button
 struct QuickShareButton: View {
-    let bac: Double
+    let drinkCount: Double
+    let drinkLimit: Double
     @State private var showingShareOptions = false
     
     var body: some View {
@@ -482,7 +638,8 @@ struct QuickShareButton: View {
 
 // MARK: - Safety Tips Section
 struct SafetyTipsSection: View {
-    let bac: Double
+    let drinkCount: Double
+    let drinkLimit: Double
     let isExpanded: Bool
     let onToggleExpand: () -> Void
     
@@ -537,11 +694,11 @@ struct SafetyTipsSection: View {
     }
     
     var quickTip: String {
-        if bac >= 0.08 {
-            return "Your BAC is above the legal limit. DO NOT drive and consider switching to water."
-        } else if bac >= 0.04 {
-            return "Remember to alternate alcoholic drinks with water to stay hydrated."
-        } else if bac > 0 {
+        if drinkCount >= drinkLimit {
+            return "You've reached your drink limit. Consider switching to water."
+        } else if drinkCount >= drinkLimit * 0.75 {
+            return "You're approaching your drink limit. Remember to stay hydrated."
+        } else if drinkCount > 0 {
             return "Drinking on an empty stomach speeds up alcohol absorption. Consider eating something."
         } else {
             return "Pace yourself by having no more than one standard drink per hour."
@@ -555,7 +712,7 @@ struct SafetyTipsSection: View {
             "Eat a meal before drinking to slow alcohol absorption.",
             "Know your limits and stick to them.",
             "Check in with trusted friends or family members periodically.",
-            "Remember that coffee doesn't sober you up - only time can reduce BAC."
+            "Remember that coffee doesn't sober you up - only time can help."
         ]
     }
 }

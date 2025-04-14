@@ -249,7 +249,9 @@ class DrinkSuggestionManager: ObservableObject {
     
     // MARK: - Suggestions Logic
     
-    func getSuggestions(for bac: Double, currentDrinkCount: Int) -> [DrinkSuggestion] {
+    // Modified getSuggestions method in DrinkSuggestionManager.swift
+
+    func getSuggestions(for drinkCount: Double, drinkLimit: Double) -> [DrinkSuggestion] {
         var suggestions: [DrinkSuggestion] = []
         
         // Always suggest water if hydration reminders are enabled
@@ -257,14 +259,14 @@ class DrinkSuggestionManager: ObservableObject {
             suggestions.append(nonAlcoholicOptions.first(where: { $0.name == "Water" })!)
         }
         
-        // High BAC - suggest non-alcoholic options only
-        if bac >= 0.08 {
+        // Near or exceeded limit - suggest non-alcoholic options only
+        if drinkCount >= drinkLimit {
             suggestions.append(contentsOf: nonAlcoholicOptions.filter { $0.name != "Water" })
             return suggestions.shuffled()
         }
         
-        // Moderate BAC - suggest low alcohol options and water
-        if bac >= 0.05 {
+        // Approaching limit - suggest low alcohol options and water
+        if drinkCount >= drinkLimit * 0.75 {
             if showLowAlcoholSuggestions {
                 let filteredOptions = lowAlcoholOptions.filter { option in
                     return preferredDrinkTypes.isEmpty || preferredDrinkTypes.contains(option.type)
@@ -278,7 +280,7 @@ class DrinkSuggestionManager: ObservableObject {
             return suggestions.shuffled()
         }
         
-        // Low BAC - suggest a mix of options
+        // Still under limit - suggest a mix of options
         var allOptions: [DrinkSuggestion] = []
         
         if showLowAlcoholSuggestions {

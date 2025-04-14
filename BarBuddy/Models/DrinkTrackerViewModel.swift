@@ -15,8 +15,9 @@ class DrinkTrackerViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var drinks: [Drink] = []
     @Published var userProfile: UserProfile = UserProfile()
-    @Published var currentBAC: Double = 0.0
-    @Published var timeUntilSober: TimeInterval = 0
+    @Published var standardDrinkCount: Double = 0.0
+    @Published var drinkLimit: Double = 4.0
+    @Published var timeUntilReset: TimeInterval = 0
     
     // MARK: - Interaction State
     @Published var isAddingDrink: Bool = false
@@ -32,7 +33,6 @@ class DrinkTrackerViewModel: ObservableObject {
     
     // MARK: - Drinking Statistics
     @Published var totalStandardDrinksToday: Double = 0.0
-    @Published var peakBACToday: Double = 0.0
     @Published var drinkingStreak: Int = 0
     @Published var soberDays: Int = 0
     
@@ -116,7 +116,6 @@ class DrinkTrackerViewModel: ObservableObject {
         let currentDate = Date()
         let today = calendar.startOfDay(for: currentDate)
         
-        // Rest of your existing updateStreaks function...
         // Check if had drinks today
         let hadDrinksToday = !drinks.filter { calendar.isDateInToday($0.timestamp) }.isEmpty
         
@@ -186,8 +185,9 @@ class DrinkTrackerViewModel: ObservableObject {
     private func refreshFromDrinkTracker() {
         drinks = drinkTracker.drinks
         userProfile = drinkTracker.userProfile
-        currentBAC = drinkTracker.currentBAC
-        timeUntilSober = drinkTracker.timeUntilSober
+        standardDrinkCount = drinkTracker.standardDrinkCount
+        drinkLimit = drinkTracker.drinkLimit
+        timeUntilReset = drinkTracker.timeUntilReset
         
         // Recalculate derived values
         calculateDailyStats()
@@ -253,19 +253,6 @@ class DrinkTrackerViewModel: ObservableObject {
         
         totalStandardDrinksToday = todaysDrinks.reduce(0) { $0 + $1.standardDrinks }
         
-        // Calculate peak BAC
-        if !todaysDrinks.isEmpty {
-            let totalAlcoholToday = todaysDrinks.reduce(0) {
-                $0 + ($1.size * ($1.alcoholPercentage / 100) * 0.789)
-            }
-            
-            let weight = userProfile.weight * 453.592 // Convert lbs to grams
-            let bodyWaterConstant = userProfile.gender == .male ? 0.68 : 0.55
-            
-            let estimatedPeakBAC = (totalAlcoholToday / (weight * bodyWaterConstant)) * 100
-            peakBACToday = max(peakBACToday, estimatedPeakBAC, currentBAC)
-        }
-        
         // Update drinking streaks
         updateStreaks()
     }
@@ -298,9 +285,12 @@ class DrinkTrackerViewModel: ObservableObject {
     
     // MARK: - Notification and Sync Methods
     private func scheduleNotificationsIfNeeded() {
-        // BAC alerts
+        // Drink limit notifications
         if settingsManager.enableBACAlerts {
-            notificationManager.scheduleBACNotification(bac: currentBAC)
+            notificationManager.scheduleDrinkLimitNotification(
+                currentCount: standardDrinkCount, 
+                limit: drinkLimit
+            )
         }
         
         // Hydration reminders
@@ -318,17 +308,18 @@ class DrinkTrackerViewModel: ObservableObject {
     
     private func updateWatchIfNeeded() {
         if settingsManager.syncWithAppleWatch {
-            watchSessionManager.sendBACDataToWatch(
-                bac: currentBAC,
-                timeUntilSober: timeUntilSober
+            watchSessionManager.sendDrinkDataToWatch(
+                drinkCount: standardDrinkCount,
+                drinkLimit: drinkLimit,
+                timeUntilReset: timeUntilReset
             )
         }
     }
     
     // MARK: - Utility Methods
-    func getFormattedTimeUntilSober() -> String {
-        let hours = Int(timeUntilSober) / 3600
-        let minutes = (Int(timeUntilSober) % 3600) / 60
+    func getFormattedTimeUntilReset() -> String {
+        let hours = Int(timeUntilReset) / 3600
+        let minutes = (Int(timeUntilReset) % 3600) / 60
         
         if hours > 0 {
             return "\(hours)h \(minutes)m"
@@ -338,23 +329,24 @@ class DrinkTrackerViewModel: ObservableObject {
     }
     
     func getSafetyStatus() -> SafetyStatus {
-        if currentBAC < 0.04 {
-            return .safe
-        } else if currentBAC < 0.08 {
+        if standardDrinkCount >= drinkLimit {
+            return .unsafe
+        } else if standardDrinkCount >= drinkLimit * 0.75 {
             return .borderline
         } else {
-            return .unsafe
+            return .safe
         }
     }
-
     
     func getDrinkSuggestions() -> [DrinkSuggestionManager.DrinkSuggestion] {
         return suggestionManager.getSuggestions(
-            for: currentBAC,
-            currentDrinkCount: drinks.filter {
-                Calendar.current.isDateInToday($0.timestamp)
-            }.count
+            for: standardDrinkCount,
+            drinkLimit: drinkLimit
         )
+    }
+    
+    func getDrinksRemaining() -> Double {
+        return max(0, drinkLimit - standardDrinkCount)
     }
     
     func contactEmergencyHelp() {
@@ -406,8 +398,8 @@ extension DrinkTrackerViewModel {
         return standardDrinksByDay.sorted { $0.date < $1.date }
     }
     
-    // Get BAC by hour (estimated)
-    func getBACByHour(for date: Date) -> [(hour: Int, bac: Double)] {
+    // Get standard drinks by hour (instead of BAC)
+    func getStandardDrinksByHour(for date: Date) -> [(hour: Int, standardDrinks: Double)] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         
@@ -416,36 +408,23 @@ extension DrinkTrackerViewModel {
             calendar.isDate($0.timestamp, inSameDayAs: date)
         }
         
-        var hourlyBAC: [(hour: Int, bac: Double)] = []
+        var hourlyDrinks: [(hour: Int, standardDrinks: Double)] = []
         
-        // Calculate hourly BAC
+        // Calculate hourly standard drinks
         for hour in 0..<24 {
-            let hourDate = calendar.date(byAdding: .hour, value: hour, to: startOfDay)!
+            let hourStart = calendar.date(byAdding: .hour, value: hour, to: startOfDay)!
+            let hourEnd = calendar.date(byAdding: .hour, value: hour + 1, to: startOfDay)!
             
-            // Get drinks before this hour
-            let drinksBeforeHour = dayDrinks.filter {
-                $0.timestamp <= hourDate
+            // Get drinks within this hour
+            let drinksInHour = dayDrinks.filter {
+                $0.timestamp >= hourStart && $0.timestamp < hourEnd
             }
             
-            // Calculate BAC at this hour (simplified)
-            var bacAtHour = 0.0
-            
-            for drink in drinksBeforeHour {
-                let hoursSinceDrink = hourDate.timeIntervalSince(drink.timestamp) / 3600
-                
-                // Each standard drink adds about 0.02% BAC for a 160lb person
-                // This decreases by about 0.015% per hour
-                let initialBACIncrease = drink.standardDrinks * 0.02
-                let bacDecreaseFromTime = min(hoursSinceDrink * 0.015, initialBACIncrease)
-                
-                let remainingBAC = max(0, initialBACIncrease - bacDecreaseFromTime)
-                bacAtHour += remainingBAC
-            }
-            
-            hourlyBAC.append((hour: hour, bac: bacAtHour))
+            let standardDrinksInHour = drinksInHour.reduce(0.0) { $0 + $1.standardDrinks }
+            hourlyDrinks.append((hour: hour, standardDrinks: standardDrinksInHour))
         }
         
-        return hourlyBAC
+        return hourlyDrinks
     }
     
     // Get drinks by type (for pie charts)
