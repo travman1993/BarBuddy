@@ -28,12 +28,6 @@ struct DrinkLogView: View {
                 VStack(spacing: 20) {
                     // Top row with status and recent drinks in a balanced layout
                     HStack(alignment: .top, spacing: 20) {
-                        // Left column - BAC status
-                        BACStatusCard(bac: drinkTracker.currentBAC)
-                            .frame(height: 230)
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 0) // Remove horizontal padding
-
                         // Right column - Recently added drinks (scrollable)
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Recent Drinks")
@@ -142,8 +136,6 @@ struct DrinkLogView: View {
             } else {
                 // iPhone layout (more compact)
                 VStack(spacing: 20) {
-                    BACStatusCard(bac: drinkTracker.currentBAC)
-
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Quick Add")
@@ -292,11 +284,6 @@ struct DrinkLogView: View {
                 showingQuickAddConfirmation = false
             }
         }
-        
-        WatchSessionManager.shared.sendBACDataToWatch(
-            bac: drinkTracker.currentBAC,
-            timeUntilSober: drinkTracker.timeUntilSober
-        )
     }
     
     private func addCustomDrink(type: DrinkType, size: Double, alcoholPercentage: Double) {
@@ -309,10 +296,6 @@ struct DrinkLogView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        WatchSessionManager.shared.sendBACDataToWatch(
-            bac: drinkTracker.currentBAC,
-            timeUntilSober: drinkTracker.timeUntilSober
-        )
     }
     
     

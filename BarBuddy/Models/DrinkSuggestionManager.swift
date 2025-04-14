@@ -211,6 +211,8 @@ class DrinkSuggestionManager: ObservableObject {
         )
     ]
     
+    
+    
     init() {
         loadPreferences()
     }
@@ -321,11 +323,25 @@ class DrinkSuggestionManager: ObservableObject {
     }
 }
 
+
 // MARK: - Drink Suggestion View
 struct DrinkSuggestionView: View {
     @ObservedObject var suggestionManager = DrinkSuggestionManager.shared
     @EnvironmentObject var drinkTracker: DrinkTracker
     @State private var showingPreferences = false
+    
+    private func addDrink(_ suggestion: DrinkSuggestionManager.DrinkSuggestion) {
+        drinkTracker.addDrink(
+            type: suggestion.type,
+            size: suggestion.size,
+            alcoholPercentage: suggestion.alcoholPercentage
+        )
+        
+        // Schedule a hydration reminder
+        if suggestionManager.showHydrationReminders {
+            NotificationManager.shared.scheduleHydrationReminder(afterMinutes: 30)
+        }
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -365,7 +381,6 @@ struct DrinkSuggestionView: View {
                 .padding(.horizontal)
             }
             
-            
             if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -377,24 +392,13 @@ struct DrinkSuggestionView: View {
                 }
                 .padding(.horizontal)
             }
-                .sheet(isPresented: $showingPreferences) {
-                    DrinkPreferencesView(suggestionManager: suggestionManager)
-                }
         }
-        
-        private func addDrink(_ suggestion: DrinkSuggestionManager.DrinkSuggestion) {
-            drinkTracker.addDrink(
-                type: suggestion.type,
-                size: suggestion.size,
-                alcoholPercentage: suggestion.alcoholPercentage
-            )
-            
-            // Schedule a hydration reminder
-            if suggestionManager.showHydrationReminders {
-                NotificationManager.shared.scheduleHydrationReminder(afterMinutes: 30)
-            }
+        .sheet(isPresented: $showingPreferences) {
+            DrinkPreferencesView(suggestionManager: suggestionManager)
         }
     }
+}
+
     
     // MARK: - Drink Suggestion Card
     struct DrinkSuggestionCard: View {
@@ -745,4 +749,3 @@ struct DrinkSuggestionView: View {
             }
         }
     }
-}
