@@ -49,9 +49,12 @@ struct HistoryView: View {
                     .padding(.horizontal)
                 
                 // Drinking Trend Chart
-                DrinkingTrendChart(drinks: filteredDrinks(), timeFrame: selectedTimeFrame)
-                    .frame(height: 220)
-                    .padding(.horizontal)
+                DrinkingTrendChart(
+                    drinks: filteredDrinks(),
+                    timeFrame: selectedTimeFrame
+                )
+                .frame(height: 220)
+                .padding(.horizontal)
                 
                 // Buttons for analysis and stats
                 HStack {
@@ -555,7 +558,6 @@ struct HistoryView: View {
                                 y: .value("Count", statsComputer.drinksByType[type] ?? 0)
                             )
                             .foregroundStyle(by: .value("Type", type.rawValue))
-                            .width(30)
                         }
                     }
                     .chartYScale(domain: 0...(statsComputer.drinksByType.values.max() ?? 5))
@@ -628,25 +630,39 @@ struct HistoryView: View {
             .frame(height: 100)
         }
         
-        // Drinks by Day of Week Chart
+        // Helper function to create chart data
+        private func prepareDrinksByDayData() -> (daysOfWeek: [String], counts: [Double]) {
+            let daysOfWeek = (1...7).map { dayName($0) }
+            let counts = (1...7).map { Double(statsComputer.drinksByDay[$0] ?? 0) }
+            return (daysOfWeek, counts)
+        }
+
+        // Separate method to create bar marks
+        @available(iOS 16.0, *)
+        private func createDrinksByDayBarMarks(daysOfWeek: [String], counts: [Double]) ->some ChartContent {
+            ForEach(Array(zip(daysOfWeek, counts).enumerated()), id: \.0) { _, item in
+                let (day, count) = item
+                BarMark(
+                    x: .value("Day", day),
+                    y: .value("Count", count)
+                )
+                .foregroundStyle(Color.blue.gradient)
+            }
+        }
+
+        // Refactored chart method
         private var drinksByDayChart: some View {
             StatsSectionCard(title: "Drinks by Day of Week") {
                 if #available(iOS 16.0, *) {
-                    let daysOfWeek = (1...7).map { dayName($0) }
-                    let counts = (1...7).map { statsComputer.drinksByDay[$0] ?? 0 }
+                    let chartData = prepareDrinksByDayData()
                     
                     Chart {
-                        ForEach(Array(zip(daysOfWeek, counts).enumerated()), id: \.0) { _, item in
-                            let (day, count) = item
-                            BarMark(
-                                x: .value("Day", day),
-                                y: .value("Count", count)
-                            )
-                            .foregroundStyle(Color.blue.gradient)
-                            .width(25)
-                        }
+                        createDrinksByDayBarMarks(
+                            daysOfWeek: chartData.daysOfWeek,
+                            counts: chartData.counts
+                        )
                     }
-                    .chartYScale(domain: 0...(counts.max() ?? 5))
+                    .chartYScale(domain: 0...(chartData.counts.max() ?? 5))
                     .frame(height: 200)
                 } else {
                     fallbackDrinksByDayView
@@ -689,7 +705,6 @@ struct HistoryView: View {
                                 y: .value("Count", statsComputer.drinksByHour[hour] ?? 0)
                             )
                             .foregroundStyle(Color.purple.gradient)
-                            .width(10)
                         }
                     }
                     .chartXAxis {
