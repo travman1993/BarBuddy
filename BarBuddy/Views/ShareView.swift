@@ -341,7 +341,7 @@ struct ShareView: View {
         )
         
         // Create a share
-        let share = shareManager.addShare(
+        _ = shareManager.addShare(
             drinkCount: drinkTracker.standardDrinkCount,
             drinkLimit: drinkTracker.drinkLimit,
             message: selectedMessage.isEmpty ? nil : selectedMessage
