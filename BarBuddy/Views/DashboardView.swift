@@ -18,29 +18,110 @@ struct DashboardView: View {
     }
     
     var body: some View {
-        ScrollView {
-            if horizontalSizeClass == .regular {
-                // iPad layout
+        GeometryReader { geometry in
+            ScrollView {
                 VStack(spacing: 20) {
-                    // Top section with drink count indicator and quick actions
-                    HStack(alignment: .top, spacing: 20) {
-                        // Left column
+                    if horizontalSizeClass == .regular {
+                        // iPad layout
+                        // Top section with drink count indicator and quick actions
+                        HStack(alignment: .top, spacing: 20) {
+                            // Left column
+                            VStack(spacing: 16) {
+                                // Drink Count Indicator Section
+                                DrinkCountStatusCard(
+                                    drinkCount: drinkTracker.standardDrinkCount,
+                                    drinkLimit: drinkTracker.drinkLimit,
+                                    timeUntilReset: drinkTracker.timeUntilReset,
+                                    isExpanded: true,
+                                    onToggleExpand: {}
+                                )
+                                .environmentObject(drinkTracker)
+                                
+                                // Quick Actions in a grid
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 12) {
+                                    QuickActionButton(
+                                        title: "Quick Add",
+                                        systemImage: "plus.circle.fill",
+                                        color: .blue
+                                    ) {
+                                        showingQuickAdd = true
+                                    }
+                                    
+                                    QuickActionButton(
+                                        title: "Get Ride",
+                                        systemImage: "car.fill",
+                                        color: .green
+                                    ) {
+                                        showingRideshareOptions = true
+                                    }
+                                    
+                                    QuickActionButton(
+                                        title: "Emergency",
+                                        systemImage: "exclamationmark.triangle.fill",
+                                        color: .red
+                                    ) {
+                                        showingEmergencyContact = true
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                            .frame(width: geometry.size.width * 0.48)
+                            
+                            // Right column
+                            VStack(spacing: 16) {
+                                // Recent Drinks Summary (always expanded on iPad)
+                                RecentDrinksSummary(
+                                    drinks: drinkTracker.drinks,
+                                    isExpanded: true,
+                                    onToggleExpand: {}
+                                )
+                                
+                                // Quick Share Button
+                                if drinkTracker.standardDrinkCount > 0 {
+                                    QuickShareButton(drinkCount: drinkTracker.standardDrinkCount, drinkLimit: drinkTracker.drinkLimit)
+                                }
+                            }
+                            .frame(width: geometry.size.width * 0.48)
+                        }
+                        
+                        // Bottom section with safety tips and drink suggestions
+                        VStack(spacing: 16) {
+                            // Safety Tips Section (always expanded on iPad)
+                            SafetyTipsSection(
+                                drinkCount: drinkTracker.standardDrinkCount,
+                                drinkLimit: drinkTracker.drinkLimit,
+                                isExpanded: true,
+                                onToggleExpand: {}
+                            )
+                            
+                            // Drink Suggestions (if drinks are present)
+                            if drinkTracker.standardDrinkCount > 0 {
+                                DrinkSuggestionView()
+                            }
+                        }
+                    } else {
+                        // iPhone layout (original layout)
                         VStack(spacing: 16) {
                             // Drink Count Indicator Section
                             DrinkCountStatusCard(
                                 drinkCount: drinkTracker.standardDrinkCount,
                                 drinkLimit: drinkTracker.drinkLimit,
                                 timeUntilReset: drinkTracker.timeUntilReset,
-                                isExpanded: true,
-                                onToggleExpand: {}
+                                isExpanded: expandedSection == .drinkCount,
+                                onToggleExpand: {
+                                    withAnimation {
+                                        expandedSection = expandedSection == .drinkCount ? nil : .drinkCount
+                                    }
+                                }
                             )
+                            .environmentObject(drinkTracker)
                             
-                            // Quick Actions in a grid
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 12) {
+                            // Quick Actions
+                            HStack(spacing: 12) {
                                 QuickActionButton(
                                     title: "Quick Add",
                                     systemImage: "plus.circle.fill",
@@ -66,128 +147,49 @@ struct DashboardView: View {
                                 }
                             }
                             .padding(.horizontal)
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Right column
-                        VStack(spacing: 16) {
-                            // Recent Drinks Summary (always expanded on iPad)
+                            
+                            // Recent Drinks Summary
                             RecentDrinksSummary(
                                 drinks: drinkTracker.drinks,
-                                isExpanded: true,
-                                onToggleExpand: {}
+                                isExpanded: expandedSection == .drinks,
+                                onToggleExpand: {
+                                    withAnimation {
+                                        expandedSection = expandedSection == .drinks ? nil : .drinks
+                                    }
+                                }
                             )
                             
                             // Quick Share Button
                             if drinkTracker.standardDrinkCount > 0 {
                                 QuickShareButton(drinkCount: drinkTracker.standardDrinkCount, drinkLimit: drinkTracker.drinkLimit)
+                                    .padding(.horizontal)
+                            }
+                            
+                            // Safety Tips Section
+                            SafetyTipsSection(
+                                drinkCount: drinkTracker.standardDrinkCount,
+                                drinkLimit: drinkTracker.drinkLimit,
+                                isExpanded: expandedSection == .safeTips,
+                                onToggleExpand: {
+                                    withAnimation {
+                                        expandedSection = expandedSection == .safeTips ? nil : .safeTips
+                                    }
+                                }
+                            )
+                            
+                            // Drink Suggestions (if drinks are present)
+                            if drinkTracker.standardDrinkCount > 0 {
+                                DrinkSuggestionView()
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Bottom section with safety tips and drink suggestions
-                    VStack(spacing: 16) {
-                        // Safety Tips Section (always expanded on iPad)
-                        SafetyTipsSection(
-                            drinkCount: drinkTracker.standardDrinkCount,
-                            drinkLimit: drinkTracker.drinkLimit,
-                            isExpanded: true,
-                            onToggleExpand: {}
-                        )
-                        
-                        // Drink Suggestions (if drinks are present)
-                        if drinkTracker.standardDrinkCount > 0 {
-                            DrinkSuggestionView()
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.vertical)
-            } else {
-                // iPhone layout (original layout)
-                VStack(spacing: 16) {
-                    // Drink Count Indicator Section
-                    DrinkCountStatusCard(
-                        drinkCount: drinkTracker.standardDrinkCount,
-                        drinkLimit: drinkTracker.drinkLimit,
-                        timeUntilReset: drinkTracker.timeUntilReset,
-                        isExpanded: expandedSection == .drinkCount,
-                        onToggleExpand: {
-                            withAnimation {
-                                expandedSection = expandedSection == .drinkCount ? nil : .drinkCount
-                            }
-                        }
-                    )
-                    
-                    // Quick Actions
-                    HStack(spacing: 12) {
-                        QuickActionButton(
-                            title: "Quick Add",
-                            systemImage: "plus.circle.fill",
-                            color: .blue
-                        ) {
-                            showingQuickAdd = true
-                        }
-                        
-                        QuickActionButton(
-                            title: "Get Ride",
-                            systemImage: "car.fill",
-                            color: .green
-                        ) {
-                            showingRideshareOptions = true
-                        }
-                        
-                        QuickActionButton(
-                            title: "Emergency",
-                            systemImage: "exclamationmark.triangle.fill",
-                            color: .red
-                        ) {
-                            showingEmergencyContact = true
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    // Recent Drinks Summary
-                    RecentDrinksSummary(
-                        drinks: drinkTracker.drinks,
-                        isExpanded: expandedSection == .drinks,
-                        onToggleExpand: {
-                            withAnimation {
-                                expandedSection = expandedSection == .drinks ? nil : .drinks
-                            }
-                        }
-                    )
-                    
-                    // Quick Share Button
-                    if drinkTracker.standardDrinkCount > 0 {
-                        QuickShareButton(drinkCount: drinkTracker.standardDrinkCount, drinkLimit: drinkTracker.drinkLimit)
-                            .padding(.horizontal)
-                    }
-                    
-                    // Safety Tips Section
-                    SafetyTipsSection(
-                        drinkCount: drinkTracker.standardDrinkCount,
-                        drinkLimit: drinkTracker.drinkLimit,
-                        isExpanded: expandedSection == .safeTips,
-                        onToggleExpand: {
-                            withAnimation {
-                                expandedSection = expandedSection == .safeTips ? nil : .safeTips
-                            }
-                        }
-                    )
-                    
-                    // Drink Suggestions (if drinks are present)
-                    if drinkTracker.standardDrinkCount > 0 {
-                        DrinkSuggestionView()
                     }
                 }
                 .padding(.vertical)
+                .frame(width: geometry.size.width)
             }
         }
         .navigationTitle("Dashboard")
-        .background(Color("AppBackground"))
+        .background(Color("AppBackground").edgesIgnoringSafeArea(.all))
         .sheet(isPresented: $showingQuickAdd) {
             QuickAddDrinkSheet()
         }
@@ -246,11 +248,13 @@ struct KeyInfoRow: View {
 
 // MARK: - Drink Count Status Card
 struct DrinkCountStatusCard: View {
+    @EnvironmentObject var drinkTracker: DrinkTracker
     let drinkCount: Double
     let drinkLimit: Double
     let timeUntilReset: TimeInterval
     let isExpanded: Bool
     let onToggleExpand: () -> Void
+    @State private var showingLimitSetting = false
     
     var safetyStatus: SafetyStatus {
         if drinkCount >= drinkLimit {
@@ -333,19 +337,34 @@ struct DrinkCountStatusCard: View {
             
             if isExpanded {
                 VStack(spacing: 15) {
-                    HStack {
-                        Text("Drink Limit:")
-                            .font(.subheadline)
-                        Spacer()
-                        Text("\(String(format: "%.1f", drinkLimit)) standard drinks")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                    // Drink limit setting (editable)
+                    Button(action: {
+                        showingLimitSetting.toggle()
+                    }) {
+                        HStack {
+                            Text("Drink Limit:")
+                                .font(.subheadline)
+                            Spacer()
+                            Text("\(String(format: "%.1f", drinkLimit)) standard drinks")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .rotationEffect(.degrees(showingLimitSetting ? 90 : 0))
+                        }
                     }
-                    .padding(.horizontal)
+                    .buttonStyle(PlainButtonStyle())
                     
+                    if showingLimitSetting {
+                        DrinkLimitSettingView(initialLimit: drinkLimit)
+                            .padding(.top, -10)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                    
+                    // Drink progress bar
                     ProgressBar(value: min(drinkCount / drinkLimit, 1.0), color: statusColor)
                         .frame(height: 8)
-                        .padding(.horizontal)
                     
                     Button(action: onToggleExpand) {
                         Text("Show Less")
@@ -361,6 +380,7 @@ struct DrinkCountStatusCard: View {
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
         .padding(.horizontal)
+        .animation(.easeInOut, value: showingLimitSetting)
     }
     
     private func formatTimeUntilReset(_ time: TimeInterval) -> String {
@@ -468,8 +488,7 @@ struct RecentDrinksSummary: View {
                     .foregroundColor(.secondary)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(12)
+                    .background(Color.appCardBackground)
             } else {
                 // Summary row
                 HStack(spacing: 0) {
@@ -503,28 +522,31 @@ struct RecentDrinksSummary: View {
                 .background(Color.appCardBackground)
                 
                 if isExpanded {
-                    // List of drinks
-                    VStack(spacing: 0) {
-                        ForEach(recentDrinks.prefix(5)) { drink in
-                            DrinkHistoryRow(drink: drink)
-                            
-                            if drink.id != recentDrinks.prefix(5).last?.id {
-                                Divider()
-                                    .padding(.leading, 60)
+                    // List of drinks with scroll view when needed
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ForEach(recentDrinks) { drink in
+                                DrinkHistoryRow(drink: drink)
+                                
+                                if drink.id != recentDrinks.last?.id {
+                                    Divider()
+                                        .padding(.leading, 60)
+                                }
                             }
-                        }
-                        
-                        if recentDrinks.count > 5 {
-                            Button(action: {
-                                // Navigate to full history view
-                            }) {
-                                Text("View All \(recentDrinks.count) Drinks")
-                                    .font(.subheadline)
-                                    .foregroundColor(.blue)
-                                    .padding()
+                            
+                            if recentDrinks.count > 5 {
+                                Button(action: {
+                                    // Navigate to full history view
+                                }) {
+                                    Text("View All \(recentDrinks.count) Drinks")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                        .padding()
+                                }
                             }
                         }
                     }
+                    .frame(maxHeight: 300) // Set maximum height for scrolling
                     .background(Color.appCardBackground)
                 }
             }
@@ -532,7 +554,6 @@ struct RecentDrinksSummary: View {
         .background(Color.appCardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        .padding(.horizontal)
     }
     
     func timeAgo(_ date: Date) -> String {

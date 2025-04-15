@@ -19,8 +19,9 @@ class DrinkSuggestionManager: ObservableObject {
     @Published var showModerateOptions: Bool = true
     
     // Suggested drinks based
-    struct DrinkSuggestion: Identifiable {
+    struct DrinkSuggestion: Identifiable, Hashable {
         let id = UUID()
+        
         let name: String
         let type: DrinkType
         let alcoholPercentage: Double
@@ -33,6 +34,15 @@ class DrinkSuggestionManager: ObservableObject {
         
         var formattedSize: String {
             return "\(Int(size)) oz"
+        }
+        
+        // Add hash and equals for proper uniqueness in collections
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+        
+        static func == (lhs: DrinkSuggestion, rhs: DrinkSuggestion) -> Bool {
+            return lhs.id == rhs.id
         }
     }
     
@@ -258,41 +268,133 @@ class DrinkSuggestionManager: ObservableObject {
     func getSuggestions(for drinkCount: Double, drinkLimit: Double) -> [DrinkSuggestion] {
         var suggestions: [DrinkSuggestion] = []
         
-        // Always suggest water if hydration reminders are enabled
+        // Create a new copy of water suggestion
         if showHydrationReminders {
-            suggestions.append(nonAlcoholicOptions.first(where: { $0.name == "Water" })!)
+            if let waterTemplate = nonAlcoholicOptions.first(where: { $0.name == "Water" }) {
+                // Create a new instance with same properties but a new UUID
+                let waterSuggestion = DrinkSuggestion(
+                    name: waterTemplate.name,
+                    type: waterTemplate.type,
+                    alcoholPercentage: waterTemplate.alcoholPercentage,
+                    isNonAlcoholic: waterTemplate.isNonAlcoholic,
+                    size: waterTemplate.size,
+                    standardDrinks: waterTemplate.standardDrinks,
+                    emoji: waterTemplate.emoji,
+                    description: waterTemplate.description,
+                    ingredients: waterTemplate.ingredients
+                )
+                suggestions.append(waterSuggestion)
+            }
         }
         
         // Near or exceeded limit - suggest non-alcoholic options only
-        if let water = nonAlcoholicOptions.first(where: { $0.name == "Water" }) {
-            suggestions.append(water)
+        if drinkCount >= drinkLimit {
+            // Take up to 4 non-alcoholic options (excluding water which we already added)
+            let otherNonAlcoholicOptions = nonAlcoholicOptions
+                .filter { $0.name != "Water" }
+                .prefix(4)
+            
+            // Create new instances for each suggestion
+            for template in otherNonAlcoholicOptions {
+                let newSuggestion = DrinkSuggestion(
+                    name: template.name,
+                    type: template.type,
+                    alcoholPercentage: template.alcoholPercentage,
+                    isNonAlcoholic: template.isNonAlcoholic,
+                    size: template.size,
+                    standardDrinks: template.standardDrinks,
+                    emoji: template.emoji,
+                    description: template.description,
+                    ingredients: template.ingredients
+                )
+                suggestions.append(newSuggestion)
+            }
+            
+            return suggestions
         }
-
         
         // Approaching limit - suggest low alcohol options and water
         if drinkCount >= drinkLimit * 0.75 {
             if showLowAlcoholSuggestions {
-                let filteredOptions = lowAlcoholOptions.filter { option in
+                // Filter and create new instances of low alcohol options
+                let filteredTemplates = lowAlcoholOptions.filter { option in
                     return preferredDrinkTypes.isEmpty || preferredDrinkTypes.contains(option.type)
+                }.prefix(3)
+                
+                for template in filteredTemplates {
+                    let newSuggestion = DrinkSuggestion(
+                        name: template.name,
+                        type: template.type,
+                        alcoholPercentage: template.alcoholPercentage,
+                        isNonAlcoholic: template.isNonAlcoholic,
+                        size: template.size,
+                        standardDrinks: template.standardDrinks,
+                        emoji: template.emoji,
+                        description: template.description,
+                        ingredients: template.ingredients
+                    )
+                    suggestions.append(newSuggestion)
                 }
-                suggestions.append(contentsOf: filteredOptions)
             }
             
-            // Add some non-alcoholic options
-            suggestions.append(contentsOf: nonAlcoholicOptions.shuffled().prefix(2))
+            // Add a couple of non-alcoholic options
+            let nonAlcoholTemplates = nonAlcoholicOptions
+                .filter { $0.name != "Water" }  // Skip water since we've already added it
+                .shuffled()
+                .prefix(2)
             
-            return suggestions.shuffled()
+            for template in nonAlcoholTemplates {
+                let newSuggestion = DrinkSuggestion(
+                    name: template.name,
+                    type: template.type,
+                    alcoholPercentage: template.alcoholPercentage,
+                    isNonAlcoholic: template.isNonAlcoholic,
+                    size: template.size,
+                    standardDrinks: template.standardDrinks,
+                    emoji: template.emoji,
+                    description: template.description,
+                    ingredients: template.ingredients
+                )
+                suggestions.append(newSuggestion)
+            }
+            
+            return suggestions
         }
         
         // Still under limit - suggest a mix of options
         var allOptions: [DrinkSuggestion] = []
         
+        // Add low alcohol and moderate options
         if showLowAlcoholSuggestions {
-            allOptions.append(contentsOf: lowAlcoholOptions)
+            allOptions.append(contentsOf: lowAlcoholOptions.map { template in
+                DrinkSuggestion(
+                    name: template.name,
+                    type: template.type,
+                    alcoholPercentage: template.alcoholPercentage,
+                    isNonAlcoholic: template.isNonAlcoholic,
+                    size: template.size,
+                    standardDrinks: template.standardDrinks,
+                    emoji: template.emoji,
+                    description: template.description,
+                    ingredients: template.ingredients
+                )
+            })
         }
         
         if showModerateOptions {
-            allOptions.append(contentsOf: moderateOptions)
+            allOptions.append(contentsOf: moderateOptions.map { template in
+                DrinkSuggestion(
+                    name: template.name,
+                    type: template.type,
+                    alcoholPercentage: template.alcoholPercentage,
+                    isNonAlcoholic: template.isNonAlcoholic,
+                    size: template.size,
+                    standardDrinks: template.standardDrinks,
+                    emoji: template.emoji,
+                    description: template.description,
+                    ingredients: template.ingredients
+                )
+            })
         }
         
         // Filter by preferred drink types if any are selected
@@ -305,8 +407,21 @@ class DrinkSuggestionManager: ObservableObject {
         // Add selected options
         suggestions.append(contentsOf: allOptions.shuffled().prefix(4))
         
-        // Add a non-alcoholic option or two
-        suggestions.append(contentsOf: nonAlcoholicOptions.shuffled().prefix(1))
+        // Add a non-alcoholic option
+        if let nonAlcoholTemplate = nonAlcoholicOptions.filter({ $0.name != "Water" }).randomElement() {
+            let newSuggestion = DrinkSuggestion(
+                name: nonAlcoholTemplate.name,
+                type: nonAlcoholTemplate.type,
+                alcoholPercentage: nonAlcoholTemplate.alcoholPercentage,
+                isNonAlcoholic: nonAlcoholTemplate.isNonAlcoholic,
+                size: nonAlcoholTemplate.size,
+                standardDrinks: nonAlcoholTemplate.standardDrinks,
+                emoji: nonAlcoholTemplate.emoji,
+                description: nonAlcoholTemplate.description,
+                ingredients: nonAlcoholTemplate.ingredients
+            )
+            suggestions.append(newSuggestion)
+        }
         
         return suggestions.shuffled()
     }

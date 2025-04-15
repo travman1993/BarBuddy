@@ -509,225 +509,31 @@ struct HistoryView: View {
         }
     }
     
-    // Detailed statistics view
     struct DrinkingStatsView: View {
+        // Core data properties
         let drinks: [Drink]
         let timeFrame: HistoryView.TimeFrame
         @Environment(\.presentationMode) var presentationMode
         
-        var drinksByType: [DrinkType: Int] {
-            var counts: [DrinkType: Int] = [:]
-            for drink in drinks {
-                counts[drink.type, default: 0] += 1
-            }
-            return counts
-        }
+        // Precomputed statistics to reduce view complexity
+        private let statsComputer: DrinkStatsComputer
         
-        var totalStandardDrinks: Double {
-            drinks.reduce(0) { $0 + $1.standardDrinks }
-        }
-        
-        var standardDrinksByType: [DrinkType: Double] {
-            var counts: [DrinkType: Double] = [:]
-            for drink in drinks {
-                counts[drink.type, default: 0] += drink.standardDrinks
-            }
-            return counts
-        }
-        
-        var drinksByDay: [Int: Int] {
-            var counts: [Int: Int] = [:]
-            let calendar = Calendar.current
-            for drink in drinks {
-                let weekday = calendar.component(.weekday, from: drink.timestamp)
-                counts[weekday, default: 0] += 1
-            }
-            return counts
-        }
-        
-        var drinksByHour: [Int: Int] {
-            var counts: [Int: Int] = [:]
-            let calendar = Calendar.current
-            for drink in drinks {
-                let hour = calendar.component(.hour, from: drink.timestamp)
-                counts[hour, default: 0] += 1
-            }
-            return counts
+        // Initializer to compute stats once
+        init(drinks: [Drink], timeFrame: HistoryView.TimeFrame) {
+            self.drinks = drinks
+            self.timeFrame = timeFrame
+            self.statsComputer = DrinkStatsComputer(drinks: drinks)
         }
         
         var body: some View {
             NavigationView {
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Drinks by type
-                        StatsSectionCard(title: "Drinks by Type") {
-                            if #available(iOS 16.0, *) {
-                                Chart {
-                                    ForEach(DrinkType.allCases, id: \.self) { type in
-                                        BarMark(
-                                            x: .value("Type", type.rawValue),
-                                            y: .value("Count", drinksByType[type] ?? 0)
-                                        )
-                                        .foregroundStyle(by: .value("Type", type.rawValue))
-                                    }
-                                }
-                                .frame(height: 200)
-                            } else {
-                                // Fallback for iOS 15
-                                HStack(alignment: .bottom, spacing: 12) {
-                                    ForEach(DrinkType.allCases, id: \.self) { type in
-                                        VStack {
-                                            Text("\(drinksByType[type] ?? 0)")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                            
-                                            Rectangle()
-                                                .fill(typeColor(type))
-                                                .frame(width: 30, height: CGFloat((drinksByType[type] ?? 0) * 10 + 1))
-                                            
-                                            Text(type.icon)
-                                                .font(.caption)
-                                        }
-                                    }
-                                }
-                                .frame(height: 200)
-                            }
-                        }
-                        
-                        // Standard drinks by type
-                        StatsSectionCard(title: "Standard Drinks by Type") {
-                            if #available(iOS 16.0, *) {
-                                Chart {
-                                    ForEach(DrinkType.allCases, id: \.self) { type in
-                                        if let count = standardDrinksByType[type], count > 0 {
-                                            SectorMark(
-                                                angle: .value("Standard Drinks", count),
-                                                innerRadius: .ratio(0.5),
-                                                angularInset: 1.5
-                                            )
-                                            .foregroundStyle(by: .value("Type", type.rawValue))
-                                        }
-                                    }
-                                }
-                                .frame(height: 200)
-                            } else {
-                                // Fallback for iOS 15
-                                HStack(alignment: .center, spacing: 12) {
-                                    ForEach(DrinkType.allCases, id: \.self) { type in
-                                        if let count = standardDrinksByType[type], count > 0 {
-                                            VStack {
-                                                Text(type.icon)
-                                                    .font(.title3)
-                                                
-                                                Text(String(format: "%.1f", count))
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            .frame(width: 50)
-                                        }
-                                    }
-                                }
-                                .frame(height: 100)
-                            }
-                        }
-                        
-                        // Drinks by day of week
-                        StatsSectionCard(title: "Drinks by Day of Week") {
-                            if #available(iOS 16.0, *) {
-                                Chart {
-                                    ForEach(1...7, id: \.self) { day in
-                                        BarMark(
-                                            x: .value("Day", dayName(day)),
-                                            y: .value("Count", drinksByDay[day] ?? 0)
-                                        )
-                                        .foregroundStyle(Color.blue.gradient)
-                                    }
-                                }
-                                .frame(height: 200)
-                            } else {
-                                // Fallback for iOS 15
-                                HStack(alignment: .bottom, spacing: 8) {
-                                    ForEach(1...7, id: \.self) { day in
-                                        VStack {
-                                            Text("\(drinksByDay[day] ?? 0)")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                            
-                                            Rectangle()
-                                                .fill(Color.blue)
-                                                .frame(width: 20, height: CGFloat((drinksByDay[day] ?? 0) * 10 + 1))
-                                            
-                                            Text(dayName(day).prefix(1))
-                                                .font(.caption)
-                                        }
-                                    }
-                                }
-                                .frame(height: 200)
-                            }
-                        }
-                        
-                        // Drinks by hour
-                        StatsSectionCard(title: "Drinks by Hour") {
-                            if #available(iOS 16.0, *) {
-                                Chart {
-                                    ForEach(0..<24, id: \.self) { hour in
-                                        BarMark(
-                                            x: .value("Hour", "\(hour):00"),
-                                            y: .value("Count", drinksByHour[hour] ?? 0)
-                                        )
-                                        .foregroundStyle(Color.purple.gradient)
-                                    }
-                                }
-                                .chartXAxis {
-                                    AxisMarks(values: .stride(by: 4)) { value in
-                                        AxisGridLine()
-                                        AxisValueLabel {
-                                            if let hour = value.as(String.self) {
-                                                Text(hour)
-                                                    .font(.caption)
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(height: 200)
-                            } else {
-                                // Fallback for iOS 15
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(alignment: .bottom, spacing: 4) {
-                                        ForEach(0..<24, id: \.self) { hour in
-                                            VStack {
-                                                Text("\(drinksByHour[hour] ?? 0)")
-                                                    .font(.system(size: 8))
-                                                    .foregroundColor(.secondary)
-                                                
-                                                Rectangle()
-                                                    .fill(Color.purple)
-                                                    .frame(width: 12, height: CGFloat((drinksByHour[hour] ?? 0) * 10 + 1))
-                                                
-                                                if hour % 4 == 0 {
-                                                    Text("\(hour)")
-                                                        .font(.system(size: 8))
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .frame(height: 150)
-                                    .padding(.horizontal)
-                                }
-                            }
-                        }
-                        
-                        // Key statistics
-                        StatsSectionCard(title: "Key Statistics") {
-                            VStack(alignment: .leading, spacing: 12) {
-                                KeyStatRow(label: "Total Drinks", value: "\(drinks.count)")
-                                KeyStatRow(label: "Total Standard Drinks", value: String(format: "%.1f", totalStandardDrinks))
-                                KeyStatRow(label: "Average per Day", value: String(format: "%.1f", Double(drinks.count) / Double(timeFrame.days)))
-                                KeyStatRow(label: "Most Common Type", value: mostCommonDrinkType)
-                                KeyStatRow(label: "Most Active Day", value: mostActiveDayOfWeek)
-                                KeyStatRow(label: "Most Active Hour", value: mostActiveHour)
-                            }
-                        }
+                        drinksByTypeChart
+                        standardDrinksByTypeChart
+                        drinksByDayChart
+                        drinksByHourChart
+                        keyStatisticsSection
                     }
                     .padding()
                 }
@@ -738,21 +544,317 @@ struct HistoryView: View {
             }
         }
         
-        var mostCommonDrinkType: String {
+        // Drinks by Type Chart
+        private var drinksByTypeChart: some View {
+            StatsSectionCard(title: "Drinks by Type") {
+                if #available(iOS 16.0, *) {
+                    Chart {
+                        ForEach(DrinkType.allCases, id: \.self) { type in
+                            BarMark(
+                                x: .value("Type", type.rawValue),
+                                y: .value("Count", statsComputer.drinksByType[type] ?? 0)
+                            )
+                            .foregroundStyle(by: .value("Type", type.rawValue))
+                            .width(30)
+                        }
+                    }
+                    .chartYScale(domain: 0...(statsComputer.drinksByType.values.max() ?? 5))
+                    .frame(height: 200)
+                } else {
+                    fallbackDrinksByTypeView
+                }
+            }
+        }
+        
+        // Fallback view for iOS 15
+        private var fallbackDrinksByTypeView: some View {
+            HStack(alignment: .bottom, spacing: 12) {
+                ForEach(DrinkType.allCases, id: \.self) { type in
+                    VStack {
+                        Text("\(statsComputer.drinksByType[type] ?? 0)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Rectangle()
+                            .fill(typeColor(type))
+                            .frame(width: 30, height: CGFloat((statsComputer.drinksByType[type] ?? 0) * 10 + 1))
+                        
+                        Text(type.icon)
+                            .font(.caption)
+                    }
+                }
+            }
+            .frame(height: 200)
+        }
+        
+        // Standard Drinks by Type Chart
+        private var standardDrinksByTypeChart: some View {
+            StatsSectionCard(title: "Standard Drinks by Type") {
+                if #available(iOS 16.0, *) {
+                    Chart {
+                        ForEach(DrinkType.allCases.filter { statsComputer.standardDrinksByType[$0, default: 0] > 0 }, id: \.self) { type in
+                            SectorMark(
+                                angle: .value("Standard Drinks", statsComputer.standardDrinksByType[type, default: 0]),
+                                innerRadius: .ratio(0.5),
+                                angularInset: 1.5
+                            )
+                            .foregroundStyle(by: .value("Type", type.rawValue))
+                        }
+                    }
+                    .frame(height: 200)
+                } else {
+                    fallbackStandardDrinksByTypeView
+                }
+            }
+        }
+        
+        // Fallback view for standard drinks by type in iOS 15
+        private var fallbackStandardDrinksByTypeView: some View {
+            HStack(alignment: .center, spacing: 12) {
+                ForEach(DrinkType.allCases, id: \.self) { type in
+                    if let count = statsComputer.standardDrinksByType[type], count > 0 {
+                        VStack {
+                            Text(type.icon)
+                                .font(.title3)
+                            
+                            Text(String(format: "%.1f", count))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(width: 50)
+                    }
+                }
+            }
+            .frame(height: 100)
+        }
+        
+        // Drinks by Day of Week Chart
+        private var drinksByDayChart: some View {
+            StatsSectionCard(title: "Drinks by Day of Week") {
+                if #available(iOS 16.0, *) {
+                    let daysOfWeek = (1...7).map { dayName($0) }
+                    let counts = (1...7).map { statsComputer.drinksByDay[$0] ?? 0 }
+                    
+                    Chart {
+                        ForEach(Array(zip(daysOfWeek, counts).enumerated()), id: \.0) { _, item in
+                            let (day, count) = item
+                            BarMark(
+                                x: .value("Day", day),
+                                y: .value("Count", count)
+                            )
+                            .foregroundStyle(Color.blue.gradient)
+                            .width(25)
+                        }
+                    }
+                    .chartYScale(domain: 0...(counts.max() ?? 5))
+                    .frame(height: 200)
+                } else {
+                    fallbackDrinksByDayView
+                }
+            }
+        }
+        
+        // Fallback view for drinks by day in iOS 15
+        private var fallbackDrinksByDayView: some View {
+            HStack(alignment: .bottom, spacing: 8) {
+                ForEach(1...7, id: \.self) { day in
+                    VStack {
+                        Text("\(statsComputer.drinksByDay[day] ?? 0)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(width: 20, height: CGFloat((statsComputer.drinksByDay[day] ?? 0) * 10 + 1))
+                        
+                        Text(dayName(day).prefix(1))
+                            .font(.caption)
+                    }
+                }
+            }
+            .frame(height: 200)
+        }
+        
+        // Drinks by Hour Chart
+        private var drinksByHourChart: some View {
+            StatsSectionCard(title: "Drinks by Hour") {
+                if #available(iOS 16.0, *) {
+                    let hours = Array(0..<24)
+                    let hourCounts = hours.map { statsComputer.drinksByHour[$0] ?? 0 }
+                    
+                    Chart {
+                        ForEach(hours, id: \.self) { hour in
+                            BarMark(
+                                x: .value("Hour", hour),
+                                y: .value("Count", statsComputer.drinksByHour[hour] ?? 0)
+                            )
+                            .foregroundStyle(Color.purple.gradient)
+                            .width(10)
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks(values: .stride(by: 4)) { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let hour = value.as(Int.self) {
+                                    Text("\(hour)")
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                    }
+                    .chartYScale(domain: 0...(hourCounts.max() ?? 5))
+                    .frame(height: 200)
+                } else {
+                    fallbackDrinksByHourView
+                }
+            }
+        }
+        
+        // Fallback view for drinks by hour in iOS 15
+        private var fallbackDrinksByHourView: some View {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .bottom, spacing: 4) {
+                    ForEach(0..<24, id: \.self) { hour in
+                        VStack {
+                            Text("\(statsComputer.drinksByHour[hour] ?? 0)")
+                                .font(.system(size: 8))
+                                .foregroundColor(.secondary)
+                            
+                            Rectangle()
+                                .fill(Color.purple)
+                                .frame(width: 12, height: CGFloat((statsComputer.drinksByHour[hour] ?? 0) * 10 + 1))
+                            
+                            if hour % 4 == 0 {
+                                Text("\(hour)")
+                                    .font(.system(size: 8))
+                            }
+                        }
+                    }
+                }
+                .frame(height: 150)
+                .padding(.horizontal)
+            }
+        }
+        
+        // Key Statistics Section
+        private var keyStatisticsSection: some View {
+            StatsSectionCard(title: "Key Statistics") {
+                VStack(alignment: .leading, spacing: 12) {
+                    KeyStatRow(label: "Total Drinks", value: "\(drinks.count)")
+                    KeyStatRow(label: "Total Standard Drinks", value: String(format: "%.1f", statsComputer.totalStandardDrinks))
+                    KeyStatRow(label: "Average per Day", value: String(format: "%.1f", Double(drinks.count) / Double(timeFrame.days)))
+                    KeyStatRow(label: "Most Common Type", value: statsComputer.mostCommonDrinkType)
+                    KeyStatRow(label: "Most Active Day", value: statsComputer.mostActiveDayOfWeek)
+                    KeyStatRow(label: "Most Active Hour", value: statsComputer.mostActiveHour)
+                }
+            }
+        }
+        
+        // Utility functions
+        private func dayName(_ day: Int) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            let calendar = Calendar.current
+            
+            var components = DateComponents()
+            components.weekday = day
+            let date = calendar.date(from: components) ?? Date()
+            
+            return formatter.string(from: date)
+        }
+        
+        private func typeColor(_ type: DrinkType) -> Color {
+            switch type {
+            case .beer: return .yellow
+            case .wine: return .red
+            case .cocktail: return .blue
+            case .shot: return .purple
+            case .other: return .gray
+            }
+        }
+    }
+
+    // Separate struct to compute statistics
+    struct DrinkStatsComputer {
+        let drinksByType: [DrinkType: Int]
+        let totalStandardDrinks: Double
+        let standardDrinksByType: [DrinkType: Double]
+        let drinksByDay: [Int: Int]
+        let drinksByHour: [Int: Int]
+        let mostCommonDrinkType: String
+        let mostActiveDayOfWeek: String
+        let mostActiveHour: String
+        
+        init(drinks: [Drink]) {
+            // Compute drinksByType
+            var drinkTypeCounts: [DrinkType: Int] = [:]
+            for drink in drinks {
+                drinkTypeCounts[drink.type, default: 0] += 1
+            }
+            self.drinksByType = drinkTypeCounts
+            
+            // Compute total standard drinks
+            self.totalStandardDrinks = drinks.reduce(0) { $0 + $1.standardDrinks }
+            
+            // Compute standard drinks by type
+            var standardDrinkTypeCounts: [DrinkType: Double] = [:]
+            for drink in drinks {
+                standardDrinkTypeCounts[drink.type, default: 0] += drink.standardDrinks
+            }
+            self.standardDrinksByType = standardDrinkTypeCounts
+            
+            // Compute drinks by day
+            let calendar = Calendar.current
+            var drinkDayCounts: [Int: Int] = [:]
+            for drink in drinks {
+                let weekday = calendar.component(.weekday, from: drink.timestamp)
+                drinkDayCounts[weekday, default: 0] += 1
+            }
+            self.drinksByDay = drinkDayCounts
+            
+            // Compute drinks by hour
+            var drinkHourCounts: [Int: Int] = [:]
+            for drink in drinks {
+                let hour = calendar.component(.hour, from: drink.timestamp)
+                drinkHourCounts[hour, default: 0] += 1
+            }
+            self.drinksByHour = drinkHourCounts
+            
+            // Compute most common drink type
+            self.mostCommonDrinkType = Self.computeMostCommonDrinkType(drinksByType: drinkTypeCounts)
+            
+            // Compute most active day of week
+            self.mostActiveDayOfWeek = Self.computeMostActiveDay(drinksByDay: drinkDayCounts)
+            
+            // Compute most active hour
+            self.mostActiveHour = Self.computeMostActiveHour(drinksByHour: drinkHourCounts)
+        }
+        
+        private static func computeMostCommonDrinkType(drinksByType: [DrinkType: Int]) -> String {
             guard let maxType = drinksByType.max(by: { $0.value < $1.value }) else {
                 return "None"
             }
             return "\(maxType.key.icon) \(maxType.key.rawValue)"
         }
         
-        var mostActiveDayOfWeek: String {
+        private static func computeMostActiveDay(drinksByDay: [Int: Int]) -> String {
             guard let maxDay = drinksByDay.max(by: { $0.value < $1.value }) else {
                 return "None"
             }
-            return dayName(maxDay.key)
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            let calendar = Calendar.current
+            
+            var components = DateComponents()
+            components.weekday = maxDay.key
+            let date = calendar.date(from: components) ?? Date()
+            
+            return formatter.string(from: date)
         }
         
-        var mostActiveHour: String {
+        private static func computeMostActiveHour(drinksByHour: [Int: Int]) -> String {
             guard let maxHour = drinksByHour.max(by: { $0.value < $1.value }) else {
                 return "None"
             }
@@ -766,28 +868,6 @@ struct HistoryView: View {
             let date = calendar.date(from: components) ?? Date()
             
             return formatter.string(from: date)
-        }
-        
-        func dayName(_ day: Int) -> String {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "EEEE"
-            let calendar = Calendar.current
-            
-            var components = DateComponents()
-            components.weekday = day
-            let date = calendar.date(from: components) ?? Date()
-            
-            return formatter.string(from: date)
-        }
-        
-        func typeColor(_ type: DrinkType) -> Color {
-            switch type {
-            case .beer: return .yellow
-            case .wine: return .red
-            case .cocktail: return .blue
-            case .shot: return .purple
-            case .other: return .gray
-            }
         }
     }
     

@@ -201,7 +201,8 @@ struct ShareView: View {
     @StateObject private var emergencyContactManager = EmergencyContactManager.shared
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
-    @State private var selectedMessage: String = ""
+    // Initialize with first message template instead of empty string
+    @State private var selectedMessage: String = ShareManager.shared.messageTemplates.first ?? "Checking in with my current status."
     @State private var includeLocation = false
     @State private var selectedContacts: Set<EmergencyContact> = []
     @State private var showingMessageComposer = false

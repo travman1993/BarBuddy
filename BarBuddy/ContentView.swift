@@ -14,8 +14,11 @@ struct ContentView: View {
                     sidebarContent
                         .navigationTitle("BarBuddy")
                 } detail: {
-                    NavigationStack {
-                        selectedTabView()
+                    GeometryReader { geometry in
+                        NavigationStack {
+                            selectedTabView()
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                        }
                     }
                 }
                 .navigationSplitViewStyle(.balanced)
@@ -44,6 +47,7 @@ struct ContentView: View {
                 }
             }
         }
+        .background(Color.appBackground.edgesIgnoringSafeArea(.all))
     }
     
     private var sidebarContent: some View {

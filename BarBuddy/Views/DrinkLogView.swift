@@ -299,70 +299,6 @@ struct DrinkLogView: View {
     }
     
     
-    
-    // Current BAC Status Card
-    struct BACStatusCard: View {
-        let bac: Double
-        
-        var body: some View {
-            VStack(spacing: 12) {
-                Text("Current Blood Alcohol Content")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Text(String(format: "%.3f", bac))
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundColor(bacColor)
-                
-                HStack {
-                    Image(systemName: bacStatusIcon)
-                        .foregroundColor(bacColor)
-                    Text(bacStatusText)
-                        .font(.callout)
-                        .foregroundColor(bacColor)
-                }
-                .padding(.vertical, 5)
-                .padding(.horizontal, 12)
-                .background(bacColor.opacity(0.1))
-                .cornerRadius(15)
-            }
-            .padding()
-            .background(Color.appCardBackground)
-            .cornerRadius(12)
-            .padding(.horizontal)
-        }
-        
-        var bacColor: Color {
-            if bac < 0.04 {
-                return .green
-            } else if bac < 0.08 {
-                return .yellow
-            } else {
-                return .red
-            }
-        }
-        
-        var bacStatusText: String {
-            if bac < 0.04 {
-                return "Safe to Drive"
-            } else if bac < 0.08 {
-                return "Borderline - Use Caution"
-            } else {
-                return "DO NOT DRIVE"
-            }
-        }
-        
-        var bacStatusIcon: String {
-            if bac < 0.04 {
-                return "checkmark.circle.fill"
-            } else if bac < 0.08 {
-                return "exclamationmark.triangle.fill"
-            } else {
-                return "xmark.octagon.fill"
-            }
-        }
-    }
-    
     // Enhanced Quick Add Button
     struct EnhancedQuickAddButton: View {
         let drinkType: DrinkType
@@ -847,6 +783,7 @@ struct DrinkLogView: View {
     struct RecentlyAddedDrinksView: View {
         let drinks: [Drink]
         let onRemove: (Drink) -> Void
+        @Environment(\.horizontalSizeClass) var horizontalSizeClass
         
         var recentDrinks: [Drink] {
             // Get drinks from the last 24 hours
@@ -857,7 +794,7 @@ struct DrinkLogView: View {
         }
         
         var body: some View {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Recent Drinks")
                     .font(.headline)
                     .padding(.horizontal)
@@ -870,60 +807,25 @@ struct DrinkLogView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
-                    ForEach(recentDrinks) { drink in
-                        VStack(spacing: 0) {
-                            HStack {
-                                Text(drink.type.icon)
-                                    .font(.title2)
-                                    .frame(width: 40)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(drink.type.rawValue)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    
-                                    Text("\(String(format: "%.1f", drink.size)) oz, \(String(format: "%.1f", drink.alcoholPercentage))%")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                    // Use ScrollView for scrolling
+                    ScrollView {
+                        VStack(spacing: 8) {
+                            ForEach(recentDrinks) { drink in
+                                RecentlyAddedDrinkRow(drink: drink) { drinkToRemove in
+                                    onRemove(drinkToRemove)
                                 }
-                                
-                                Spacer()
-                                
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(timeString(for: drink.timestamp))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    HStack(spacing: 2) {
-                                        Image(systemName: "wineglass")
-                                            .font(.system(size: 12))
-                                        Text("\(String(format: "%.1f", drink.standardDrinks))")
-                                            .font(.caption)
-                                    }
-                                    .foregroundColor(.secondary)
-                                }
-                                
-                                Button(action: {
-                                    onRemove(drink)
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red.opacity(0.7))
-                                        .font(.footnote)
-                                        .padding(8)
-                                }
-                            }
-                            .padding(.vertical, 12)
-                            .padding(.horizontal)
-                            
-                            if recentDrinks.last?.id != drink.id {
-                                Divider()
-                                    .padding(.leading, 60)
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.bottom, 12)
                     }
+                    // Control height based on screen size
+                    .frame(height: horizontalSizeClass == .regular ? 300 : 220)
                 }
             }
-            .padding(.bottom, 12)
+            .background(Color.appCardBackground)
+            .cornerRadius(12)
+            .padding(.horizontal)
         }
         
         func timeString(for date: Date) -> String {

@@ -95,13 +95,7 @@ struct LayoutModeKey: EnvironmentKey {
     static let defaultValue: LayoutMode = .phone
 }
 
-// MARK: - Adaptive Layout Extension
-extension View {
-    /// Applies adaptive layout with optional max width for tablets
-    func adaptiveLayout(maxWidth: CGFloat? = nil) -> some View {
-        self.modifier(AdaptiveLayoutModifiers(maxWidth: maxWidth))
-    }
-}
+
 
 // MARK: - Adaptive Layout Modifier
 struct AdaptiveLayoutModifiers: ViewModifier {
@@ -113,19 +107,25 @@ struct AdaptiveLayoutModifiers: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        GeometryReader { geometry in
-            content
-                .frame(
-                    maxWidth: {
-                        if horizontalSizeClass == .regular {
-                            // Use the `maxWidth` passed in the initializer or calculate based on screen size.
-                            return maxWidth ?? min(geometry.size.width * 0.9, 800)
-                        }
-                        return geometry.size.width // Set maxWidth to full width for non-regular size classes.
-                    }()
-                )
-                .frame(maxWidth: .infinity) // Ensure the content takes up the full width.
+        Group {
+            if horizontalSizeClass == .regular {
+                // Full-width approach for iPad
+                content
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 10)
+            } else {
+                // iPhone layout
+                content
+            }
         }
+    }
+}
+
+// MARK: - Adaptive Layout Extension
+extension View {
+    /// Applies adaptive layout with optional max width for tablets
+    func adaptiveLayout(maxWidth: CGFloat? = nil) -> some View {
+        self.modifier(AdaptiveLayoutModifiers(maxWidth: maxWidth))
     }
 }
 
