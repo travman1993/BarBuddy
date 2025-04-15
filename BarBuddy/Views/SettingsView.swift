@@ -10,6 +10,7 @@ struct SettingsView: View {
     @EnvironmentObject var drinkTracker: DrinkTracker
     @State private var weight: Double = 160.0
     @State private var gender: Gender = .male
+    @State private var drinkLimit: Double = 4.0  // Added drink limit state
     @State private var emergencyContacts: [EmergencyContact] = []
     @State private var showingAddContactSheet = false
     @State private var showingPurchaseView = false
@@ -20,7 +21,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             // Personal Information Section
-            Section(header: Text("Personal Information"), footer: Text("Weight and Gender")) {
+            Section(header: Text("PERSONAL INFORMATION"), footer: Text("Weight and Gender")) {
                 VStack(alignment: .leading) {
                     Text("Weight")
                         .font(.subheadline)
@@ -31,7 +32,6 @@ struct SettingsView: View {
                             .frame(width: 70, alignment: .leading)
                         
                         Slider(value: $weight, in: 80...400, step: 1)
-                            // Fixed onChange syntax for iOS 17.0+
                             .onChange(of: weight) {
                                 // Update user profile when weight changes
                                 updateUserProfile()
@@ -44,15 +44,38 @@ struct SettingsView: View {
                     Text("Female").tag(Gender.female)
                 }
                 .pickerStyle(SegmentedPickerStyle())
-                // Fixed onChange syntax for iOS 17.0+
                 .onChange(of: gender) {
                     // Update user profile when gender changes
                     updateUserProfile()
                 }
             }
             
+            // Drink Limit Section (New)
+            Section(header: Text("DRINK SETTINGS")) {
+                VStack(alignment: .leading) {
+                    Text("Drink Limit")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack {
+                        Text("\(String(format: "%.1f", drinkLimit)) drinks")
+                            .frame(width: 90, alignment: .leading)
+                        
+                        Slider(value: $drinkLimit, in: 1...20, step: 0.5)
+                            .onChange(of: drinkLimit) {
+                                // Update drink limit when slider changes
+                                drinkTracker.updateDrinkLimit(drinkLimit)
+                            }
+                    }
+                }
+                
+                Text("The app will notify you when you approach or reach this limit")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
             // Emergency Contacts Section
-            Section(header: Text("Emergency Contacts")) {
+            Section(header: Text("EMERGENCY CONTACTS")) {
                 ForEach(emergencyContacts) { contact in
                     EmergencyContactRow(contact: contact)
                 }
@@ -70,20 +93,20 @@ struct SettingsView: View {
             }
             
             // Notification Settings
-            Section(header: Text("Notifications")) {
+            Section(header: Text("NOTIFICATIONS")) {
                 Toggle("Hydration Reminders", isOn: $settingsManager.enableHydrationReminders)
                 Toggle("Auto-Text When Safe", isOn: $settingsManager.enableMorningCheckIns)
             }
                         
-            // Apple Watch Settings (update to use settingsManager)
-            Section(header: Text("Apple Watch")) {
+            // Apple Watch Settings
+            Section(header: Text("APPLE WATCH")) {
                 Toggle("Enable Quick Logging", isOn: $settingsManager.watchQuickAdd)
                 Toggle("Haptic Feedback", isOn: $settingsManager.watchComplication)
                 Toggle("Complication Display", isOn: $settingsManager.syncWithAppleWatch)
             }
 
             // App Settings
-            Section(header: Text("App Settings")) {
+            Section(header: Text("APP SETTINGS")) {
                 Button("View Legal Disclaimer") {
                     showingDisclaimerView = true
                 }
@@ -96,7 +119,7 @@ struct SettingsView: View {
             }
             
             // About & Support
-            Section(header: Text("About & Support")) {
+            Section(header: Text("ABOUT & SUPPORT")) {
                 Button("About BarBuddy") {
                     showingAboutView = true
                 }
@@ -112,8 +135,9 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .background(Color("AppBackground"))
         .onAppear {
-            // Load current user profile when view appears
+            // Load current user profile and drink limit when view appears
             loadUserProfile()
+            loadDrinkLimit()
         }
         .sheet(isPresented: $showingAddContactSheet) {
             AddContactView { newContact in
@@ -136,34 +160,40 @@ struct SettingsView: View {
     }
     
     // Load user profile from drinkTracker
-        private func loadUserProfile() {
-            // Load from drinkTracker
-            weight = drinkTracker.userProfile.weight
-            gender = drinkTracker.userProfile.gender
-            emergencyContacts = drinkTracker.userProfile.emergencyContacts
-            
-            // Also sync with AppSettingsManager
-            settingsManager.weight = weight
-            settingsManager.gender = gender
-        }
+    private func loadUserProfile() {
+        // Load from drinkTracker
+        weight = drinkTracker.userProfile.weight
+        gender = drinkTracker.userProfile.gender
+        emergencyContacts = drinkTracker.userProfile.emergencyContacts
         
-        // Update user profile in drinkTracker and AppSettingsManager
-        private func updateUserProfile() {
-            let updatedProfile = UserProfile(
-                weight: weight,
-                gender: gender,
-                emergencyContacts: emergencyContacts
-            )
-            
-            // Update drinkTracker
-            drinkTracker.updateUserProfile(updatedProfile)
-            
-            // Update settings manager for consistency
-            settingsManager.weight = weight
-            settingsManager.gender = gender
-            settingsManager.saveSettings()
-        }
+        // Also sync with AppSettingsManager
+        settingsManager.weight = weight
+        settingsManager.gender = gender
+    }
+    
+    // Load drink limit from drinkTracker
+    private func loadDrinkLimit() {
+        drinkLimit = drinkTracker.drinkLimit
+    }
+    
+    // Update user profile in drinkTracker and AppSettingsManager
+    private func updateUserProfile() {
+        let updatedProfile = UserProfile(
+            weight: weight,
+            gender: gender,
+            emergencyContacts: emergencyContacts
+        )
+        
+        // Update drinkTracker
+        drinkTracker.updateUserProfile(updatedProfile)
+        
+        // Update settings manager for consistency
+        settingsManager.weight = weight
+        settingsManager.gender = gender
+        settingsManager.saveSettings()
+    }
 }
+
 
 // Emergency Contact Row
 struct EmergencyContactRow: View {
