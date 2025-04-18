@@ -10,13 +10,15 @@ import StoreKit
 struct BarBuddyApp: App {
     // Keep existing state and observers
     @StateObject private var drinkTracker = DrinkTracker()
-    @State private var hasCompletedPurchase = false
+    @State private var hasCompletedSetup = false
     @State private var showingDisclaimerOnLaunch = true
     
     init() {
-        
         // Apply themed colors to UI elements
         applyAppTheme()
+        
+        // Check if setup has been completed before
+        hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
     }
     
     var body: some Scene {
@@ -26,10 +28,16 @@ struct BarBuddyApp: App {
                     EnhancedLaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
                         .adaptiveLayout()
                         .background(Color.appBackground)
-                } else if !hasCompletedPurchase {
-                    EnhancedUserSetupView(hasCompletedSetup: $hasCompletedPurchase)
+                } else if !hasCompletedSetup {
+                    EnhancedUserSetupView(hasCompletedSetup: $hasCompletedSetup)
                         .adaptiveLayout()
                         .background(Color.appBackground)
+                        .onChange(of: hasCompletedSetup) { oldValue, newValue in
+                            if newValue {
+                                // Save that setup has been completed
+                                UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+                            }
+                        }
                 } else {
                     ContentView()
                         .environmentObject(drinkTracker)
@@ -83,9 +91,12 @@ struct BarBuddyApp: App {
         // In a real app, this would check with StoreKit to verify purchases
         // For now, we'll just use UserDefaults
         if UserDefaults.standard.bool(forKey: "hasPurchasedApp") {
-            hasCompletedPurchase = true
+            hasCompletedSetup = true
+            // Save that setup has been completed
+            UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
         }
     }
+
     
     private func requestNotificationPermissions() {
         // Keep existing functionality
@@ -656,6 +667,9 @@ struct BarBuddyApp: App {
                         requestLocationPermissions()
                     }
                     
+                    // Make sure we save the completed setup status
+                    UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+                    
                     onComplete()
                 }) {
                     Text("Complete Setup")
@@ -682,7 +696,7 @@ struct BarBuddyApp: App {
         
         private func requestLocationPermissions() {
             // This would integrate with LocationManager to request permissions
-            // Placeholder for now
+            LocationManager.shared.requestPermission()
         }
     }
     

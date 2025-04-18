@@ -79,54 +79,49 @@ public class DrinkTracker: ObservableObject {
     }
     
     private func checkForNightReset() {
-            // Check if we need to reset (at 4 AM)
-            let calendar = Calendar.current
-            let now = Date()
-            let today = calendar.startOfDay(for: now)
+        // Check if we need to reset (at 4 AM)
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        
+        // Current hour
+        let currentHour = calendar.component(.hour, from: now)
+        let currentMinute = calendar.component(.minute, from: now)
+        
+        // Get the last reset date
+        if let lastReset = lastResetDate {
+            // If the last reset was on a different day and it's past 4 AM, reset the drinks
             
-            // Current hour
-            let currentHour = calendar.component(.hour, from: now)
-            let currentMinute = calendar.component(.minute, from: now)
+            // Reset if we're on a new day AND it's past 4:00 AM
+            let isNewDay = calendar.isDate(lastReset, inSameDayAs: today) == false
+            let isPastResetTime = currentHour >= 4
             
-            // Get the last reset date
-            if let lastReset = lastResetDate {
-                // If the last reset was on a different day and it's past 4 AM, reset the drinks
-                
-                // Reset if we're on a new day AND it's past 4:00 AM
-                let isNewDay = calendar.isDate(lastReset, inSameDayAs: today) == false
-                let isPastResetTime = currentHour >= 4
-                
-                if isNewDay && isPastResetTime {
-                    resetDrinkCount()
-                    lastResetDate = now
-                    saveLastResetDate()
-                }
-            } else {
-                // First time, just set the reset date
-                lastResetDate = now
-                saveLastResetDate()
-            }
-            
-            // Also do a direct check for 4 AM for more immediate reset
-            if currentHour == 4 && currentMinute == 0 {
+            if isNewDay && isPastResetTime {
                 resetDrinkCount()
                 lastResetDate = now
                 saveLastResetDate()
             }
+        } else {
+            // First time, just set the reset date
+            lastResetDate = now
+            saveLastResetDate()
         }
+        
+        // Also do a direct check for 4 AM for more immediate reset
+        if currentHour == 4 && currentMinute == 0 {
+            resetDrinkCount()
+            lastResetDate = now
+            saveLastResetDate()
+        }
+    }
     
     private func resetDrinkCount() {
-        // Clear only drinks from previous days, keeping today's drinks
+        // Keep track of today's drinks for history purposes
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
-        // Keep only today's drinks
-        drinks = drinks.filter {
-            calendar.isDate($0.timestamp, inSameDayAs: today)
-        }
-        
-        saveDrinks()
-        calculateDrinkCount()
+        // Only reset the counter, don't remove the drinks themselves
+        standardDrinkCount = 0.0
         
         // Notify via UserDefaults for Watch app
         UserDefaults.standard.set(standardDrinkCount, forKey: "currentDrinkCount")
