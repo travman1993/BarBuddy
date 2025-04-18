@@ -11,8 +11,6 @@ struct SettingsView: View {
     @State private var weight: Double = 160.0
     @State private var gender: Gender = .male
     @State private var drinkLimit: Double = 4.0  // Added drink limit state
-    @State private var emergencyContacts: [EmergencyContact] = []
-    @State private var showingAddContactSheet = false
     @State private var showingPurchaseView = false
     @State private var showingDisclaimerView = false
     @State private var showingAboutView = false
@@ -74,23 +72,6 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             }
             
-            // Emergency Contacts Section
-            Section(header: Text("EMERGENCY CONTACTS")) {
-                ForEach(emergencyContacts) { contact in
-                    EmergencyContactRow(contact: contact)
-                }
-                .onDelete(perform: deleteContact)
-                
-                Button(action: {
-                    showingAddContactSheet = true
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Add Emergency Contact")
-                    }
-                }
-            }
             
             // Notification Settings
             Section(header: Text("NOTIFICATIONS")) {
@@ -139,13 +120,6 @@ struct SettingsView: View {
             loadUserProfile()
             loadDrinkLimit()
         }
-        .sheet(isPresented: $showingAddContactSheet) {
-            AddContactView { newContact in
-                // Add new contact and update profile
-                emergencyContacts.append(newContact)
-                updateUserProfile()
-            }
-        }
         .sheet(isPresented: $showingDisclaimerView) {
             DisclaimerView()
         }
@@ -155,7 +129,6 @@ struct SettingsView: View {
     }
     
     private func deleteContact(at offsets: IndexSet) {
-        emergencyContacts.remove(atOffsets: offsets)
         updateUserProfile()
     }
     
@@ -164,7 +137,6 @@ struct SettingsView: View {
         // Load from drinkTracker
         weight = drinkTracker.userProfile.weight
         gender = drinkTracker.userProfile.gender
-        emergencyContacts = drinkTracker.userProfile.emergencyContacts
         
         // Also sync with AppSettingsManager
         settingsManager.weight = weight
@@ -180,8 +152,7 @@ struct SettingsView: View {
     private func updateUserProfile() {
         let updatedProfile = UserProfile(
             weight: weight,
-            gender: gender,
-            emergencyContacts: emergencyContacts
+            gender: gender
         )
         
         // Update drinkTracker

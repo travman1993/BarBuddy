@@ -200,118 +200,127 @@ struct ShareView: View {
     @StateObject private var shareManager = ShareManager.shared
     @StateObject private var emergencyContactManager = EmergencyContactManager.shared
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-        
-    // Initialize with first message template instead of empty string
+    
+    // State variables
     @State private var selectedMessage: String = ShareManager.shared.messageTemplates.first ?? "Checking in with my current status."
     @State private var includeLocation = false
-    // Remove this line as we'll directly use emergency contacts
-    // @State private var selectedContacts: Set<EmergencyContact> = []
-    @State private var selectedContactIDs: Set<UUID> = []
     @State private var showingMessageComposer = false
     @State private var messageRecipients: [String] = []
     @State private var messageBody: String = ""
+    @State private var showingAddContactSheet = false
     
     var body: some View {
-            // Main content without navigation wrapper
-            let content = Form {
-                // Current Drink Status Section
-                Section(header: Text("YOUR CURRENT STATUS")) {
+        // Main content without navigation wrapper
+        let content = Form {
+            // Current Drink Status Section
+            Section(header: Text("YOUR CURRENT STATUS")) {
+                HStack {
+                    Text("Standard Drinks")
+                    Spacer()
+                    Text(String(format: "%.1f of %.1f", drinkTracker.standardDrinkCount, drinkTracker.drinkLimit))
+                        .fontWeight(.bold)
+                        .foregroundColor(getDrinkStatusColor())
+                }
+                
+                HStack {
+                    Text("Status")
+                    Spacer()
+                    Text(getDrinkStatusText())
+                        .foregroundColor(getDrinkStatusColor())
+                }
+                
+                if drinkTracker.timeUntilReset > 0 {
                     HStack {
-                        Text("Standard Drinks")
+                        Text("Resets In")
                         Spacer()
-                        Text(String(format: "%.1f of %.1f", drinkTracker.standardDrinkCount, drinkTracker.drinkLimit))
-                            .fontWeight(.bold)
-                            .foregroundColor(getDrinkStatusColor())
+                        Text(formatTimeUntilReset(drinkTracker.timeUntilReset))
+                            .foregroundColor(.secondary)
                     }
-                    
-                    HStack {
-                        Text("Status")
-                        Spacer()
-                        Text(getDrinkStatusText())
-                            .foregroundColor(getDrinkStatusColor())
+                }
+            }
+            
+            // Message Customization Section
+            Section(header: Text("SHARE MESSAGE")) {
+                Picker("Pre-written Message", selection: $selectedMessage) {
+                    ForEach(shareManager.messageTemplates, id: \.self) { template in
+                        Text(template).tag(template)
                     }
-                    
-                    if drinkTracker.timeUntilReset > 0 {
-                        HStack {
-                            Text("Resets In")
-                            Spacer()
-                            Text(formatTimeUntilReset(drinkTracker.timeUntilReset))
+                }
+                
+                Toggle("Include Approximate Location", isOn: $includeLocation)
+            }
+            
+            // Emergency Contacts Section - Implement swipe-to-delete
+            Section(header: Text("EMERGENCY CONTACTS")) {
+                if emergencyContactManager.emergencyContacts.isEmpty {
+                    Text("No emergency contacts added")
+                        .foregroundColor(.secondary)
+                        .padding(.vertical, 8)
+                } else {
+                    ForEach(emergencyContactManager.emergencyContacts) { contact in
+                        VStack(alignment: .leading) {
+                            Text(contact.name)
+                                .fontWeight(.medium)
+                            Text(contact.phoneNumber)
+                                .font(.caption)
                                 .foregroundColor(.secondary)
                         }
+                        .padding(.vertical, 4)
                     }
+                    .onDelete(perform: deleteContact)
                 }
                 
-                // Message Customization Section
-                Section(header: Text("SHARE MESSAGE")) {
-                    Picker("Pre-written Message", selection: $selectedMessage) {
-                        ForEach(shareManager.messageTemplates, id: \.self) { template in
-                            Text(template).tag(template)
-                        }
-                    }
-                    
-                    Toggle("Include Approximate Location", isOn: $includeLocation)
-                }
-                
-                // Emergency Contacts Selection Section
-                Section(header: Text("SELECT CONTACTS")) {
-                    if emergencyContactManager.emergencyContacts.isEmpty {
-                        Text("No emergency contacts added")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(emergencyContactManager.emergencyContacts, id: \.id) { contact in
-                            MultipleSelectionRow(
-                                title: contact.name,
-                                subtitle: contact.phoneNumber,
-                                isSelected: selectedContactIDs.contains(contact.id)
-                            ) {
-                                if selectedContactIDs.contains(contact.id) {
-                                    selectedContactIDs.remove(contact.id)
-                                } else {
-                                    selectedContactIDs.insert(contact.id)
-                                }
-                            }
-                        }
+                Button(action: {
+                    showingAddContactSheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Add Emergency Contact")
+                            .foregroundColor(.blue)
                     }
                 }
-                
-                // Add Emergency Contact Button
-                Section {
-                    NavigationLink(destination: AddContactView { newContact in
-                        emergencyContactManager.addContact(newContact)
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Add Emergency Contact")
-                        }
-                    }
-                }
-                
-                // Share Button
-                Section {
-                    Button(action: shareStatus) {
-                        HStack {
-                            Spacer()
-                            Text("Share Status")
-                                .foregroundColor(.white)
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
+            }
+            
+            // Share Button
+            Section {
+                Button(action: shareStatus) {
+                    Text("Share Status")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.blue)
                         .cornerRadius(10)
-                    }
-                    .disabled(selectedContactIDs.isEmpty)
                 }
+                .disabled(emergencyContactManager.emergencyContacts.isEmpty)
             }
-            .navigationTitle("Share Status")
-            .background(Color("AppBackground"))
-            
-            // On iPhone, wrap in NavigationView; on iPad (when in a NavigationSplitView), just return the content
-            if horizontalSizeClass == .compact {
-                NavigationView {
-                    content
-                }
+        }
+        .navigationTitle("Share Status")
+        .background(Color("AppBackground"))
+        .sheet(isPresented: $showingAddContactSheet) {
+            AddContactView { newContact in
+                // Add new contact
+                emergencyContactManager.addContact(newContact)
+            }
+        }
+        
+        // Handle wrapping based on device type
+        if horizontalSizeClass == .compact {
+            NavigationView {
+                content
+            }
+            .sheet(isPresented: $showingMessageComposer) {
+                #if os(iOS)
+                MessageComposerView(
+                    recipients: messageRecipients,
+                    body: messageBody,
+                    delegate: ShareViewMessageDelegate()
+                )
+                #endif
+            }
+        } else {
+            content
                 .sheet(isPresented: $showingMessageComposer) {
                     #if os(iOS)
                     MessageComposerView(
@@ -321,69 +330,18 @@ struct ShareView: View {
                     )
                     #endif
                 }
-            } else {
-                content
-                    .sheet(isPresented: $showingMessageComposer) {
-                        #if os(iOS)
-                        MessageComposerView(
-                            recipients: messageRecipients,
-                            body: messageBody,
-                            delegate: ShareViewMessageDelegate()
-                        )
-                        #endif
-                    }
-            }
         }
-        
-        func shareStatus() {
-            let message = shareManager.createShareMessage(
-                drinkCount: drinkTracker.standardDrinkCount,
-                drinkLimit: drinkTracker.drinkLimit,
-                customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
-                includeLocation: includeLocation
-            )
-            
-            // Create a share
-            _ = shareManager.addShare(
-                drinkCount: drinkTracker.standardDrinkCount,
-                drinkLimit: drinkTracker.drinkLimit,
-                message: selectedMessage.isEmpty ? nil : selectedMessage
-            )
-
-            // Include location if requested
-            var completeMessage = message
-            if includeLocation {
-                let locationString = LocationManager.shared.getLocationString()
-                completeMessage += "\nLocation: \(locationString)"
-            }
-            
-            // Get selected contacts
-            let selectedContacts = emergencyContactManager.emergencyContacts.filter { selectedContactIDs.contains($0.id) }
-            
-            // Prepare recipients and message for Message Composer
-            messageRecipients = selectedContacts.map { $0.phoneNumber }
-            messageBody = completeMessage
-            
-            #if os(iOS)
-            if MessageComposerView.canSendText() {
-                showingMessageComposer = true
-            } else {
-                // Fallback for devices that can't send SMS
-                let shareSheet = UIActivityViewController(
-                    activityItems: [completeMessage],
-                    applicationActivities: nil
-                )
-                
-                // Find the current UIWindow to present from
-                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let rootVC = scene.windows.first?.rootViewController {
-                    shareSheet.popoverPresentationController?.sourceView = rootVC.view
-                    rootVC.present(shareSheet, animated: true)
-                }
-            }
-            #endif
-        }
+    }
     
+    // Delete contact method
+    private func deleteContact(at offsets: IndexSet) {
+        for index in offsets {
+            let contact = emergencyContactManager.emergencyContacts[index]
+            emergencyContactManager.removeContact(contact)
+        }
+    }
+    
+    // Other methods remain the same
     private func getDrinkStatusColor() -> Color {
         if drinkTracker.standardDrinkCount >= drinkTracker.drinkLimit {
             return .red
@@ -413,6 +371,56 @@ struct ShareView: View {
         } else {
             return "\(minutes) minutes"
         }
+    }
+    
+    func shareStatus() {
+        // Create message
+        let message = shareManager.createShareMessage(
+            drinkCount: drinkTracker.standardDrinkCount,
+            drinkLimit: drinkTracker.drinkLimit,
+            customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
+            includeLocation: includeLocation
+        )
+        
+        // Create a share
+        _ = shareManager.addShare(
+            drinkCount: drinkTracker.standardDrinkCount,
+            drinkLimit: drinkTracker.drinkLimit,
+            message: selectedMessage.isEmpty ? nil : selectedMessage
+        )
+
+        // Include location if requested
+        var completeMessage = message
+        if includeLocation {
+            let locationString = LocationManager.shared.getLocationString()
+            completeMessage += "\nLocation: \(locationString)"
+        }
+        
+        // Get all contacts
+        let contacts = emergencyContactManager.emergencyContacts
+        
+        // Prepare recipients and message for Message Composer
+        messageRecipients = contacts.map { $0.phoneNumber }
+        messageBody = completeMessage
+        
+        #if os(iOS)
+        if MessageComposerView.canSendText() && !messageRecipients.isEmpty {
+            showingMessageComposer = true
+        } else {
+            // Fallback for devices that can't send SMS
+            let shareSheet = UIActivityViewController(
+                activityItems: [completeMessage],
+                applicationActivities: nil
+            )
+            
+            // Find the current UIWindow to present from
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = scene.windows.first?.rootViewController {
+                shareSheet.popoverPresentationController?.sourceView = rootVC.view
+                rootVC.present(shareSheet, animated: true)
+            }
+        }
+        #endif
     }
 }
 

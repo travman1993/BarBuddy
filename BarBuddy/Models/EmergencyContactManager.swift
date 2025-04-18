@@ -5,7 +5,11 @@ import SwiftUI
 class EmergencyContactManager: ObservableObject {
     static let shared = EmergencyContactManager()
     
-    @Published var emergencyContacts: [EmergencyContact] = []
+    @Published var emergencyContacts: [EmergencyContact] = [] {
+        didSet {
+            saveContacts()
+        }
+    }
     
     private init() {
         loadContacts()
@@ -24,24 +28,25 @@ class EmergencyContactManager: ObservableObject {
     func saveContacts() {
         if let encoded = try? JSONEncoder().encode(emergencyContacts) {
             UserDefaults.standard.set(encoded, forKey: "emergencyContacts")
+            UserDefaults.standard.synchronize() // Ensure changes are saved immediately
         }
     }
     
     func addContact(_ contact: EmergencyContact) {
         emergencyContacts.append(contact)
-        saveContacts()
+        // saveContacts() is called via didSet
     }
     
     func updateContact(_ contact: EmergencyContact) {
         if let index = emergencyContacts.firstIndex(where: { $0.id == contact.id }) {
             emergencyContacts[index] = contact
-            saveContacts()
+            // saveContacts() is called via didSet
         }
     }
     
     func removeContact(_ contact: EmergencyContact) {
         emergencyContacts.removeAll { $0.id == contact.id }
-        saveContacts()
+        // saveContacts() is called via didSet
     }
     
     // MARK: - Emergency Messaging

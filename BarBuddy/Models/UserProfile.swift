@@ -18,9 +18,6 @@ public struct UserProfile: Codable, Hashable {
     /// User's biological sex
     public var gender: Gender
     
-    /// List of user's emergency contacts
-    public var emergencyContacts: [EmergencyContact]
-    
     /// Optional height in inches
     public var height: Double?
     
@@ -30,18 +27,15 @@ public struct UserProfile: Codable, Hashable {
      * - Parameters:
      *   - weight: User's weight in pounds (defaults to 160)
      *   - gender: User's biological sex (defaults to male)
-     *   - emergencyContacts: List of emergency contacts (defaults to empty)
      *   - height: Optional height in inches
      */
     public init(
         weight: Double = 160.0,
         gender: Gender = .male,
-        emergencyContacts: [EmergencyContact] = [],
         height: Double? = nil
     ) {
         self.weight = weight
         self.gender = gender
-        self.emergencyContacts = emergencyContacts
         self.height = height
     }
     

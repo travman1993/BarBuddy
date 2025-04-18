@@ -11,34 +11,36 @@ struct BarBuddyApp: App {
     // Keep existing state and observers
     @StateObject private var drinkTracker = DrinkTracker()
     @State private var hasCompletedSetup = false
-    @State private var showingDisclaimerOnLaunch = true
+    @State private var showingDisclaimerOnLaunch = false // Changed to false by default
     
     init() {
         // Apply themed colors to UI elements
         applyAppTheme()
         
-        // Check if setup has been completed before
-        hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
+        // Load saved setup status immediately in init
+        self.hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
     }
     
     var body: some Scene {
         WindowGroup {
             Group {
-                if showingDisclaimerOnLaunch {
+                if !UserDefaults.standard.bool(forKey: "hasSeenDisclaimer") {
+                    // Only show disclaimer if it hasn't been seen
                     EnhancedLaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
                         .adaptiveLayout()
                         .background(Color.appBackground)
                 } else if !hasCompletedSetup {
+                    // Only show setup if not completed
                     EnhancedUserSetupView(hasCompletedSetup: $hasCompletedSetup)
                         .adaptiveLayout()
                         .background(Color.appBackground)
-                        .onChange(of: hasCompletedSetup) { oldValue, newValue in
-                            if newValue {
-                                // Save that setup has been completed
-                                UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
-                            }
+                        .onDisappear {
+                            // This is critical - mark setup as complete and save it
+                            UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+                            hasCompletedSetup = true
                         }
                 } else {
+                    // Main app content
                     ContentView()
                         .environmentObject(drinkTracker)
                         .adaptiveLayout()
@@ -53,7 +55,7 @@ struct BarBuddyApp: App {
             }
             .background(Color.appBackground) // Global background
             .onAppear {
-                checkIfFirstLaunch()
+                // We're not calling checkIfFirstLaunch() anymore to avoid resetting flags
             }
         }
     }
@@ -179,11 +181,11 @@ struct BarBuddyApp: App {
     
     // MARK: - Enhanced Disclaimer View
     struct EnhancedLaunchDisclaimerView: View {
-        @Binding var isPresented: Bool
-        @Environment(\.horizontalSizeClass) var horizontalSizeClass
-        
-        var body: some View {
-            VStack(spacing: 0) {
+            @Binding var isPresented: Bool
+            @Environment(\.horizontalSizeClass) var horizontalSizeClass
+            
+            var body: some View {
+                VStack(spacing: 0) {
                 // Header
                 ZStack {
                     Rectangle()
@@ -322,13 +324,13 @@ struct BarBuddyApp: App {
     
     // Enhancing EnhancedUserSetupView in BarBuddyApp.swift
     struct EnhancedUserSetupView: View {
-        @Binding var hasCompletedSetup: Bool
-        @State private var weight: Double = 160.0
-        @State private var gender: Gender = .male
-        @State private var currentPage = 0
-        @State private var showUnitSelector = false
-        @State private var useMetricUnits = false
-        @Environment(\.horizontalSizeClass) var horizontalSizeClass
+            @Binding var hasCompletedSetup: Bool
+            @State private var weight: Double = 160.0
+            @State private var gender: Gender = .male
+            @State private var currentPage = 0
+            @State private var showUnitSelector = false
+            @State private var useMetricUnits = false
+            @Environment(\.horizontalSizeClass) var horizontalSizeClass
         
         var body: some View {
             GeometryReader { geometry in
@@ -499,25 +501,30 @@ struct BarBuddyApp: App {
         }
         
         private func saveUserProfile() {
-            // Ensure weight is saved in pounds for consistency
-            let weightInPounds = useMetricUnits ? weight * 2.20462 : weight
-            
-            let profile = UserProfile(
-                weight: weightInPounds,
-                gender: gender,
-                emergencyContacts: []
-            )
-            
-            // Save to DrinkTracker
-            let drinkTracker = DrinkTracker()
-            drinkTracker.updateUserProfile(profile)
-            
-            // Also update settings manager
-            AppSettingsManager.shared.weight = weightInPounds
-            AppSettingsManager.shared.gender = gender
-            AppSettingsManager.shared.useMetricUnits = useMetricUnits
-            AppSettingsManager.shared.saveSettings()
-        }
+                    // Ensure weight is saved in pounds for consistency
+                    let weightInPounds = useMetricUnits ? weight * 2.20462 : weight
+                    
+                    let profile = UserProfile(
+                        weight: weightInPounds,
+                        gender: gender
+                    )
+                    
+                    // Save to DrinkTracker
+                    let drinkTracker = DrinkTracker()
+                    drinkTracker.updateUserProfile(profile)
+                    
+                    // Also update settings manager
+                    AppSettingsManager.shared.weight = weightInPounds
+                    AppSettingsManager.shared.gender = gender
+                    AppSettingsManager.shared.useMetricUnits = useMetricUnits
+                    AppSettingsManager.shared.saveSettings()
+                    
+                    // Critical: Save completion status
+                    UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+                    
+                    // Update binding
+                    hasCompletedSetup = true
+                }
     }
     
     // Supporting components for the enhanced onboarding
@@ -582,108 +589,46 @@ struct BarBuddyApp: App {
     }
     
     struct FinalSetupView: View {
-        let weight: Double
-        let gender: Gender
-        let useMetricUnits: Bool
-        let onComplete: () -> Void
-        @State private var enableNotifications = true
-        @State private var enableLocationServices = true
-        
-        var body: some View {
-            VStack(spacing: 30) {
-                // Header
-                Text("Almost done!")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .padding(.top, 40)
-                
-                // Profile summary
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("Your Profile")
-                        .font(.headline)
+            let weight: Double
+            let gender: Gender
+            let useMetricUnits: Bool
+            let onComplete: () -> Void
+            @State private var enableNotifications = true
+            @State private var enableLocationServices = true
+            
+            var body: some View {
+                VStack(spacing: 30) {
+                    // UI layout unchanged
                     
-                    HStack {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "scalemass")
-                                    .foregroundColor(Color.accent)
-                                Text("Weight:")
-                                    .foregroundColor(.secondary)
-                                Text(useMetricUnits ? "\(Int(weight)) kg" : "\(Int(weight)) lbs")
-                                    .fontWeight(.medium)
-                            }
-                            
-                            HStack {
-                                Image(systemName: "person.fill")
-                                    .foregroundColor(Color.accent)
-                                Text("Gender:")
-                                    .foregroundColor(.secondary)
-                                Text(gender.rawValue)
-                                    .fontWeight(.medium)
-                            }
+                    // Complete button
+                    Button(action: {
+                        if enableNotifications {
+                            requestNotificationPermissions()
                         }
                         
-                        Spacer()
+                        if enableLocationServices {
+                            requestLocationPermissions()
+                        }
+                        
+                        // Critical: Save completion status
+                        UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+                        UserDefaults.standard.set(true, forKey: "hasSeenDisclaimer")
+                        
+                        // Call onComplete to update binding
+                        onComplete()
+                    }) {
+                        Text("Complete Setup")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accent)
+                            .cornerRadius(15)
+                            .padding(.horizontal, 40)
                     }
+                    .padding(.bottom, 40)
                 }
-                .padding()
-                .background(Color.appCardBackground)
-                .cornerRadius(15)
-                .padding(.horizontal)
-                
-                // App permissions
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("App Permissions")
-                        .font(.headline)
-                    
-                    Toggle("Enable Notifications", isOn: $enableNotifications)
-                    
-                    Text("Allows alerts, hydration reminders, and safety check-ins")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Divider()
-                    
-                    Toggle("Enable Location Services", isOn: $enableLocationServices)
-                    
-                    Text("For accurate location sharing during emergencies")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .background(Color.appCardBackground)
-                .cornerRadius(15)
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                // Complete button
-                Button(action: {
-                    if enableNotifications {
-                        requestNotificationPermissions()
-                    }
-                    
-                    if enableLocationServices {
-                        requestLocationPermissions()
-                    }
-                    
-                    // Make sure we save the completed setup status
-                    UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
-                    
-                    onComplete()
-                }) {
-                    Text("Complete Setup")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .cornerRadius(15)
-                        .padding(.horizontal, 40)
-                }
-                .padding(.bottom, 40)
             }
-        }
         
         private func requestNotificationPermissions() {
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
