@@ -108,16 +108,19 @@ class ShareManager: ObservableObject {
         ]
     }
     
+    // Modified method to use actual location
     func createShareMessage(drinkCount: Double, drinkLimit: Double, customMessage: String? = nil, includeLocation: Bool = false) -> String {
         let baseMessage = customMessage ?? messageTemplates.randomElement()!
-        let drinkStatus = drinkCount >= drinkLimit 
-            ? "reached my drink limit" 
+        let drinkStatus = drinkCount >= drinkLimit
+            ? "reached my drink limit"
             : "\(String(format: "%.1f", drinkCount)) of \(String(format: "%.1f", drinkLimit)) drinks"
         
         var fullMessage = "\(baseMessage)\n\nCurrent Status: \(drinkStatus)"
         
         if includeLocation {
-            fullMessage += "\nApproximate Location: [Location would be included]"
+            // Get the real location from LocationManager
+            let locationString = LocationManager.shared.getLocationString()
+            fullMessage += "\nLocation: \(locationString)"
         }
         
         return fullMessage
@@ -374,14 +377,14 @@ struct ShareView: View {
     }
     
     func shareStatus() {
-        // Create message
+        // Create message - already includes location if includeLocation is true
         let message = shareManager.createShareMessage(
             drinkCount: drinkTracker.standardDrinkCount,
             drinkLimit: drinkTracker.drinkLimit,
             customMessage: selectedMessage.isEmpty ? nil : selectedMessage,
             includeLocation: includeLocation
         )
-        
+            
         // Create a share
         _ = shareManager.addShare(
             drinkCount: drinkTracker.standardDrinkCount,
@@ -389,33 +392,26 @@ struct ShareView: View {
             message: selectedMessage.isEmpty ? nil : selectedMessage
         )
 
-        // Include location if requested
-        var completeMessage = message
-        if includeLocation {
-            let locationString = LocationManager.shared.getLocationString()
-            completeMessage += "\nLocation: \(locationString)"
-        }
-        
         // Get all contacts
         let contacts = emergencyContactManager.emergencyContacts
-        
+            
         // Prepare recipients and message for Message Composer
         messageRecipients = contacts.map { $0.phoneNumber }
-        messageBody = completeMessage
-        
+        messageBody = message // Use the message which includes location
+            
         #if os(iOS)
         if MessageComposerView.canSendText() && !messageRecipients.isEmpty {
             showingMessageComposer = true
         } else {
             // Fallback for devices that can't send SMS
             let shareSheet = UIActivityViewController(
-                activityItems: [completeMessage],
+                activityItems: [message],
                 applicationActivities: nil
             )
-            
+                
             // Find the current UIWindow to present from
             if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = scene.windows.first?.rootViewController {
+                let rootVC = scene.windows.first?.rootViewController {
                 shareSheet.popoverPresentationController?.sourceView = rootVC.view
                 rootVC.present(shareSheet, animated: true)
             }
@@ -423,7 +419,6 @@ struct ShareView: View {
         #endif
     }
 }
-
 // Supporting view for multiple selection
 struct MultipleSelectionRow: View {
     let title: String

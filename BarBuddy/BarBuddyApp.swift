@@ -5,39 +5,43 @@
 //  Created by Travis Rodriguez on 3/21/25.
 import SwiftUI
 import StoreKit
+import Combine
 
 @main
 struct BarBuddyApp: App {
     // Keep existing state and observers
     @StateObject private var drinkTracker = DrinkTracker()
-    @State private var hasCompletedSetup = false
-    @State private var showingDisclaimerOnLaunch = false // Changed to false by default
+    
+    // Use AppStorage for reliable persistence
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    
+    // Store cancellables
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         // Apply themed colors to UI elements
         applyAppTheme()
         
-        // Load saved setup status immediately in init
-        self.hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
+        // Migrate old keys to new format
+        migrateUserDefaults()
+        
+        // Register default values
+        registerDefaultValues()
+        
     }
     
     var body: some Scene {
         WindowGroup {
             Group {
-                if !UserDefaults.standard.bool(forKey: "hasSeenDisclaimer") {
-                    // Only show disclaimer if it hasn't been seen
-                    EnhancedLaunchDisclaimerView(isPresented: $showingDisclaimerOnLaunch)
-                        .adaptiveLayout()
-                        .background(Color.appBackground)
-                } else if !hasCompletedSetup {
-                    // Only show setup if not completed
-                    EnhancedUserSetupView(hasCompletedSetup: $hasCompletedSetup)
+                if !hasCompletedOnboarding {
+                    // Only show disclaimer if the user hasn't completed onboarding
+                    EnhancedLaunchDisclaimerView(isCompletedOnboarding: $hasCompletedOnboarding)
                         .adaptiveLayout()
                         .background(Color.appBackground)
                         .onDisappear {
-                            // This is critical - mark setup as complete and save it
-                            UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
-                            hasCompletedSetup = true
+                            // Double-check when view disappears that the flag is saved
+                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                            UserDefaults.standard.synchronize()
                         }
                 } else {
                     // Main app content
@@ -47,38 +51,62 @@ struct BarBuddyApp: App {
                         .background(Color.appBackground)
                         .onAppear {
                             setupAppConfiguration()
-                            syncBACToWatch()
+                            syncDrinkDataToWatch()
                             // Connect DrinkTracker to WatchSessionManager
                             WatchSessionManager.shared.setDrinkTracker(drinkTracker)
                         }
                 }
             }
             .background(Color.appBackground) // Global background
-            .onAppear {
-                // We're not calling checkIfFirstLaunch() anymore to avoid resetting flags
-            }
         }
     }
     
-    // Keep your existing methods intact to maintain functionality
-    private func checkIfFirstLaunch() {
-        // First launch check
-        if !UserDefaults.standard.bool(forKey: "hasLaunchedBefore") {
-            showingDisclaimerOnLaunch = true
-            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
-        } else {
-            // Not first launch, check disclaimer status
-            showingDisclaimerOnLaunch = !UserDefaults.standard.bool(forKey: "hasSeenDisclaimer")
+    // Migrate old keys to new format for compatibility
+    private func migrateUserDefaults() {
+        // If we have old values but not the new one, migrate them
+        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+            let hasSeenDisclaimer = UserDefaults.standard.bool(forKey: "hasSeenDisclaimer")
+            let hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
+            
+            // If either old flag was true, set the new one to true
+            if hasSeenDisclaimer || hasCompletedSetup {
+                UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                self.hasCompletedOnboarding = true
+            }
+            
+            // Clean up old keys
+            UserDefaults.standard.removeObject(forKey: "hasSeenDisclaimer")
+            UserDefaults.standard.removeObject(forKey: "hasCompletedSetup")
+            UserDefaults.standard.synchronize()
         }
+    }
+    
+    // Register default values
+    private func registerDefaultValues() {
+        let defaults: [String: Any] = [
+            "hasCompletedOnboarding": false,
+            "currentDrinkCount": 0.0,
+            "drinkLimit": 4.0
+        ]
+        
+        UserDefaults.standard.register(defaults: defaults)
+    }
+    
+    
+    // Reload settings when needed
+    private func reloadSettingsIfNeeded() {
+        // We could add additional logic here if needed
+        // For now, the @AppStorage handles most of this automatically
+    }
+    
+    // Persist all important data
+    private func persistAllData() {
+        // Ensure all critical data is saved before app goes to background
+        UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.synchronize()
     }
     
     private func setupAppConfiguration() {
-        // Keep existing functionality
-        // Register defaults
-        if UserDefaults.standard.object(forKey: "hasSeenDisclaimer") == nil {
-            UserDefaults.standard.set(false, forKey: "hasSeenDisclaimer")
-        }
-        
         // Check purchase status
         checkPurchaseStatus()
         
@@ -91,17 +119,14 @@ struct BarBuddyApp: App {
     
     private func checkPurchaseStatus() {
         // In a real app, this would check with StoreKit to verify purchases
-        // For now, we'll just use UserDefaults
         if UserDefaults.standard.bool(forKey: "hasPurchasedApp") {
-            hasCompletedSetup = true
-            // Save that setup has been completed
-            UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
+            hasCompletedOnboarding = true
+            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+            UserDefaults.standard.synchronize()
         }
     }
 
-    
     private func requestNotificationPermissions() {
-        // Keep existing functionality
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if granted {
                 // Setup notification categories for different types of notifications
@@ -111,7 +136,6 @@ struct BarBuddyApp: App {
     }
     
     private func setupNotificationCategories() {
-        // Keep existing functionality
         // Create actions for notifications
         let getUberAction = UNNotificationAction(
             identifier: "GET_UBER",
@@ -143,7 +167,7 @@ struct BarBuddyApp: App {
         UNUserNotificationCenter.current().setNotificationCategories([bacCategory])
     }
     
-    private func syncBACToWatch() {
+    private func syncDrinkDataToWatch() {
         // Send data via WatchConnectivity
         WatchSessionManager.shared.sendDrinkDataToWatch(
             drinkCount: drinkTracker.standardDrinkCount,
@@ -154,6 +178,7 @@ struct BarBuddyApp: App {
         // UserDefaults
         UserDefaults.standard.set(drinkTracker.standardDrinkCount, forKey: "currentDrinkCount")
         UserDefaults.standard.set(drinkTracker.timeUntilReset, forKey: "timeUntilReset")
+        UserDefaults.standard.synchronize()
     }
     
     // Add new method to apply custom theme colors
@@ -181,11 +206,11 @@ struct BarBuddyApp: App {
     
     // MARK: - Enhanced Disclaimer View
     struct EnhancedLaunchDisclaimerView: View {
-            @Binding var isPresented: Bool
-            @Environment(\.horizontalSizeClass) var horizontalSizeClass
-            
-            var body: some View {
-                VStack(spacing: 0) {
+        @Binding var isCompletedOnboarding: Bool
+        @Environment(\.horizontalSizeClass) var horizontalSizeClass
+        
+        var body: some View {
+            VStack(spacing: 0) {
                 // Header
                 ZStack {
                     Rectangle()
@@ -254,8 +279,16 @@ struct BarBuddyApp: App {
                         // Action buttons
                         VStack(spacing: 15) {
                             Button(action: {
-                                UserDefaults.standard.set(true, forKey: "hasSeenDisclaimer")
-                                isPresented = false
+                                // Update the AppStorage binding and explicitly set UserDefaults
+                                // for extra redundancy
+                                isCompletedOnboarding = true
+                                UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                                UserDefaults.standard.synchronize()
+                                
+                                // Also clear old flags just to be safe
+                                UserDefaults.standard.removeObject(forKey: "hasSeenDisclaimer")
+                                UserDefaults.standard.removeObject(forKey: "hasCompletedSetup")
+                                UserDefaults.standard.synchronize()
                             }) {
                                 Text("I Understand and Accept")
                                     .font(.headline)
@@ -318,393 +351,6 @@ struct BarBuddyApp: App {
                         }
                     }
                 }
-            }
-        }
-    }
-    
-    // Enhancing EnhancedUserSetupView in BarBuddyApp.swift
-    struct EnhancedUserSetupView: View {
-            @Binding var hasCompletedSetup: Bool
-            @State private var weight: Double = 160.0
-            @State private var gender: Gender = .male
-            @State private var currentPage = 0
-            @State private var showUnitSelector = false
-            @State private var useMetricUnits = false
-            @Environment(\.horizontalSizeClass) var horizontalSizeClass
-        
-        var body: some View {
-            GeometryReader { geometry in
-                VStack(spacing: 0) {
-                    // Progress bar
-                    ProgressBar(currentStep: currentPage, totalSteps: 3)
-                        .padding(.top)
-                    
-                    TabView(selection: $currentPage) {
-                        // Welcome screen
-                        WelcomeView(nextAction: { currentPage = 1 })
-                            .tag(0)
-                        
-                        // Profile setup
-                        VStack(spacing: 30) {
-                            // Header
-                            Text("Tell us about yourself")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .padding(.top, 40)
-                            
-                            // Weight selection
-                            VStack(alignment: .leading, spacing: 15) {
-                                HStack {
-                                    Text("Your Weight")
-                                        .font(.headline)
-                                    
-                                    Spacer()
-                                    
-                                    Button(action: { showUnitSelector = true }) {
-                                        Text(useMetricUnits ? "kg" : "lbs")
-                                            .font(.subheadline)
-                                            .foregroundColor(.blue)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 5)
-                                            .background(Color.blue.opacity(0.1))
-                                            .cornerRadius(8)
-                                    }
-                                }
-                                
-                                HStack {
-                                    Text(weightDisplay)
-                                        .font(.title)
-                                        .fontWeight(.semibold)
-                                        .frame(width: 80, alignment: .leading)
-                                    
-                                    Slider(value: $weight, in: useMetricUnits ? 40...180 : 88...396, step: 1)
-                                        .accentColor(Color.accent)
-                                }
-                                
-                                Text("We use this to calculate more accurately")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.appCardBackground)
-                            .cornerRadius(15)
-                            .padding(.horizontal)
-                            
-                            // Gender selection
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("Your Gender")
-                                    .font(.headline)
-                                
-                                HStack(spacing: 15) {
-                                    GenderButton(
-                                        title: "Male",
-                                        icon: "person.fill",
-                                        isSelected: gender == .male,
-                                        action: { gender = .male }
-                                    )
-                                    
-                                    GenderButton(
-                                        title: "Female",
-                                        icon: "person.fill",
-                                        isSelected: gender == .female,
-                                        action: { gender = .female }
-                                    )
-                                }
-                                
-                                Text("Gender affects how your body processes alcohol")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.appCardBackground)
-                            .cornerRadius(15)
-                            .padding(.horizontal)
-                            
-                            Spacer()
-                            
-                            // Navigation buttons
-                            HStack {
-                                Button(action: { currentPage = 0 }) {
-                                    HStack {
-                                        Image(systemName: "chevron.left")
-                                        Text("Back")
-                                    }
-                                    .padding()
-                                    .foregroundColor(.blue)
-                                }
-                                
-                                Spacer()
-                                
-                                Button(action: { currentPage = 2 }) {
-                                    HStack {
-                                        Text("Next")
-                                        Image(systemName: "chevron.right")
-                                    }
-                                    .padding()
-                                    .foregroundColor(.white)
-                                    .background(Color.accent)
-                                    .cornerRadius(10)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.bottom)
-                        }
-                        .tag(1)
-                        
-                        // Settings & Completion
-                        FinalSetupView(
-                            weight: weight,
-                            gender: gender,
-                            useMetricUnits: useMetricUnits,
-                            onComplete: {
-                                saveUserProfile()
-                                hasCompletedSetup = true
-                            }
-                        )
-                        .tag(2)
-                    }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                    .animation(.easeInOut, value: currentPage)
-                }
-                .actionSheet(isPresented: $showUnitSelector) {
-                    ActionSheet(
-                        title: Text("Select Unit"),
-                        buttons: [
-                            .default(Text("Pounds (lbs)")) {
-                                if useMetricUnits {
-                                    // Convert kg to lbs
-                                    weight = weight * 2.20462
-                                    useMetricUnits = false
-                                }
-                            },
-                            .default(Text("Kilograms (kg)")) {
-                                if !useMetricUnits {
-                                    // Convert lbs to kg
-                                    weight = weight / 2.20462
-                                    useMetricUnits = true
-                                }
-                            },
-                            .cancel()
-                        ]
-                    )
-                }
-            }
-            .background(Color.appBackground.edgesIgnoringSafeArea(.all))
-        }
-        
-        private var weightDisplay: String {
-            if useMetricUnits {
-                return "\(Int(weight)) kg"
-            } else {
-                return "\(Int(weight)) lbs"
-            }
-        }
-        
-        private func saveUserProfile() {
-                    // Ensure weight is saved in pounds for consistency
-                    let weightInPounds = useMetricUnits ? weight * 2.20462 : weight
-                    
-                    let profile = UserProfile(
-                        weight: weightInPounds,
-                        gender: gender
-                    )
-                    
-                    // Save to DrinkTracker
-                    let drinkTracker = DrinkTracker()
-                    drinkTracker.updateUserProfile(profile)
-                    
-                    // Also update settings manager
-                    AppSettingsManager.shared.weight = weightInPounds
-                    AppSettingsManager.shared.gender = gender
-                    AppSettingsManager.shared.useMetricUnits = useMetricUnits
-                    AppSettingsManager.shared.saveSettings()
-                    
-                    // Critical: Save completion status
-                    UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
-                    
-                    // Update binding
-                    hasCompletedSetup = true
-                }
-    }
-    
-    // Supporting components for the enhanced onboarding
-    struct WelcomeView: View {
-        let nextAction: () -> Void
-        
-        var body: some View {
-            VStack(spacing: 30) {
-                Spacer()
-                
-                // App logo and title
-                VStack(spacing: 15) {
-                    Image(systemName: "wineglass")
-                        .font(.system(size: 80))
-                        .foregroundColor(Color.accent)
-                        .padding()
-                        .background(
-                            Circle()
-                                .fill(Color.accent.opacity(0.1))
-                                .frame(width: 150, height: 150)
-                        )
-                    
-                    Text("Welcome to BarBuddy")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Your personal drinking companion")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Key features
-                VStack(alignment: .leading, spacing: 15) {
-                    FeatureRow(icon: "chart.bar", title: "Track your drink consumption")
-                    FeatureRow(icon: "calendar", title: "Monitor drinking patterns")
-                    FeatureRow(icon: "person.2", title: "Share your drinking status")
-                    FeatureRow(icon: "list.clipboard", title: "Set daily drink limits")
-                    FeatureRow(icon: "stopwatch", title: "Track time between drinks")
-                    FeatureRow(icon: "car", title: "Get home safely with rideshare")
-                }
-                .padding()
-                .background(Color.appCardBackground)
-                .cornerRadius(15)
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                // Start button
-                Button(action: nextAction) {
-                    Text("Get Started")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .cornerRadius(15)
-                        .padding(.horizontal, 40)
-                }
-                .padding(.bottom, 40)
-            }
-        }
-    }
-    
-    struct FinalSetupView: View {
-            let weight: Double
-            let gender: Gender
-            let useMetricUnits: Bool
-            let onComplete: () -> Void
-            @State private var enableNotifications = true
-            @State private var enableLocationServices = true
-            
-            var body: some View {
-                VStack(spacing: 30) {
-                    // UI layout unchanged
-                    
-                    // Complete button
-                    Button(action: {
-                        if enableNotifications {
-                            requestNotificationPermissions()
-                        }
-                        
-                        if enableLocationServices {
-                            requestLocationPermissions()
-                        }
-                        
-                        // Critical: Save completion status
-                        UserDefaults.standard.set(true, forKey: "hasCompletedSetup")
-                        UserDefaults.standard.set(true, forKey: "hasSeenDisclaimer")
-                        
-                        // Call onComplete to update binding
-                        onComplete()
-                    }) {
-                        Text("Complete Setup")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accent)
-                            .cornerRadius(15)
-                            .padding(.horizontal, 40)
-                    }
-                    .padding(.bottom, 40)
-                }
-            }
-        
-        private func requestNotificationPermissions() {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-                if granted {
-                    // Setup notification categories for different types of notifications
-                    NotificationManager.shared.setupNotificationCategories()
-                }
-            }
-        }
-        
-        private func requestLocationPermissions() {
-            // This would integrate with LocationManager to request permissions
-            LocationManager.shared.requestPermission()
-        }
-    }
-    
-    struct ProgressBar: View {
-        let currentStep: Int
-        let totalSteps: Int
-        
-        var body: some View {
-            HStack(spacing: 4) {
-                ForEach(0..<totalSteps, id: \.self) { step in
-                    Capsule()
-                        .fill(step <= currentStep ? Color.accent : Color.gray.opacity(0.3))
-                        .frame(height: 4)
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-    
-    struct FeatureRow: View {
-        let icon: String
-        let title: String
-        
-        var body: some View {
-            HStack(spacing: 15) {
-                Image(systemName: icon)
-                    .font(.system(size: 22))
-                    .foregroundColor(Color.accent)
-                    .frame(width: 30)
-                
-                Text(title)
-                    .fontWeight(.medium)
-                
-                Spacer()
-            }
-        }
-    }
-    
-    struct GenderButton: View {
-        let title: String
-        let icon: String
-        let isSelected: Bool
-        let action: () -> Void
-        
-        var body: some View {
-            Button(action: action) {
-                VStack(spacing: 12) {
-                    Image(systemName: icon)
-                        .font(.system(size: 30))
-                        .foregroundColor(isSelected ? .white : Color.accent)
-                    
-                    Text(title)
-                        .font(.headline)
-                        .foregroundColor(isSelected ? .white : .primary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(isSelected ? Color.accent : Color.appCardBackground)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.clear : Color.accent, lineWidth: 2)
-                )
             }
         }
     }

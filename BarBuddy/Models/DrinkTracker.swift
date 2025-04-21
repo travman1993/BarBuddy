@@ -120,6 +120,10 @@ public class DrinkTracker: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
+        let todaysDrinks = drinks.filter {
+                calendar.isDate($0.timestamp, inSameDayAs: today)
+            }
+        
         // Only reset the counter, don't remove the drinks themselves
         standardDrinkCount = 0.0
         
